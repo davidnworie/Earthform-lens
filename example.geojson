@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"role":"main","note":"Synthetic example"},"geometry":{"type":"LineString","coordinates":[[10,48,150],[10.02,48.01,125],[10.04,48,110],[10.06,48.01,100]]}}]}
