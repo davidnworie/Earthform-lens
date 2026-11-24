@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Earthform Lens — read landscapes from satellite images</title>
 <meta name="description" content="Turn Google Earth and satellite screenshots into geomorphology findings, change maps and social-media-ready art.">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;1,500&family=JetBrains+Mono:wght@400;500&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;1,500&family=JetBrains+Mono:wght@400;500&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0c0d0f;--panel:#15171a;--p2:#1d2024;--line:#2a2e33;--text:#eef0f2;--muted:#8b929a;--acc:#ff7a45;--acc2:#3fc1d3;--ok:#5bd17a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -231,47 +231,224 @@ ol.hot li{margin:5px 0}
 canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-action:pan-y}
 .yrs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted)}
 .yrs input{width:80px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px 12px;margin:6px 0}.pgrid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}.pgrid input[type=number],.pgrid input[type=date]{background:var(--p2);color:var(--text);border:1px solid var(--line2);border-radius:9px;padding:7px 8px;font:inherit}.pgrid b{color:var(--text)}
+details.prov{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:rgba(255,255,255,.02)}details.prov summary{cursor:pointer;font-size:12.5px;color:var(--acc2);font-weight:600}details.prov table td:first-child{width:28%;color:var(--muted)}
+.lcbar{display:flex;height:16px;border-radius:6px;overflow:hidden;margin:6px 0}.lcbar span{min-width:1px}
+.xchart{position:relative}.ctool{position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s}.xchart:hover .ctool,.xchart:focus-within .ctool{opacity:1}@media (hover:none){.ctool{opacity:.85}}.ctool button{padding:3px 7px;font-size:11px;background:rgba(0,0,0,.6)}
+.xmodebar{position:absolute;left:50%;transform:translateX(-50%);bottom:70px;z-index:7;border-radius:14px;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:calc(100% - 20px);font-size:13px}
+.xstats>div.long{grid-column:span 2}.xstats>div.long b{font-size:13.5px!important;font-weight:600;font-family:Inter,sans-serif}.x3:empty{display:none}.x3{margin-top:8px}
+.xpanel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.xpanel .row input[type=date]{background:var(--p2);color:var(--text);border:1px solid var(--line2);border-radius:9px;padding:6px 8px}
+/* activity indicators */
+#actBar{position:fixed;left:0;right:0;top:0;height:3px;z-index:200;overflow:hidden;opacity:0;transition:opacity .3s;pointer-events:none}#actBar.on{opacity:1}
+#actBar i{position:absolute;top:0;bottom:0;left:0;width:35%;background:var(--grad);border-radius:3px;animation:indet 1.2s ease-in-out infinite}
+#actBar.det i{animation:none;transition:width .4s}
+@keyframes indet{0%{left:-35%}100%{left:100%}}
+#actPill{position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);z-index:190;display:flex;align-items:center;gap:10px;max-width:min(560px,calc(100vw - 24px));padding:10px 14px;border-radius:16px;background:rgba(12,17,23,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line2);box-shadow:var(--shadow);transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0;pointer-events:none}
+#actPill.on{transform:translate(-50%,0);opacity:1}
+#actPill .atx{min-width:0;display:flex;flex-direction:column}#actPill b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#actPill small{font-size:11.5px;color:var(--muted)}
+#actPill .apct{font-family:"Space Grotesk",sans-serif;font-weight:700;color:var(--acc2);font-variant-numeric:tabular-nums}
+.aspin{flex:none;width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.15);border-top-color:var(--acc2);border-right-color:var(--acc);animation:rot .8s linear infinite}
+#actDone{position:fixed;left:50%;bottom:18px;transform:translate(-50%,160%);z-index:185;display:flex;gap:9px;align-items:center;max-width:min(560px,calc(100vw - 24px));padding:10px 14px;border-radius:14px;font-size:13px;background:rgba(12,17,23,.94);border:1px solid var(--line2);box-shadow:var(--shadow);transition:transform .3s,opacity .3s;opacity:0;cursor:pointer}
+#actDone.on{transform:translate(-50%,0);opacity:1}#actDone span{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px}#actDone.ok span{background:var(--ok);color:#0b0f14}#actDone.err span{background:var(--bad);color:#fff}#actDone.err{border-color:rgba(255,107,107,.4)}
+#actPill.on~#actDone,#actPill.on+#actBar+#actDone{bottom:84px}
+@media (max-width:720px){#actPill,#actDone{bottom:calc(86px + env(safe-area-inset-bottom))}#actPill b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}}
+button.loading,label.loading,.chip.loading{position:relative;pointer-events:none;opacity:.85}
+button.loading::after,label.loading::after,.chip.loading::after{content:"";display:inline-block;width:12px;height:12px;margin-left:7px;vertical-align:-2px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:rot .7s linear infinite}
+.xsearch.searching .xsi{animation:pulse 1s ease-in-out infinite;stroke:var(--acc2)}@keyframes pulse{50%{opacity:.35;transform:scale(.85)}}
+.xtiles-ld{position:absolute;right:10px;top:62px;z-index:4;font-size:11.5px;padding:4px 10px 4px 26px;border-radius:999px;background:var(--glass);border:1px solid var(--line2);color:var(--muted);opacity:0;transition:opacity .4s;pointer-events:none}
+.xtiles-ld.on{opacity:1}.xtiles-ld::before{content:"";position:absolute;left:9px;top:50%;width:10px;height:10px;margin-top:-6px;border-radius:50%;border:2px solid var(--acc2);border-right-color:transparent;animation:rot .8s linear infinite}
+@media (max-width:720px){.xtiles-ld{top:auto;bottom:62px;left:10px;right:auto}}
+.subnav{position:sticky;top:57px;z-index:45;display:none;gap:4px;align-items:center;padding:6px 14px;background:rgba(6,9,13,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}.subnav.on{display:flex}.subnav::-webkit-scrollbar{display:none}
+.subnav button{border:none;background:transparent;color:var(--muted);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}.subnav button.on{background:rgba(255,255,255,.1);color:#fff}.subnav .subimg{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;padding-left:12px}
+@media (max-width:720px){.subnav{top:53px;padding:6px 8px}.subnav .subimg{display:none}}
+.lklink{margin:8px 12px 0;padding:8px 10px;border-radius:14px;background:linear-gradient(120deg,rgba(56,211,230,.07),rgba(255,122,69,.06));border:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:12.5px}.lklink:empty{display:none}
+.lklink.lab{flex-direction:row;align-items:center;flex-wrap:wrap;margin:6px 0}
+.lk-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.lk-t{flex:1;min-width:180px}.lk-t small{display:block;color:var(--muted)}.lk-l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}.lk-h{font-size:11.5px;color:var(--muted)}
+.lk-dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--muted)}.lk-dot.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}.lk-dot.warn{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+.chip.dim{opacity:.45}.xrestore{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}.xrestore span{flex:1;min-width:200px}.xrestore small{color:var(--muted)}.cmpq{padding:8px 12px}#actPill .acx{pointer-events:auto;margin-left:4px}#actPill{pointer-events:auto}
+/* ================= v2: modern theme ================= */
+:root{--bg:#06090d;--panel:rgba(20,26,33,.78);--p2:#18212a;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);--text:#eef3f7;--muted:#8d9aa7;--acc:#ff7a45;--acc2:#38d3e6;--ok:#4fdb8a;--warn:#ffc857;--bad:#ff6b6b;--r:16px;--glass:rgba(12,17,23,.72);--shadow:0 10px 40px rgba(0,0,0,.45);--grad:linear-gradient(120deg,#ff7a45,#ff4f8b 45%,#38d3e6)}
+html,body{font:14.5px/1.5 Inter,"Space Grotesk",system-ui,-apple-system,sans-serif;background:var(--bg);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:-20vmax;z-index:-1;background:radial-gradient(40vmax 30vmax at 15% 0%,rgba(56,211,230,.10),transparent 60%),radial-gradient(40vmax 30vmax at 90% 10%,rgba(255,122,69,.10),transparent 60%),radial-gradient(50vmax 40vmax at 50% 110%,rgba(255,79,139,.07),transparent 60%);animation:drift 30s ease-in-out infinite alternate;pointer-events:none}
+@keyframes drift{to{transform:translate3d(3vmax,-2vmax,0) scale(1.05)}}
+.app{max-width:none}
+.appsec.on{animation:secIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes secIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#app-home,#app-discover,#app-report,#app-posts,#app-studio,#app-lab{max-width:780px;margin-left:auto;margin-right:auto;width:100%}
+header{position:sticky;top:0;z-index:50;padding:10px 16px;background:rgba(6,9,13,.72);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid var(--line);flex-wrap:nowrap}
+.logo{font-family:"Space Grotesk",Inter,sans-serif;font-weight:500;font-size:18px;letter-spacing:-.01em;cursor:pointer;white-space:nowrap}.logo b{font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo i{width:22px;height:22px;border-radius:7px;background:conic-gradient(from 200deg,#38d3e6,#4fdb8a,#ffc857,#ff7a45,#ff4f8b,#38d3e6);box-shadow:0 0 18px rgba(56,211,230,.35);animation:spin 18s linear infinite}
+@keyframes spin{to{filter:hue-rotate(360deg)}}
+.seg{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:3px;gap:2px}
+.seg button{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:11px;font-size:13px;font-weight:500;color:var(--muted);transition:color .2s,background .2s}
+.seg button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.seg button:hover{color:var(--text)}.seg button.on{background:rgba(255,255,255,.95);color:#0b0f14}
+@media (max-width:720px){
+  header{padding:9px 12px;backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(6,9,13,.94)}.seg{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:60;justify-content:space-around;background:rgba(12,17,23,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:20px;padding:5px;box-shadow:var(--shadow)}
+  .seg button{flex-direction:column;gap:2px;padding:6px 4px;font-size:10.5px;flex:1;border-radius:14px}.seg button svg{width:20px;height:20px}
+  .seg button.on{background:rgba(255,255,255,.1);color:#fff}.seg button.on svg{stroke:var(--acc2)}
+  .app{padding-bottom:84px}
+}
+button{border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.05);transition:transform .15s,background .2s,border-color .2s,box-shadow .2s}
+button:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22)}button:active{transform:scale(.97)}
+button.pri,button.primary{background:var(--grad);background-size:160% 100%;border:none;color:#fff;font-weight:600;box-shadow:0 6px 22px rgba(255,90,90,.25);text-shadow:0 1px 2px rgba(0,0,0,.25)}
+button.pri:hover{background-position:100% 0;box-shadow:0 8px 28px rgba(255,90,90,.35)}
+button.ghost{background:transparent}
+button:disabled{opacity:.45;pointer-events:none}
+input,select,textarea{transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus{outline:none;border-color:var(--acc2)!important;box-shadow:0 0 0 3px rgba(56,211,230,.18)}
+select{background:var(--p2);color:var(--text);border:1px solid var(--line2);border-radius:10px;padding:6px 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(8px)}
+.chip{border-radius:999px}
+.note{color:var(--muted)}
+h2,h3,h4{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.01em}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.kicker{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--acc2)}
+.glass{background:var(--glass);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid var(--line2);box-shadow:var(--shadow)}
+.shimmer{background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);background-size:200% 100%;animation:shim 1.3s infinite}
+@keyframes shim{from{background-position:150% 0}to{background-position:-50% 0}}
+/* home */
+.home{padding:44px 18px 60px}.home .hero{font-size:0;width:84px;height:84px;margin:0 auto 18px;border-radius:26px;background:conic-gradient(from 200deg,#38d3e6,#4fdb8a,#ffc857,#ff7a45,#ff4f8b,#38d3e6);box-shadow:0 0 60px rgba(56,211,230,.35),0 0 120px rgba(255,79,139,.2);animation:spin 18s linear infinite,float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.home h1{font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(28px,6vw,44px);line-height:1.08;letter-spacing:-.03em;margin:8px auto 12px;max-width:640px}
+.home p{max-width:560px;font-size:15px}
+.bigbtn{padding:13px 20px;font-size:15px;border-radius:14px}
+.home .modes div{border-radius:14px;background:var(--panel);transition:transform .2s,border-color .2s}.home .modes div:hover{transform:translateY(-2px);border-color:var(--line2)}
+/* ===== Rivers ===== */
+.xwrap{max-width:1500px;padding:12px 14px 40px;display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:1000px){.xwrap{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}.xstage{position:sticky;top:108px}.xmapbox{height:calc(100vh - 170px)!important}}
+.xmapbox{height:min(62vh,600px);border-radius:22px;border:1px solid var(--line2);box-shadow:var(--shadow);background:#0d1418}
+.xfloat{position:absolute;top:10px;left:10px;right:10px;z-index:5;display:flex;flex-direction:column;gap:8px;pointer-events:none}.xfloat>*{pointer-events:auto}
+.xsearchbox{position:relative;max-width:560px;z-index:3}.xtools{position:relative;z-index:1}
+.xsearch{display:flex;align-items:center;gap:6px;border-radius:16px;padding:5px 5px 5px 12px}
+.xsearch .xsi{width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;flex:none}
+.xsearch input{flex:1;min-width:0;border:none!important;background:transparent!important;font-size:16px;padding:9px 4px;color:#fff;box-shadow:none!important}
+.xsearch button{border-radius:12px;padding:9px 16px}
+.xresults{position:absolute;left:0;right:0;top:calc(100% + 6px);border-radius:16px;padding:6px;margin:0;max-height:min(52vh,440px);overflow:auto;display:none;flex-direction:column;gap:3px}
+.xresults.open{display:flex;animation:drop .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes drop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.xres{display:flex;align-items:center;gap:10px;text-align:left;padding:9px 10px;border-radius:12px;border:1px solid transparent;background:transparent;animation:resIn .3s both;animation-delay:var(--d)}
+.xres:hover{background:rgba(255,255,255,.07);border-color:var(--line)}
+@keyframes resIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.xri{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:16px;background:linear-gradient(135deg,rgba(56,211,230,.25),rgba(79,219,138,.15));color:#bff6ff}
+.xrt{flex:1;min-width:0}.xrt b{display:block;font-weight:600}.xrt small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xrb{display:flex;flex-direction:column;align-items:flex-end;gap:3px}.xrb em{font-style:normal;font-size:10.5px;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.07);color:var(--muted);white-space:nowrap}.xrb em.ok{background:rgba(79,219,138,.15);color:var(--ok)}
+.xres-empty,.xres-more{padding:12px;border-radius:12px;color:var(--muted);font-size:13px}.xres-empty small{display:block;margin-top:4px;font-size:11.5px}
+.xtools{display:flex;gap:6px;flex-wrap:wrap}
+.chipbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;font-size:12.5px;border-radius:999px;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line2);color:var(--text);cursor:pointer}
+.xmapctl{top:auto!important;left:auto!important;right:10px;bottom:26px;z-index:4;justify-content:flex-end}
+.xmapctl select,.xmapctl button{background:var(--glass)!important;backdrop-filter:blur(12px);border:1px solid var(--line2)!important;border-radius:10px;font-size:12.5px;color:#fff}
+.xsteps{position:absolute;left:10px;top:108px;z-index:4;border-radius:16px;padding:10px 12px;min-width:220px;max-width:calc(100% - 20px);display:none;flex-direction:column;gap:6px}
+.xsteps.on{display:flex;animation:drop .25s}
+.xbar{height:3px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:2px}.xbar i{display:block;height:100%;background:var(--grad);transition:width .5s}
+.xstep{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--muted)}.xstep small{display:block;font-size:11px;opacity:.8}
+.xstep i{flex:none;width:14px;height:14px;margin-top:2px;border-radius:50%;border:2px solid rgba(255,255,255,.2)}
+.xstep.run{color:#fff}.xstep.run i{border-color:var(--acc2);border-top-color:transparent;animation:rot .8s linear infinite}
+.xstep.done{color:var(--text)}.xstep.done i{background:var(--ok);border-color:var(--ok);box-shadow:inset 0 0 0 2px #0b0f14}
+.xstep.fail{color:var(--bad)}.xstep.fail i{background:var(--bad);border-color:var(--bad)}.xstep.skip i{border-style:dashed}
+@keyframes rot{to{transform:rotate(360deg)}}
+.xconnbox{position:absolute;right:10px;top:110px;z-index:6;width:min(330px,calc(100% - 20px));border-radius:16px;padding:12px;display:none}.xconnbox.on{display:block;animation:drop .25s}
+.xconn-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.xconn{display:flex;gap:8px;align-items:center;font-size:13px;padding:4px 0}.xconn span{flex:1}.xconn small{color:var(--muted)}
+.xconn i{width:9px;height:9px;border-radius:50%}.xconn.ok i{background:var(--ok);box-shadow:0 0 8px var(--ok)}.xconn.bad i{background:var(--bad);box-shadow:0 0 8px var(--bad)}.xconn.bad small{color:var(--bad)}
+.xstatus{margin:10px 4px 0;font-size:13px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.xstatus.busy{color:var(--warn);border-color:rgba(255,200,87,.25)}.xstatus.err{color:var(--bad);border-color:rgba(255,107,107,.3);background:rgba(255,107,107,.06)}.xstatus.ok{color:#a5f0c2;border-color:rgba(79,219,138,.25)}
+.xside{min-width:0}
+.xhero{padding:8px 4px 6px}.xhero h1{font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(28px,4.4vw,46px);line-height:1.05;letter-spacing:-.03em;margin:8px 0 12px}.xhero p{color:var(--muted);font-size:15px;max-width:620px;margin:0}
+.sech{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 4px 10px}
+.rcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.rcard{position:relative;text-align:left;padding:12px;border-radius:16px;background:linear-gradient(160deg,rgba(56,211,230,.08),rgba(255,255,255,.02));border:1px solid var(--line);display:flex;flex-direction:column;gap:2px;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s}
+.rcard:hover{transform:translateY(-3px);border-color:rgba(56,211,230,.4);box-shadow:0 10px 30px rgba(56,211,230,.12)}
+.rcard svg{width:100%;height:34px;margin-bottom:4px}.rcard path{fill:none;stroke:url(#none);stroke:var(--acc2);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:160;stroke-dashoffset:160;animation:drawp 1.6s .2s forwards}
+@keyframes drawp{to{stroke-dashoffset:0}}
+.rcard b{font-size:15px}.rcard small{color:var(--muted);font-size:11.5px}.rcard em{font-style:normal;font-size:11px;color:var(--acc);font-weight:600;margin-top:4px}
+.mcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.mcard{padding:12px;border-radius:14px;background:var(--panel);border:1px solid var(--line);animation:resIn .4s both;animation-delay:calc(var(--i)*40ms)}.mcard b{display:block;font-size:14px}.mcard small{color:var(--muted);font-size:12px}
+.xtop{margin-top:2px}
+.xtitle h2{font-size:clamp(28px,4vw,40px);line-height:1.05;letter-spacing:-.03em;margin:4px 0 2px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}.xtitle h2 small{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}
+.xsrc{font-size:12px;color:var(--muted);margin:2px 0 6px}.xsrc a{color:var(--acc2)}
+.xtiles{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important;gap:8px}
+.xstats>div{background:var(--panel)!important;border:1px solid var(--line)!important;border-radius:14px!important;padding:10px 12px!important;position:relative;overflow:hidden}
+.xtiles>div::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--grad);opacity:.5}
+.xstats span{font-size:11px!important;text-transform:uppercase;letter-spacing:.06em}.xstats b{font-size:19px!important;font-weight:700;font-variant-numeric:tabular-nums;font-family:"Space Grotesk",Inter,sans-serif}.xstats em{font-style:normal;color:var(--muted);font-size:12px;margin-left:4px}
+.xpos{border-radius:18px!important}
+.xsel{border-radius:16px!important;background:linear-gradient(120deg,rgba(255,122,69,.08),rgba(56,211,230,.06))!important}
+.xtabs{position:sticky;top:100px;z-index:20;margin:12px -2px;padding:6px 2px;background:rgba(6,9,13,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);scroll-snap-type:x proximity;scrollbar-width:none;gap:6px!important}
+.xtabs::-webkit-scrollbar{display:none}
+.xtabs button{display:flex!important;align-items:center;gap:6px;scroll-snap-align:center;padding:8px 13px!important;border-radius:999px!important;font-size:13px;font-weight:500;color:var(--muted)!important;background:rgba(255,255,255,.04)!important;border:1px solid var(--line)!important}
+.xtabs button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.xtabs button.on{color:#0b0f14!important;background:#fff!important;border-color:#fff!important;box-shadow:0 4px 18px rgba(255,255,255,.15)}
+.xpanel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px}
+.xpanel.enter{animation:secIn .3s cubic-bezier(.2,.8,.2,1)}
+.xpanel h4{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:16px 0 6px}.xpanel h4:first-child{margin-top:2px}
+#xMetric:empty{display:none}.xchart:empty{display:none}.xchart{background:rgba(0,0,0,.22);border-radius:14px;padding:4px;border:1px solid var(--line)}
+.xsvg path{transition:d .3s}.xsvg .cur{stroke:#fff;stroke-width:1.2;stroke-dasharray:3 3}
+table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}table.grid th{position:sticky;top:0;background:#111820;color:var(--muted);font-weight:600;text-align:left;padding:7px 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}table.grid td{padding:7px 8px;border-top:1px solid var(--line)}table.grid tr:hover td{background:rgba(255,255,255,.03)}table.grid tr.on td{background:rgba(56,211,230,.08)}
+.scroll{border-radius:12px;border:1px solid var(--line)}
+@media (max-width:720px){.xtabs{top:94px}.xwrap{padding:8px 8px 30px}.xmapbox{height:58vh;border-radius:18px}.xfloat{top:8px;left:8px;right:8px}.xsearch button{padding:9px 12px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="app">
 <header>
-  <div class="logo"><i></i>Earthform Lens</div>
-  <nav class="seg"><button data-app="explore">Rivers</button><button data-app="discover">Discover</button><button data-app="report">✦ Findings</button><button data-app="posts">Posts</button><button data-app="studio">Studio</button><button data-app="lab">Lab</button></nav>
-  <button class="sm" id="btnOpen">Open…</button>
+  <div class="logo" id="logoHome"><i></i><span>Earthform <b>Lens</b></span></div>
+  <nav class="seg"><button data-ws="explore"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Explore</span></button><button data-ws="analyze"><svg viewBox="0 0 24 24"><path d="M3 17c3 0 3-10 6-10s3 10 6 10 3-10 6-10"/></svg><span>Analyze</span></button><button data-ws="compare"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="7" height="14" rx="1.5"/><rect x="14" y="5" width="7" height="14" rx="1.5"/></svg><span>Compare</span></button><button data-ws="report"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/></svg><span>Report</span></button></nav>
+  <button class="sm ghost" id="btnOpen">＋ Open image</button>
 </header>
+<div class="subnav" id="subnav"></div>
 
 <section class="appsec" id="app-home"><div class="home">
   <div class="hero">🛰️</div>
-  <h1>Satellite art and landscape science, from one image</h1>
-  <p>Open a Google Earth screenshot, a satellite GeoTIFF or an elevation model. Earthform Lens reads the landscape: it detects water and channels (rivers, tributaries, deltas, coasts, even seafloor canyons), measures them, compares dates, explains every number, and turns the findings into art and ready-to-post carousels.</p>
+  <h1>Read Earth's rivers and landscapes <span class="grad">from space.</span></h1>
+  <p>Follow any river from source to sink with live map, terrain and satellite data, or open a Google Earth screenshot, a GeoTIFF or an elevation model. Earthform Lens reads the landscape: it detects water and channels (rivers, tributaries, deltas, coasts, even seafloor canyons), measures them, compares dates, explains every number, and turns the findings into art and ready-to-post carousels.</p>
   <div class="btns" style="justify-content:center"><button class="pri bigbtn" id="homeRiver">Explore a river</button><button class="bigbtn" id="homeOpen">Open image</button><button class="bigbtn" id="homeFind">Find a place</button></div>
   <div class="note" style="margin-top:16px">What will you be looking at?</div>
   <div class="chips focuschips" style="justify-content:center;max-width:520px;margin:6px auto"></div>
   <div class="note focusdesc"></div>
   <div style="margin-top:12px"><label class="chk"><input type="checkbox" id="autoOnOpen" checked> Run everything automatically when opened</label></div>
-  <div class="modes"><div><b>Discover</b>A curated atlas of striking places, with links to frame them in Google Earth.</div><div><b>✦ Report</b>One-tap analysis and art, with a plain-language summary and a data poster.</div><div><b>Studio</b>Hand-tune looks, colour, crop, captions and line-art overlays.</div><div><b>Lab</b>Every measurement tool, adjustable step by step.</div></div>
+  <div class="modes"><div><b>Explore</b>Find rivers by name or on the map, open images and places.</div><div><b>Analyze</b>River modules from source to sink, and the Image lab for screenshots and GeoTIFFs.</div><div><b>Compare</b>Rivers, reaches and dates side by side, with matched sampling.</div><div><b>Report</b>Findings, figures made from the measurements, posts and river reports.</div></div>
 </div></section>
 
 <section class="appsec" id="app-explore"><div class="xwrap">
-  <div class="xsearch"><input id="xQ" type="search" placeholder="River name, e.g. Danube" autocomplete="off"><button class="pri" id="xGo">Find</button><button id="xDraw" title="Tap points along a river on the map">✎ Draw</button><label class="filebtn" title="Open your own GeoJSON (main channel + measured layers)">⇪ GeoJSON<input type="file" id="xGeoFile" accept=".json,.geojson,application/geo+json" hidden></label></div>
-  <div id="xResults" class="xresults"></div>
-  <div id="xStatus" class="xstatus">Search any river by name to follow it from source to mouth, or draw one on the map.</div>
-  <div class="xmapbox"><canvas id="xMap"></canvas>
-    <div class="xmapctl"><select id="xBase"></select><select id="xMetric"></select><button class="sm" id="xFit">Whole river</button></div>
-    <div id="xDrawBar" class="xdrawbar" style="display:none"><span id="xDrawN"></span><button class="sm" id="xDrawUndo">Undo</button><button class="sm pri" id="xDrawUse">Analyse line</button><button class="sm" id="xDrawCancel">Cancel</button></div>
+  <div class="xstage">
+    <div class="xmapbox"><canvas id="xMap"></canvas>
+      <div class="xfloat">
+        <div class="xsearchbox">
+          <div class="xsearch glass"><svg class="xsi" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="xQ" type="search" placeholder="Search any river: Danube, Niger, Rhine…" autocomplete="off" enterkeyhint="search"><button class="pri" id="xGo">Search</button></div>
+          <div id="xResults" class="xresults glass"></div>
+        </div>
+        <div class="xtools"><button id="xDraw" class="chipbtn" title="Tap points along a river on the map">✎ Draw a river</button><label class="chipbtn filebtn" title="Open your own GeoJSON (main channel + measured layers)">⇪ GeoJSON<input type="file" id="xGeoFile" accept=".json,.geojson,application/geo+json" hidden></label><button id="xPick" class="chipbtn">🎯 Pick on map</button><button id="xConn" class="chipbtn">⚡ Check connection</button></div>
+      </div>
+      <div id="xSteps" class="xsteps glass"></div>
+      <div id="xModeBar" class="xmodebar glass" style="display:none"></div>
+      <div id="xTiles" class="xtiles-ld"></div>
+      <div id="xConnBox" class="xconnbox glass"></div>
+      <div class="xmapctl"><select id="xBase"></select><select id="xOver"></select><select id="xMetric"></select><button class="sm" id="xFit">⤢ Whole river</button></div>
+      <div id="xDrawBar" class="xdrawbar" style="display:none"><span id="xDrawN"></span><button class="sm" id="xDrawUndo">Undo</button><button class="sm pri" id="xDrawUse">Analyse line</button><button class="sm" id="xDrawCancel">Cancel</button></div>
+    </div>
+    <div id="xStatus" class="xstatus">Search any river by name to follow it from source to sink, or draw one on the map.</div>
   </div>
-  <div id="xEmpty" class="xempty"><p>Try:</p><div class="chips"><button class="chip" data-xq="Danube">Danube</button><button class="chip" data-xq="Rhine">Rhine</button><button class="chip" data-xq="Mississippi">Mississippi</button><button class="chip" data-xq="Amazon">Amazon</button><button class="chip" data-xq="Niger">Niger</button><button class="chip" data-xq="Yangtze">Yangtze</button><button class="chip" data-xq="Mekong">Mekong</button><button class="chip" data-xq="Colorado River">Colorado River</button><button class="chip" data-xq="Thames">Thames</button><button class="chip" data-xq="Volga">Volga</button></div>
-    <p class="note">The app loads the river's course from OpenStreetMap, elevation from open terrain tiles, satellite imagery from Esri and river facts from Wikidata. Nothing to install; it needs an internet connection and works on the GitHub Pages version (pages hosted inside Claude can't reach these services).</p></div>
+  <div class="xside">
+  <div id="xEmpty" class="xempty">
+    <div class="xhero"><span class="kicker">Source-to-sink river analysis</span><h1>Explore any river,<br><span class="grad">from source to sink.</span></h1><p>Trace the whole course from OpenStreetMap, read the terrain beneath it, and measure the river the way a geomorphologist would: profile, planform, network, catchment, floodplain, delta, change through time and sediment routing. Compare rivers and reaches side by side.</p></div>
+    <div id="xRestore" class="card xrestore" style="display:none"></div>
+    <div class="btns"><label class="sm filebtn">📂 Open a saved project<input type="file" id="xProjOpen0" accept=".json,.eflproj" hidden></label></div>
+    <h3 class="sech">Start with a river</h3>
+    <div class="rcards"><button class="rcard" data-xq="Danube"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 8 C 20 30, 35 4, 52 20 S 80 36, 98 24"/></svg><b>Danube</b><small>Europe · Black Sea</small><em>2,850 km</em></button><button class="rcard" data-xq="Rhine"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 12 C 20 25, 35 7, 52 24 S 80 32, 98 30"/></svg><b>Rhine</b><small>Alps → North Sea</small><em>1,230 km</em></button><button class="rcard" data-xq="Nile"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 16 C 20 20, 35 10, 52 28 S 80 28, 98 24"/></svg><b>Nile</b><small>Africa · Mediterranean</small><em>6,650 km</em></button><button class="rcard" data-xq="Amazon"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 8 C 20 15, 35 13, 52 20 S 80 24, 98 30"/></svg><b>Amazon</b><small>South America · Atlantic</small><em>6,400 km</em></button><button class="rcard" data-xq="Mississippi"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 12 C 20 30, 35 16, 52 24 S 80 36, 98 24"/></svg><b>Mississippi</b><small>North America · Gulf</small><em>3,730 km</em></button><button class="rcard" data-xq="Niger"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 16 C 20 25, 35 4, 52 28 S 80 32, 98 30"/></svg><b>Niger</b><small>West Africa · Gulf of Guinea</small><em>4,180 km</em></button><button class="rcard" data-xq="Ganges"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 8 C 20 20, 35 7, 52 20 S 80 28, 98 24"/></svg><b>Ganges</b><small>South Asia · Bay of Bengal</small><em>2,525 km</em></button><button class="rcard" data-xq="Yangtze"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 12 C 20 15, 35 10, 52 24 S 80 24, 98 30"/></svg><b>Yangtze</b><small>China · East China Sea</small><em>6,300 km</em></button><button class="rcard" data-xq="Mekong"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 16 C 20 30, 35 13, 52 28 S 80 36, 98 24"/></svg><b>Mekong</b><small>SE Asia · South China Sea</small><em>4,900 km</em></button><button class="rcard" data-xq="Colorado River"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 8 C 20 25, 35 16, 52 20 S 80 32, 98 30"/></svg><b>Colorado River</b><small>SW USA · Gulf of California</small><em>2,330 km</em></button><button class="rcard" data-xq="Volga"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 12 C 20 20, 35 4, 52 24 S 80 28, 98 24"/></svg><b>Volga</b><small>Russia · Caspian Sea</small><em>3,530 km</em></button><button class="rcard" data-xq="Thames"><svg viewBox="0 0 100 40" aria-hidden="true"><path d="M2 16 C 20 15, 35 7, 52 28 S 80 24, 98 30"/></svg><b>Thames</b><small>England · North Sea</small><em>346 km</em></button></div>
+    <h3 class="sech">What you can measure</h3>
+    <div class="mcards"><div class="mcard" style="--i:0"><b>Longitudinal profile</b><small>elevation, gradient, concavity, knickpoints</small></div><div class="mcard" style="--i:1"><b>Channel geometry</b><small>width, sinuosity, curvature, wavelength</small></div><div class="mcard" style="--i:2"><b>Drainage network</b><small>Strahler order, density, bifurcation ratio</small></div><div class="mcard" style="--i:3"><b>Catchment</b><small>area, relief, hypsometric curve</small></div><div class="mcard" style="--i:4"><b>Floodplain</b><small>width, confinement ratio</small></div><div class="mcard" style="--i:5"><b>Delta</b><small>distributaries, bifurcations, shoreline</small></div><div class="mcard" style="--i:6"><b>Temporal evolution</b><small>erosion, accretion, migration rates</small></div><div class="mcard" style="--i:7"><b>Sediment routing</b><small>source, transfer and storage zones</small></div></div>
+    <p class="note">Data: OpenStreetMap (course, tributaries, dams), AWS Terrain Tiles (elevation), Esri World Imagery and Wayback (satellite), Wikidata (facts). Needs an internet connection; it works on the GitHub Pages copy (pages shown inside Claude can't reach these services).</p>
+  </div>
   <div id="xBody" style="display:none">
     <div class="xtop"><div id="xHead"></div><button class="sm" id="xBack" style="display:none">← Back to the main river</button></div>
     <div class="xpos card">
       <div class="xposrow"><button class="sm" id="xSrc">Source</button><input type="range" id="xPos" min="0" max="1" step="0.01" value="0"><button class="sm" id="xMouth">Mouth</button></div>
-      <div class="xposrow"><label class="chk"><input type="checkbox" id="xFollow"> Map follows</label><button class="sm" id="xPlay">▶ Fly along</button><button class="sm pri" id="xToLab">Analyse this view in Lab</button></div>
+      <div class="xposrow"><label class="chk"><input type="checkbox" id="xFollow"> Map follows</label><button class="sm" id="xPlay">▶ Fly along</button><button class="sm pri" id="xToLab">Analyse this view in Lab</button><button class="sm" id="xToFig">🖼 Figure of this view</button></div>
       <div id="xPosInfo" class="xposinfo"></div>
     </div>
     <div class="xsel card" id="xSel"></div>
-    <div class="xtabs" id="xTabs"><button data-xt="profile" class="on">Longitudinal profile</button><button data-xt="reaches">Channel geometry</button><button data-xt="network">Drainage network</button><button data-xt="catchment">Catchment</button><button data-xt="floodplain">Floodplain</button><button data-xt="delta">Delta</button><button data-xt="time">Temporal evolution</button><button data-xt="sediment">Sediment routing</button><button data-xt="tribs">Tributaries</button><button data-xt="compare">Compare</button><button data-xt="data">Data</button></div>
+    <div class="xtabs" id="xTabs"><button data-xt="profile" class="on"><svg viewBox="0 0 24 24"><path d="M3 5l5 5 4-2 4 6 5 3"/><path d="M3 20h18"/></svg><span>Longitudinal profile</span></button><button data-xt="reaches"None><svg viewBox="0 0 24 24"><path d="M3 17c3 0 3-10 6-10s3 10 6 10 3-10 6-10"/></svg><span>Channel geometry</span></button><button data-xt="network"None><svg viewBox="0 0 24 24"><path d="M12 21V12M12 12L6 4M12 12l6-8M6 4L3 2M6 4l2-3M18 4l3-2M18 4l-1-3"/></svg><span>Drainage network</span></button><button data-xt="catchment"None><svg viewBox="0 0 24 24"><path d="M4 18c0-7 4-13 8-14 5 1 8 7 8 14l-8 3z"/><path d="M12 7v13"/></svg><span>Catchment</span></button><button data-xt="floodplain"None><svg viewBox="0 0 24 24"><path d="M2 8l5 6h10l5-6"/><path d="M9 14c1 2 5 2 6 0"/></svg><span>Floodplain</span></button><button data-xt="delta"None><svg viewBox="0 0 24 24"><path d="M12 3v7M12 10l-7 11M12 10l7 11M12 10v11"/></svg><span>Delta</span></button><button data-xt="time"None><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg><span>Temporal evolution</span></button><button data-xt="sediment"None><svg viewBox="0 0 24 24"><circle cx="6" cy="17" r="2"/><circle cx="12" cy="12" r="1.6"/><circle cx="17" cy="7" r="1.2"/><path d="M3 21h18"/></svg><span>Sediment routing</span></button><button data-xt="tribs"None><svg viewBox="0 0 24 24"><path d="M4 20L20 4M8 16L4 10M14 10l-3-6"/></svg><span>Tributaries</span></button><button data-xt="compare"None><svg viewBox="0 0 24 24"><rect x="3" y="5" width="7" height="14" rx="1.5"/><rect x="14" y="5" width="7" height="14" rx="1.5"/></svg><span>Compare</span></button><button data-xt="data"None><svg viewBox="0 0 24 24"><path d="M4 6c0-2 16-2 16 0v12c0 2-16 2-16 0z"/><path d="M4 6c0 2 16 2 16 0M4 12c0 2 16 2 16 0"/></svg><span>Data</span></button></div>
     <div class="xpanel" id="xp-profile">
       <h4>Elevation from source to mouth</h4><div class="xchart" id="xcProfile"></div>
       <p class="note">Blue: elevation along the channel with noise removed and no uphill steps (grey: raw values). Red dashes: knickpoints, where the river is much steeper than around it; yellow: dams and weirs. Tap the chart to move there.</p>
@@ -279,6 +456,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
       <div id="xProfStats"></div>
       <h4>Slope–area (concavity θ)</h4><div class="xchart" id="xcSA"></div><div id="xProfExtra"></div>
       <div class="btns"><button class="sm" id="xRefine">Finer elevation</button><button class="sm" data-xexp="profile">⬇ Profile CSV</button></div>
+      <div id="x3-profile" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-reaches" style="display:none">
       <div class="row"><label>Reach length (km)</label><input id="xReachLen" type="number" min="0" step="1" placeholder="auto" style="width:110px"><button class="sm" id="xWidthAll">Measure all widths</button></div>
@@ -288,6 +466,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
       <div id="xReachTbl"></div>
       <p class="note">Sinuosity = channel length ÷ straight distance across the reach; bends from curvature sign changes on the smoothed centreline; wavelength = twice the median bend length; multi-channel index = (main + side-channel length) ÷ main length; width = across OpenStreetMap's water areas, sampled every few hundred metres.</p>
       <div class="btns"><button class="sm" data-xexp="reaches">⬇ Reaches CSV</button></div>
+      <div id="x3-reaches" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-tribs" style="display:none">
       <div id="xTribSel"></div>
@@ -303,43 +482,52 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
       <div id="xNetStats"></div>
       <h4>Horton plot: segments per Strahler order</h4><div class="xchart" id="xcHorton"></div>
       <p class="note">Strahler ordering of the channels extracted from the terrain (cells draining more than the threshold area). Rb = geometric mean of Nᵤ/Nᵤ₊₁ (typically 3–5); drainage density = total channel length ÷ catchment area. Values depend on the threshold and terrain resolution: compare rivers at the same settings.</p>
+      <div id="x3-network" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-catchment" style="display:none">
       <div class="btns"><button class="sm pri" data-run="basin">Delineate catchment from terrain</button><label class="chk"><input type="checkbox" data-show="basin"> Show on map</label></div>
       <div id="xBasinStats"></div>
       <h4>Hypsometric curve</h4><div class="xchart" id="xcHyps"></div>
       <p class="note">Water is routed over the terrain (depressions filled, steepest descent) and every cell draining to the river mouth is counted. Very large basins use coarser terrain (several hundred metres per cell).</p>
+      <div id="x3-catchment" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-floodplain" style="display:none">
       <div class="row"><label>Flood height above channel (m)</label><input id="xFpH" type="number" min="0.5" step="0.5" value="5" style="width:90px"><button class="sm pri" id="xFpRun">Measure floodplain (selection)</button></div>
       <div id="xFpStats"></div>
       <h4>Floodplain and valley width</h4><div class="xchart" id="xcFp"></div>
       <p class="note">At regular cross-sections the terrain is followed out from the channel on both sides until it rises more than the flood height (green: floodplain) or four times that (yellow: valley floor). Blue dots: channel width (measure widths in Channel geometry). Confinement = floodplain width ÷ channel width: below 2 confined, 2–10 partly confined, above 10 unconfined. Channel migration: use Temporal evolution.</p>
+      <div id="x3-floodplain" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-delta" style="display:none">
       <div id="xDeltaStats"></div>
+      <div id="x3-delta" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-time" style="display:none">
       <p class="note">Compare archived satellite images (Esri World Imagery Wayback, 2014 onwards) of the current map view. The two images are sent to the Lab, aligned and differenced to measure erosion, accretion, bank retreat and migration rates. Zoom the map to the reach, bend or shoreline first.</p>
       <div class="btns"><button class="sm" id="xTimeLoad">Load available dates</button><button class="sm" id="xTimeMouth">Go to the mouth (shoreline)</button></div>
       <div class="row"><label>From</label><select id="xWbA"></select><label>To</label><select id="xWbB"></select><button class="sm pri" id="xTimeGo" disabled>Compare this view</button></div>
       <p class="note">Archive imagery is mosaicked from different sensors and seasons; water level differences can look like bank change. Check the result images before quoting rates.</p>
+      <div id="x3-time" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-sediment" style="display:none">
       <h4>Potential sediment zones along the profile</h4><div class="xchart" id="xcSed"></div>
       <div id="xSedStats"></div>
+      <div id="x3-sediment" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-compare" style="display:none">
       <div class="btns"><label class="btn sm filebtn">＋ Add GeoJSON system<input type="file" id="xGeoCmp" accept=".json,.geojson,application/geo+json" hidden></label></div>
       <div id="xCmpBody"></div>
+      <div id="x3-compare" class="x3"></div>
     </div>
     <div class="xpanel" id="xp-data" style="display:none">
       <p class="note">Everything measured here, ready for a spreadsheet or GIS.</p>
       <div id="xUserStats"></div>
       <div class="btns"><button class="sm" data-xexp="profile">⬇ Long profile CSV</button><button class="sm" data-xexp="reaches">⬇ Reaches CSV</button><button class="sm" data-xexp="tribs">⬇ Tributaries CSV</button><button class="sm" data-xexp="geojson">⬇ River GeoJSON</button><button class="sm" data-xexp="basin">⬇ Catchment &amp; network CSV</button><button class="sm" data-xexp="floodplain">⬇ Floodplain sections CSV</button></div>
       <p class="note">Sources: river course, tributaries and dams © OpenStreetMap contributors (ODbL); elevation: AWS Terrain Tiles (Mapzen; SRTM and other sources); imagery © Esri, Maxar, Earthstar Geographics; facts: Wikidata (CC0). Elevation cells are tens to hundreds of metres, so short steep steps are smoothed.</p>
+      <div id="x3-data" class="x3"></div>
     </div>
   </div>
+</div>
 </div></section>
 
 <section class="appsec" id="app-discover"><div class="rep">
@@ -400,6 +588,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
 </div></section>
 
 <section class="appsec" id="app-studio">
+<div class="lklink" id="s_link"></div>
 <div class="sbar"><button class="sm" id="s_btnEnhance" disabled>✦ Atlas enhance</button><button class="sm" id="s_btnAutoStyle" disabled>Auto-style</button><button class="sm" id="s_btnSurprise" disabled>Surprise me</button></div>
 <div class="stage" id="s_stage">
     <div class="empty" id="s_empty"><p>Open an image to start.</p></div>
@@ -490,6 +679,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
     <div class="busy" id="busy"><span id="busyMsg">Working…</span></div>
   </div>
   <div class="tools" id="tools"></div>
+  <div class="lklink lab" id="labLink"></div>
   <div class="labctl"><button class="sm pri" id="btnAutoLab">✦ Auto</button><select id="labFocus" title="What is this landscape?"></select><button class="sm" id="btnLayers">Layers ▾</button><button class="sm" id="btnFit">Fit</button></div>
   <div class="layers" id="layers" style="display:none"></div>
   <div class="rivercard" id="riverCard" style="display:none"></div>

@@ -45,41 +45,59 @@ function hydro(g){
 }
 
 /* ---------- 3 & 4. drainage network and catchment ---------- */
+/** delineate the area draining to an outlet: terrain window bb [s,w,n,e], enlarged once if the basin touches its edge */
+async function delineate(bb, outlet, label, grow){
+  let out = null;
+  for (let attempt = 0; attempt < 3; attempt++){
+    xstatus(`${label}: reading terrain${attempt ? " (enlarged window)" : ""}…`, "busy");
+    const g = await demGrid(bb, 2.2e6, p => xstatus(`${label}: reading terrain ${Math.round(p*100)}%…`, "busy")); await tick();
+    xstatus(`${label}: routing water over ${nf(g.W*g.H/1e6, 1)} million cells…`, "busy"); await tick();
+    const hy = hydro(g), [mx, my] = llGrid(g, outlet[0], outlet[1]); let ob = -1, oa = -1; const rad = 6;
+    for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++){ const x = mx + dx, y = my + dy; if (x < 0 || y < 0 || x >= g.W || y >= g.H) continue; const i = y*g.W + x; if (!hy.sea[i] && hy.acc[i] > oa){ oa = hy.acc[i]; ob = i; } }
+    if (ob < 0) throw new Error("the outlet is outside the terrain window or in the sea");
+    const inB = new Uint8Array(g.W*g.H); inB[ob] = 1; for (const c of hy.order) if (!inB[c] && hy.rec[c] >= 0 && inB[hy.rec[c]]) inB[c] = 1;
+    let touches = false; for (let x = 0; x < g.W && !touches; x++) if (inB[x] || inB[(g.H - 1)*g.W + x]) touches = true; for (let y = 0; y < g.H && !touches; y++) if (inB[y*g.W] || inB[y*g.W + g.W - 1]) touches = true;
+    out = {g, hy, outlet: ob, outletLL: outlet, inB, clipped: touches, label, made: new Date().toISOString()};
+    if (!touches || attempt === (grow ? 2 : 1)) break; const d = Math.max(bb[2] - bb[0], bb[3] - bb[1])*(grow ? .75 : .35); bb = [Math.max(-84, bb[0] - d), bb[1] - d, Math.min(84, bb[2] + d), bb[3] + d];
+  }
+  basinStatsB(out); out.net = networkStatsB(out, null); return out;
+}
 async function runBasin(R){
   // window: the river's extent with generous margins (catchments reach far beyond the main stem)
   let s = 90, n = -90, w = 180, e = -180; for (let i = 0; i < R.main.length; i += Math.max(1, Math.floor(R.main.length/3000))){ const p = R.main[i]; s = Math.min(s, p[0]); n = Math.max(n, p[0]); w = Math.min(w, p[1]); e = Math.max(e, p[1]); }
   for (const t of R.tribs){ s = Math.min(s, t.stub[0][0]); n = Math.max(n, t.stub[0][0]); w = Math.min(w, t.stub[0][1]); e = Math.max(e, t.stub[0][1]); }
-  const m = Math.max(.15, .25*Math.max(n - s, e - w)); let bb = [Math.max(-84, s - m), w - m, Math.min(84, n + m), e + m];
-  let out = null;
-  for (let attempt = 0; attempt < 2; attempt++){
-    xstatus(`Catchment: reading terrain for the river's region${attempt ? " (enlarged)" : ""}…`, "busy");
-    const g = await demGrid(bb, 2.2e6, p => xstatus(`Catchment: reading terrain ${Math.round(p*100)}%…`, "busy")); await tick();
-    xstatus(`Catchment: routing water over ${nf(g.W*g.H/1e6, 1)} million cells…`, "busy"); await tick();
-    const hy = hydro(g);
-    // outlet: highest-accumulation land cell near the mouth
-    const mo = R.main[R.main.length - 1], [mx, my] = llGrid(g, mo[0], mo[1]); let ob = -1, oa = -1; const rad = 6;
-    for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++){ const x = mx + dx, y = my + dy; if (x < 0 || y < 0 || x >= g.W || y >= g.H) continue; const i = y*g.W + x; if (!hy.sea[i] && hy.acc[i] > oa){ oa = hy.acc[i]; ob = i; } }
-    if (ob < 0) throw new Error("the river mouth is outside the terrain window");
-    const inB = new Uint8Array(g.W*g.H); inB[ob] = 1; for (const c of hy.order) if (!inB[c] && hy.rec[c] >= 0 && inB[hy.rec[c]]) inB[c] = 1;
-    let touches = false; for (let x = 0; x < g.W && !touches; x++) if (inB[x] || inB[(g.H - 1)*g.W + x]) touches = true; for (let y = 0; y < g.H && !touches; y++) if (inB[y*g.W] || inB[y*g.W + g.W - 1]) touches = true;
-    out = {g, hy, outlet: ob, inB, clipped: touches};
-    if (!touches || attempt) break; const d = Math.max(n - s, e - w)*.35; bb = [Math.max(-84, bb[0] - d), bb[1] - d, Math.min(84, bb[2] + d), bb[3] + d];
-  }
-  R.basin = out; XR.showBasin = true; document.querySelectorAll('[data-show="basin"]').forEach(c => c.checked = true); basinStats(R); networkStats(R, R.netThr || null); alongRiverArea(R); classifyZones(R); renderX();
+  const m = Math.max(.15, .25*Math.max(n - s, e - w)), bb = [Math.max(-84, s - m), w - m, Math.min(84, n + m), e + m];
+  const out = await delineate(bb, R.main[R.main.length - 1], "Catchment", false);
+  R.basin = out; R.net2 = networkStatsB(out, R.netThr || null); R.netThr = R.net2.At; R.basinOverlay = null;
+  XR.showBasin = true; document.querySelectorAll('[data-show="basin"]').forEach(c => c.checked = true); alongRiverArea(R); classifyZones(R); renderX();
   xstatus(`Catchment of ${nf(R.basin.area)} km²${R.wd && R.wd.area ? ` (Wikidata: ${nf(R.wd.area)} km²)` : ""}; network to Strahler order ${R.net2.maxO}.${out.clipped ? " The catchment touches the edge of the terrain window, so it may be cut off." : ""}`, out.clipped ? "err" : "ok");
+  enrichBasin(R, out).then(() => renderX()).catch(e => console.warn(e));
 }
-function basinStats(R){
-  const B = R.basin, {g, inB} = B; let area = 0, zmin = Infinity, zmax = -Infinity, zs = [], far = 0; const o = gridLL(g, B.outlet % g.W, (B.outlet/g.W)|0);
-  const st = Math.max(1, Math.floor(g.W*g.H/400000));
-  for (let i = 0; i < inB.length; i++){ if (!inB[i]) continue; const y = (i/g.W)|0, m = g.cellM[y]/1000; area += m*m; const z = g.E[i]; if (Number.isFinite(z)){ zmin = Math.min(zmin, z); zmax = Math.max(zmax, z); if (i % st === 0) zs.push(z); } }
-  for (let i = 0; i < inB.length; i += Math.max(1, st*3)) if (inB[i]) far = Math.max(far, hav(o, gridLL(g, i % g.W, (i/g.W)|0)));
+/** catchment of any outlet: a tributary junction or a tapped point */
+async function runOutletBasin(R, ll, label){
+  const d = .6, bb = [Math.max(-84, ll[0] - d), ll[1] - d/Math.cos(ll[0]*D2R), Math.min(84, ll[0] + d), ll[1] + d/Math.cos(ll[0]*D2R)];
+  const B = await delineate(bb, ll, label, true); R.ob = B; R.obOverlay = null; XR.showBasin = true; document.querySelectorAll('[data-show="basin"]').forEach(c => c.checked = true); renderX();
+  xstatus(`${esc(label)}: ${nf(B.area, B.area < 100 ? 1 : 0)} km² upstream, relief ${nf(B.relief)} m, Strahler order ${B.net.maxO}.${B.clipped ? " Still touches the terrain window edge: may be cut off." : ""}`, B.clipped ? "err" : "ok");
+  enrichBasin(R, B).then(() => renderX()).catch(e => console.warn(e));
+}
+function basinStats(R){ basinStatsB(R.basin); }
+function basinStatsB(B){
+  const {g, inB} = B, W = g.W; let area = 0, zmin = Infinity, zmax = -Infinity, zs = [], far = 0, perim = 0, sl = [], slw = 0, sls = 0, nIn = 0; const o = gridLL(g, B.outlet % W, (B.outlet/W)|0);
+  for (let i = 0; i < inB.length; i++) nIn += inB[i]; const st = Math.max(1, Math.floor(nIn/400000));
+  for (let i = 0; i < inB.length; i++){ if (!inB[i]) continue; const x = i % W, y = (i/W)|0, cm = g.cellM[y], m = cm/1000; area += m*m; const z = g.E[i];
+    // boundary: edges shared with outside cells (raster perimeter)
+    if (x === 0 || !inB[i - 1]) perim += m; if (x === W - 1 || !inB[i + 1]) perim += m; if (y === 0 || !inB[i - W]) perim += m; if (y === g.H - 1 || !inB[i + W]) perim += m;
+    if (Number.isFinite(z)){ zmin = Math.min(zmin, z); zmax = Math.max(zmax, z); if ((x + y*7) % st === 0){ zs.push(z);
+      if (x > 0 && x < W - 1 && y > 0 && y < g.H - 1){ const dzx = (g.E[i + 1] - g.E[i - 1])/(2*cm), dzy = (g.E[i + W] - g.E[i - W])/(2*cm); if (Number.isFinite(dzx) && Number.isFinite(dzy)){ const sd = Math.atan(Math.hypot(dzx, dzy))/D2R; sl.push(sd); sls += sd*m*m; slw += m*m; } } } } }
+  for (let i = 0; i < inB.length; i += Math.max(1, st*3)) if (inB[i]) far = Math.max(far, hav(o, gridLL(g, i % W, (i/W)|0)));
   zs.sort((a, b) => a - b); const mean = zs.reduce((a, b) => a + b, 0)/zs.length, HI = (mean - zmin)/((zmax - zmin) || 1);
   const curve = []; for (let k = 0; k <= 50; k++){ const z = zs[Math.min(zs.length - 1, Math.floor((1 - k/50)*(zs.length - 1)))]; curve.push([k/50, (z - zmin)/((zmax - zmin) || 1)]); }
-  Object.assign(B, {area, zmin, zmax, relief: zmax - zmin, HI, curve, Lb: far, reliefRatio: (zmax - zmin)/(far*1000), Re: 2*Math.sqrt(area/Math.PI)/far, cellKm: g.cellM[g.H >> 1]/1000});
-  B.area = area;
+  const P = perim*Math.PI/4; // staircase raster boundary corrected by π/4 (Freeman); still approximate
+  Object.assign(B, {area, zmin, zmax, zmean: mean, relief: zmax - zmin, HI, curve, Lb: far, reliefRatio: (zmax - zmin)/(far*1000), Re: 2*Math.sqrt(area/Math.PI)/far, perim: P, Rc: 4*Math.PI*area/(P*P), slopeMean: sls/(slw || 1), slopes: sl, cellKm: g.cellM[g.H >> 1]/1000});
 }
-function networkStats(R, thr){
-  const B = R.basin, {g, hy, inB} = B, N = g.W*g.H, At = thr || Math.max(20*B.cellKm*B.cellKm, B.area/1500); R.netThr = At;
+function networkStats(R, thr){ R.net2 = networkStatsB(R.basin, thr); R.netThr = R.net2.At; R.basinOverlay = null; }
+function networkStatsB(B, thr){
+  const {g, hy, inB} = B, N = g.W*g.H, At = thr || Math.max(20*B.cellKm*B.cellKm, B.area/1500);
   const ch = new Uint8Array(N); for (let i = 0; i < N; i++) ch[i] = inB[i] && hy.acc[i] >= At ? 1 : 0;
   const ord = new Uint8Array(N), mx = new Uint8Array(N), cnt = new Uint8Array(N), segStart = new Uint8Array(N);
   const counts = {}, lens = {};
@@ -92,8 +110,7 @@ function networkStats(R, thr){
   const orders = Object.keys(counts).map(Number).sort((a, b) => a - b), maxO = orders[orders.length - 1] || 0;
   const rb = [], rl = []; for (let k = 0; k + 1 < orders.length; k++){ const a = orders[k], b = orders[k + 1]; if (counts[b]) rb.push(counts[a]/counts[b]); if (lens[a] && counts[a] && lens[b] && counts[b]) rl.push((lens[b]/counts[b])/(lens[a]/counts[a])); }
   const gm = a => a.length ? Math.exp(a.reduce((s, v) => s + Math.log(v), 0)/a.length) : NaN, total = Object.values(lens).reduce((a, b) => a + b, 0);
-  R.net2 = {At, ord, ch, counts, lens, orders, maxO, Rb: gm(rb), Rl: gm(rl), total, Dd: total/B.area, freq: Object.values(counts).reduce((a, b) => a + b, 0)/B.area};
-  R.basinOverlay = null;
+  return {At, ord, ch, counts, lens, orders, maxO, Rb: gm(rb), Rl: gm(rl), total, Dd: total/B.area, freq: Object.values(counts).reduce((a, b) => a + b, 0)/B.area};
 }
 function alongRiverArea(R){
   const B = R.basin, pr = R.prof; if (!B || !pr) return; const {g, hy} = B, A = new Float64Array(pr.d.length);
@@ -106,17 +123,19 @@ function alongRiverArea(R){
   pr.ksn = pr.s.map((s, i) => A[i] > 0 ? (s/1000)*(A[i]*1e6)**.45 : NaN); // normalised steepness, θref = 0.45, A in m²
   if (R.reaches) for (const r of R.reaches){ const i0 = Math.round(r.k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(r.k1/pr.step)); r.A = A[i1]; r.ksn = median(pr.ksn.slice(i0, i1 + 1).filter(Number.isFinite)); r.power = r.A*Math.max(r.slope, 0); }
 }
-function basinOverlay(R){
-  if (R.basinOverlay) return R.basinOverlay; const B = R.basin; if (!B) return null; const {g, inB} = B, N2 = R.net2, c = document.createElement("canvas"); c.width = g.W; c.height = g.H;
+function basinOverlay(R, B0, N0){
+  const B = B0 || R.basin; if (!B) return null; if (!B0 && R.basinOverlay) return R.basinOverlay; if (B0 && B0.ovc) return B0.ovc; const {g, inB} = B, N2 = N0 || R.net2, c = document.createElement("canvas"); c.width = g.W; c.height = g.H;
   const x = c.getContext("2d"), id = x.createImageData(g.W, g.H), d = id.data;
   for (let i = 0; i < inB.length; i++){
     if (N2 && N2.ch[i]){ const o = N2.ord[i], u = o/Math.max(1, N2.maxO); d[i*4] = 40 + 30*u; d[i*4+1] = 150 + 80*u; d[i*4+2] = 255; d[i*4+3] = 120 + 135*u; continue; }
     if (inB[i]){ const xx = i % g.W, yy = (i/g.W)|0; const edge = !inB[i-1] || !inB[i+1] || !inB[i - g.W] || !inB[i + g.W]; if (edge){ d[i*4] = 255; d[i*4+1] = 216; d[i*4+2] = 74; d[i*4+3] = 255; } else { d[i*4] = 255; d[i*4+1] = 216; d[i*4+2] = 74; d[i*4+3] = 26; } } }
-  x.putImageData(id, 0, 0); R.basinOverlay = c; return c;
+  x.putImageData(id, 0, 0); if (B0) B0.ovc = c; else R.basinOverlay = c; return c;
 }
 function drawBasinOnMap(ctx, M, w, h){
-  const R = XR.river; if (!R || !R.basin || !XR.showBasin) return; const ov = basinOverlay(R), g = R.basin.g, s = 2**(M.z - g.z);
-  const sx = (g.X0 - lon2x(M.lon, g.z))*s + w/2, sy = (g.Y0 - lat2y(M.lat, g.z))*s + h/2; ctx.save(); ctx.imageSmoothingEnabled = s < 1; ctx.drawImage(ov, sx, sy, g.W*s, g.H*s); ctx.restore();
+  const R = XR.river; if (!R || !XR.showBasin) return;
+  for (const [B, N] of [[R.basin, R.net2], [R.ob, R.ob && R.ob.net]]){ if (!B) continue; const ov = B === R.basin ? basinOverlay(R) : basinOverlay(R, B, N), g = B.g, s = 2**(M.z - g.z);
+    const sx = (g.X0 - lon2x(M.lon, g.z))*s + w/2, sy = (g.Y0 - lat2y(M.lat, g.z))*s + h/2; ctx.save(); ctx.imageSmoothingEnabled = s < 1; ctx.drawImage(ov, sx, sy, g.W*s, g.H*s); ctx.restore();
+    if (B.outletLL){ const q = M.toScr(B.outletLL[0], B.outletLL[1]); ctx.fillStyle = "#ffd84a"; ctx.strokeStyle = "#111"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q[0], q[1], 6, 0, 7); ctx.fill(); ctx.stroke(); } }
 }
 
 /* ---------- 2. channel geometry: curvature ---------- */
@@ -148,8 +167,9 @@ async function runFloodplain(R, k0, k1){
     const at = d => elev(p[0] + ny*d/ky, p[1] + nx*d/kx);
     let z0 = Infinity; for (let d = -3*stepKm; d <= 3*stepKm; d += stepKm) z0 = Math.min(z0, at(d)); if (!Number.isFinite(z0)) continue;
     const reach = (sgn, H) => { let d = 0, miss = 0; while (d < half){ const v = at(sgn*(d + stepKm)); if (!(v <= z0 + H)){ if (++miss >= 2) break; } else miss = 0; d += stepKm; } return {d: Math.max(0, d - miss*stepKm), capped: d >= half}; };
-    const l = reach(-1, hFP), r = reach(1, hFP), lv = reach(-1, 4*hFP), rv = reach(1, 4*hFP);
-    secs.push({km: k, z0, fp: (l.d + r.d)*1000, valley: (lv.d + rv.d)*1000, capped: l.capped || r.capped, asym: (l.d - r.d)/Math.max(1e-6, l.d + r.d)});
+    const l = reach(-1, hFP), r = reach(1, hFP), lv = reach(-1, 4*hFP), rv = reach(1, 4*hFP), gp = d => [p[0] + ny*d/ky, p[1] + nx*d/kx];
+    const st2 = Math.max(stepKm, 2*half/300), pd = [], pz = []; for (let d = -half; d <= half + 1e-9; d += st2){ const v = at(d); if (Number.isFinite(v)){ pd.push(Math.round(d*1000)); pz.push(v); } }
+    secs.push({km: k, z0, fp: (l.d + r.d)*1000, valley: (lv.d + rv.d)*1000, capped: l.capped || r.capped, asym: (l.d - r.d)/Math.max(1e-6, l.d + r.d), ends: [gp(-l.d), gp(r.d)], vends: [gp(-lv.d), gp(rv.d)], prof: {d: pd, z: pz}});
   }
   R.fp = {k0, k1, secs, h: hFP, z, cell, half}; fpReaches(R);
   classifyZones(R); renderX();
@@ -219,7 +239,8 @@ async function runTemporal(){
 }
 
 /* ---------- 8. sediment routing zones (potential) ---------- */
-function classifyZones(R){
+function classifyZones(R){ return classifyZones3(R); }
+function classifyZonesOld(R){
   const rs = R.reaches; if (!rs || !rs.length || !R.prof) return;
   const S = rs.map(r => r.slope).filter(Number.isFinite).sort((a, b) => a - b), hi = quantile(S, .67), lo = quantile(S, .33);
   rs.forEach((r, i) => {
@@ -235,8 +256,8 @@ function classifyZones(R){
     const z = Object.entries(sc).sort((a, b) => b[1] - a[1])[0][0]; r.zone = z; r.zoneWhy = why.join(", ");
   });
 }
-const ZCOL = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff"};
-XMETRIC.zone = {n: "Sediment zone", u: "", get: (R, i) => { const r = reachAt(R, R.cum[i]); return r && r.zone ? {source: 1, transfer: .55, storage: 0}[r.zone] : NaN; }};
+const ZCOL = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff", sink: "#9b6bff"};
+XMETRIC.zone = {n: "Sediment zone", u: "", get: (R, i) => { const r = reachAt(R, R.cum[i]); return r && r.zone ? {source: 1, transfer: .55, storage: .2, sink: 0}[r.zone] : NaN; }};
 XMETRIC.ksn = {n: "Steepness ksn", u: "", log: true, get: (R, i) => { const r = reachAt(R, R.cum[i]); return r ? r.ksn : NaN; }};
 XMETRIC.floodplain = {n: "Floodplain width", u: "m", log: true, get: (R, i) => { const r = reachAt(R, R.cum[i]); return r ? r.fpW : NaN; }};
 
@@ -246,17 +267,19 @@ function selRange(){ const R = XR.river; if (!R) return null; return XR.range &&
 function rangeStats(R, k0, k1){
   const pr = R.prof, rs = (R.reaches || []).filter(r => r.k1 > k0 && r.k0 < k1), a = pointAtKm(R, k0), b = pointAtKm(R, k1), L = k1 - k0;
   let z0 = NaN, z1 = NaN, conc = NaN; if (pr){ const i0 = Math.round(k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(k1/pr.step)); z0 = pr.zc[i0]; z1 = pr.zc[i1]; const H = z0 - z1; let ar = 0; for (let i = i0 + 1; i <= i1; i++) ar += ((z0 - H*(pr.d[i] - k0)/L) - pr.zc[i])*(pr.d[i] - pr.d[i - 1]); conc = H > 0 ? 2*ar/(H*L) : NaN; }
-  const wmed = rs.map(r => r.width && r.width.med).filter(Number.isFinite), zones = {source: 0, transfer: 0, storage: 0}; rs.forEach(r => { if (r.zone) zones[r.zone] += r.L; });
-  return {L, straight: hav(a, b), sin: L/Math.max(1e-6, hav(a, b)), z0, z1, fall: z0 - z1, grad: (z0 - z1)/L, conc, bends: rs.reduce((s, r) => s + r.bends, 0), lambda: median(rs.map(r => r.lambda).filter(Number.isFinite)), width: median(wmed), fp: median(rs.map(r => r.fpW).filter(Number.isFinite)),
+  const wmed = rs.map(r => r.width && r.width.med).filter(Number.isFinite), zones = {source: 0, transfer: 0, storage: 0, sink: 0}; rs.forEach(r => { if (r.zone) zones[r.zone] += r.L; });
+  // clip to the exact selection: planform measured on the selected stretch itself, not on whole overlapping reaches
+  const exact = (k0 > 0 || k1 < R.L) ? reachStats(R, k0, k1, -1) : null;
+  return {L, straight: hav(a, b), sin: L/Math.max(1e-6, hav(a, b)), z0, z1, fall: z0 - z1, grad: (z0 - z1)/L, conc, bends: exact ? exact.bends : rs.reduce((s, r) => s + r.bends, 0), lambda: exact ? exact.lambda : median(rs.map(r => r.lambda).filter(Number.isFinite)), width: median(wmed), fp: median(rs.map(r => r.fpW).filter(Number.isFinite)),
     ksn: median(rs.map(r => r.ksn).filter(Number.isFinite)), whole: !(k0 > 0 || k1 < R.L), tribs: R.tribs.filter(t => t.km >= k0 && t.km <= k1 && !t.distributary).length, dams: R.dams.filter(d => d.km >= k0 && d.km <= k1).length, zones,
-    user: R.user || null, meanK: (() => { rs.forEach(r => { if (r.meanK == null) curvatureStats(R, r); }); return median(rs.map(r => r.meanK).filter(Number.isFinite)); })(),
+    user: R.user || null, delta: !(k0 > 0 || k1 < R.L) ? R.delta : null, meanK: (() => { rs.forEach(r => { if (r.meanK == null) curvatureStats(R, r); }); return median(rs.map(r => r.meanK).filter(Number.isFinite)); })(),
     basin: R.basin && !(k0 > 0 || k1 < R.L) ? R.basin : null, net: R.net2 && !(k0 > 0 || k1 < R.L) ? R.net2 : null, wd: R.wd};
 }
 const CMPC = ["#ff8a4c", "#43d9e8", "#c9a7ff"];
 function addCompare(){ const s = selRange(); if (!s) return; if (XR.cmp.length >= 3) XR.cmp.shift(); XR.cmp.push({R: s.R, k0: s.k0, k1: s.k1, label: s.whole ? s.R.name : `${s.R.name} km ${nf(s.k0)}–${nf(s.k1)}`}); toast(`Added to comparison (${XR.cmp.length} of up to 3)`); renderX(); }
 
 /* ---------- rendering of the module panels ---------- */
-const kv = rows => `<div class="xstats">${rows.filter(Boolean).map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join("")}</div>`;
+const kv = rows => `<div class="xstats">${rows.filter(Boolean).map(([a, b]) => `<div${String(b).replace(/<[^>]+>/g, "").length > 22 ? ' class="long"' : ""}><span>${a}</span><b>${b}</b></div>`).join("")}</div>`;
 function renderModules(){
   const R = XR.river; if (!R) return; const pr = R.prof;
   if (R.reaches && R.reaches.length){ if (R.basin && pr && R.reaches[0].A == null) alongRiverArea(R); if (R.fp && R.reaches[0].fpW === undefined) fpReaches(R); classifyZones(R); }
@@ -284,10 +307,11 @@ function renderModules(){
     kv([["Delta apex", `km ${nf(dl.apexKm)} (${km(R.L - dl.apexKm)} above the mouth)`], ["Mouths reaching the sea", String(dl.mouths)], ["Bifurcations", String(dl.bif)], ["Channel length below the apex", km(dl.chanLen)], ["Apex → mouth (median)", km(dl.length)], ["Opening angle", nf(dl.opening) + "°"], ["Delta area (hull)", nf(dl.area) + " km²"]]) + `<p class="note">From the river's mapped channels: the apex is the first point downstream from which more than one mouth can be reached. Shoreline change: open <b>Time</b> at the mouth.</p>`;
   // 7. temporal
   // 8. sediment
-  const rs = R.reaches || [], zl = {source: 0, transfer: 0, storage: 0}; rs.forEach(r => { if (r.zone) zl[r.zone] += r.L; });
-  $("xSedStats").innerHTML = rs.some(r => r.zone) ? `<div class="zstrip">${rs.map(r => `<span style="flex:${r.L};background:${ZCOL[r.zone]}" title="${esc(r.zone)}"></span>`).join("")}</div><div class="zleg"><span><i style="background:${ZCOL.source}"></i>Source ${nf(zl.source/R.L*100)}%</span><span><i style="background:${ZCOL.transfer}"></i>Transfer ${nf(zl.transfer/R.L*100)}%</span><span><i style="background:${ZCOL.storage}"></i>Storage ${nf(zl.storage/R.L*100)}%</span></div>
+  const rs = R.reaches || [], zl = {source: 0, transfer: 0, storage: 0, sink: 0}; rs.forEach(r => { if (r.zone) zl[r.zone] += r.L; });
+  $("xSedStats").innerHTML = rs.some(r => r.zone) ? `<div class="zstrip">${rs.map(r => `<span style="flex:${r.L};background:${ZCOL[r.zone]}" title="${esc(r.zone)}"></span>`).join("")}</div><div class="zleg"><span><i style="background:${ZCOL.source}"></i>Source ${nf(zl.source/R.L*100)}%</span><span><i style="background:${ZCOL.transfer}"></i>Transfer ${nf(zl.transfer/R.L*100)}%</span><span><i style="background:${ZCOL.storage}"></i>Storage ${nf(zl.storage/R.L*100)}%</span><span><i style="background:${ZCOL.sink}"></i>Terminal sink ${nf(zl.sink/R.L*100)}%</span></div>
     <div class="scroll"><table class="grid"><tr><th>Reach</th><th>km</th><th>zone</th><th>why</th><th>stream power*</th></tr>${rs.map(r => `<tr data-k="${(r.k0 + r.k1)/2}"><td>${r.i + 1}</td><td>${nf(r.k0)}–${nf(r.k1)}</td><td><b style="color:${ZCOL[r.zone]}">${esc(r.zone || "")}</b></td><td>${esc(r.zoneWhy || "")}</td><td>${Number.isFinite(r.power) ? tfmt(r.power) : "–"}</td></tr>`).join("")}</table></div><p class="note">* Stream power proxy = drainage area × slope (discharge grows with area). Run Catchment and Floodplain for the full classification.</p>` : `<p class="note">Needs the long profile; add Catchment and Floodplain for a fuller picture.</p>`;
   renderCompare();
+  try { renderModules3(); } catch(e){ console.error(e); }
   if ($("xThr")) $("xThr").onchange = e => { const a0 = B.cellKm*B.cellKm*2, a1 = B.area/20, v = a0*(a1/a0)**(+e.target.value/100); networkStats(R, v); classifyZones(R); renderX(); };
 }
 function moduleCharts(){
@@ -301,6 +325,7 @@ function moduleCharts(){
   if (t === "sediment" && pr){ svgChart($("xcSed"), {h: 220, xlab: "Distance from source (km)", ylab: "Elevation (m)", cursor: XR.pos, onPick: pick, series: (R.reaches || []).filter(r => r.zone).map(r => { const i0 = Math.round(r.k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(r.k1/pr.step)); return {x: pr.d.slice(i0, i1 + 1), y: pr.zc.slice(i0, i1 + 1), c: ZCOL[r.zone], w: 4}; })}); }
   if (t === "compare") compareCharts();
   if (t === "data") renderUserLayers();
+  try { moduleCharts3(); } catch(e){ console.error(e); }
 }
 function renderCompare(){
   const el = $("xCmpBody"); if (!el) return; const C = XR.cmp;
@@ -308,7 +333,8 @@ function renderCompare(){
   const S = C.map(c => rangeStats(c.R, c.k0, c.k1));
   const rows = [["Length", s => km(s.L)], ["Fall", s => nf(s.fall) + " m"], ["Mean gradient", s => nf(s.grad, 3) + " m/km"], ["Concavity (Langbein)", s => nf(s.conc, 2)], ["Sinuosity", s => nf(s.sin, 2)], ["Mean curvature", s => Number.isFinite(s.meanK) ? nf(s.meanK, 3) + " rad/km" : "–"], ["Bends", s => String(s.bends)], ["Meander wavelength", s => km(s.lambda)], ["Median width", s => Number.isFinite(s.width) ? nf(s.width) + " m" : "–"], ["Floodplain width", s => Number.isFinite(s.fp) ? nf(s.fp) + " m" : "–"], ["Median ksn", s => Number.isFinite(s.ksn) ? tfmt(s.ksn) : "–"], ["Tributaries joining", s => String(s.tribs)], ["Dams & weirs", s => String(s.dams)],
     ["Catchment area", s => s.basin ? nf(s.basin.area) + " km²" : (s.whole && s.wd && s.wd.area ? nf(s.wd.area) + " km² (Wikidata)" : "–")], ["Hypsometric integral", s => s.basin ? nf(s.basin.HI, 2) : "–"], ["Strahler order", s => s.net ? String(s.net.maxO) : "–"], ["Drainage density", s => s.net ? nf(s.net.Dd, 3) + " km/km²" : "–"], ["Bifurcation ratio", s => s.net ? nf(s.net.Rb, 2) : "–"],
-    ["Source / transfer / storage", s => { const t = s.zones.source + s.zones.transfer + s.zones.storage; return t ? `${nf(s.zones.source/t*100)} / ${nf(s.zones.transfer/t*100)} / ${nf(s.zones.storage/t*100)} %` : "–"; }]];
+    ["Delta mouths / area", s => s.delta && !s.delta.single ? `${s.delta.mouths} / ${nf(s.delta.area)} km²` : "–"], ["Delta morphology (interp.)", s => s.delta && s.delta.morph ? s.delta.morph.split(":")[0] : "–"],
+    ["Source / transfer / storage / sink", s => { const t = s.zones.source + s.zones.transfer + s.zones.storage + s.zones.sink; return t ? `${nf(s.zones.source/t*100)} / ${nf(s.zones.transfer/t*100)} / ${nf(s.zones.storage/t*100)} / ${nf(s.zones.sink/t*100)} %` : "–"; }]];
   for (const [n, f] of userRows()) if (S.some(s => s.user && f(s.user) != null)) rows.push([n, s => (s.user && f(s.user)) || "–"]);
   el.innerHTML = `<div class="cmpcards">${C.map((c, i) => `<div class="cmpc" style="border-color:${CMPC[i]}"><canvas class="cmpmap" data-ci="${i}"></canvas><b style="color:${CMPC[i]}">${esc(c.label)}</b><button class="sm" data-cx="${i}">Remove</button></div>`).join("")}</div>
     <div class="scroll"><table class="grid"><tr><th></th>${C.map((c, i) => `<th style="color:${CMPC[i]}">${esc(c.label)}</th>`).join("")}</tr>${rows.map(([n, f]) => `<tr><td>${n}</td>${S.map(s => `<td>${f(s)}</td>`).join("")}</tr>`).join("")}</table></div>

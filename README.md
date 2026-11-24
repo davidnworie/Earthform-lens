@@ -58,6 +58,10 @@ Each river opens as a workspace with these tabs:
 
 Select a stretch with **Start here / End here / This reach**, then **＋ Compare**.
 
+Further tools: 🎯 **Pick on map** (tap a channel to load its river), adjustable profile parameters (sampling, smoothing, gradient window, knickpoint sensitivity, vertical exaggeration), width transects drawn on the map (exclude bad ones by tapping), braiding index, meander amplitude and valley sinuosity, junction angles and drainage-pattern interpretation, catchment of any tributary or any tapped outlet (perimeter, circularity, slope distribution, ESA WorldCover land cover, Macrostrat lithology), floodplain cross-sections with terrace candidates, OSM oxbow lakes, digitising of floodplains, terraces, abandoned channels, lobes, delta boundaries and dated shorelines (progradation / retreat rate), delta distributary paths, bifurcation angles, density and morphology interpretation, Sentinel-2 cloudless years (2016–2023), JRC Global Surface Water layers (1984–2021), swipe comparison and year animation, weighted sediment-routing classification with terminal sinks and barriers, comparison plot studio (cross-plots with power-law fits, histograms, box plots) and a synchronised downstream slider. Every module has a "Method, data & provenance" note; exports: JSON (all results + provenance), measurement GeoJSON, chart SVG/PNG, map PNG, printable report.
+
+Not yet included (need a processing service or precomputed data): HydroRIVERS/HydroBASINS/HydroATLAS/MERIT Hydro, Copernicus DEM, automatic Landsat/Sentinel time-series segmentation, automatic oxbow/scroll-bar detection from imagery.
+
 ### Your own GeoJSON
 
 **⇪ GeoJSON** (search bar) opens a file as a river; **＋ Add GeoJSON system** (Compare) adds it to the comparison. WGS84 FeatureCollection; roles in `properties.role`:

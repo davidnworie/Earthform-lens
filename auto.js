@@ -2,10 +2,10 @@
 const UIROW = .35;
 function geometry(){
   const lines = [];
-  if (G.hydro && G.hydro.lines) for (const l of G.hydro.lines) lines.push({pts:l.pts, order:l.order, wt:.5 + .5*l.order});
-  if (G.net && G.net.lines) for (const l of G.net.lines) lines.push({pts:l.pts, order:l.order, wt:.6 + .55*l.order});
-  if (G.chan) lines.push({pts:G.chan.pts, order:9, wt:2.6, main:true});
-  else if (G.hydro && G.hydro.stem) lines.push({pts:G.hydro.stem, order:9, wt:2.4, main:true});
+  if (G.hydro && G.hydro.lines) for (const l of G.hydro.lines) lines.push({pts:l.pts, order:l.order, wt:.5 + .5*l.order, kind:"flow"});
+  if (G.net && G.net.lines) for (const l of G.net.lines) lines.push({pts:l.pts, order:l.order, wt:.6 + .55*l.order, kind:"net"});
+  if (G.chan) lines.push({pts:G.chan.pts, order:9, wt:2.6, main:true, kind:"main"});
+  else if (G.hydro && G.hydro.stem) lines.push({pts:G.hydro.stem, order:9, wt:2.4, main:true, kind:"main"});
   return {lines};
 }
 function studioSource(){
@@ -19,7 +19,32 @@ function sendToStudio(keepLook){
   if (!G.D || !window.__studio) return;
   const s = studioSource();
   window.__studio.setSource(s.img, {f: s.f, roi: G.roi || null, keepLook: !!keepLook});
+  G.studioFor = G.D; G.studioRoi = G.roi || null;
   if (keepLook) window.__studio.schedule();
+  labChanged();
+}
+/** what the Studio needs to know about the Lab's current image and results */
+function linkInfo(){
+  if (!G.D) return null; const g = geometry().lines, cnt = k => g.filter(l => (l.kind || "main") === k).length;
+  const name = (G.place && (G.place.title || G.place.caption)) || G.D.name || "Current image";
+  return {name, size: `${G.w}×${G.h} px`, pxm: G.pxm || null, scale: G.pxm ? `${(+G.pxm).toPrecision(3)} m/px ${G.pxSrc ? "(" + G.pxSrc + ")" : ""}` : "no scale set", north: G.north || 0,
+    layers: {main: cnt("main"), net: cnt("net"), flow: cnt("flow")}, keyStats: G.keyStats || [], fresh: G.studioFor === G.D && G.studioRoi === (G.roi || null), analysed: !!G.autoLog, ver: G.labVer || 0, place: G.place};
+}
+function labChanged(){ G.labVer = (G.labVer || 0) + 1; try { window.__studio && window.__studio.labChanged && window.__studio.labChanged(); } catch(e){ console.warn(e); } try { renderLabLink(); } catch(_){} }
+/** Lab → Studio: turn the current measurements into a figure */
+function makeFigure(){
+  if (!G.D) return toast("Open an image first");
+  const st = window.__studio; if (!st) return;
+  if (!st.hasImage() || G.studioFor !== G.D || G.studioRoi !== (G.roi || null)) sendToStudio(st.hasImage());
+  const nm = (G.place && (G.place.title || G.place.caption)) || "";
+  st.figureMode({title: nm, keyStats: G.keyStats || [], lines: geometry().lines.length});
+  showApp("studio"); toast("Figure built from the Lab's measurements");
+}
+function renderLabLink(){
+  const el = $("labLink"); if (!el) return; const L = linkInfo(); if (!L){ el.innerHTML = ""; return; }
+  const n = L.layers.main + L.layers.net + L.layers.flow;
+  el.innerHTML = `<span class="lk-dot ${L.fresh ? "ok" : "warn"}"></span><span class="lk-t">${n ? `${n} measured line${n > 1 ? "s" : ""} ready for figures` : "No channels or networks measured yet"} · ${L.fresh ? "Studio uses this image" : "Studio shows an older image"}</span><button class="sm" id="labToFig">🖼 Make figure</button><button class="sm" id="labToStudio">Studio ›</button>`;
+  $("labToFig").onclick = makeFigure; $("labToStudio").onclick = () => { if (!L.fresh) sendToStudio(true); showApp("studio"); };
 }
 
 /* ---------- 1. phone / map UI removal ---------- */
@@ -503,18 +528,37 @@ $("repRerun").onclick = () => runAuto();
 $("repPlot").onclick = () => { showApp("lab"); setTimeout(() => showTab("plot"), 60); };
 
 /* ---------- app shell ---------- */
-function showApp(k){
-  if (k !== "home" && k !== "discover" && k !== "posts" && k !== "explore" && !G.D) k = "home";
+function showApp(k, ws){
+  if (k !== "home" && k !== "discover" && k !== "posts" && k !== "explore" && !G.D){ if (k === "lab" || k === "studio" || k === "report") toast(k === "lab" ? "Open an image or send a map view from Rivers to use the Image lab" : "Analyse an image first: open one, or send a map view from Rivers"); k = "home"; }
+  G.ws = ws || APPWS[k] || null; if (!ws) G.sub = APPSUB[k] || G.sub; G.wsLast = G.wsLast || {}; if (G.ws) G.wsLast[G.ws] = G.sub; setTimeout(renderSubnav, 0);
+  if (k === "lab") setTimeout(renderLabLink, 0);
   document.querySelectorAll(".appsec").forEach(s => s.classList.toggle("on", s.id === "app-" + k));
   document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.app === k));
   if (k === "lab"){ requestAnimationFrame(() => { fitView(); showTab(G.tab || "setup"); }); }
-  if (k === "studio" && window.__studio) requestAnimationFrame(() => window.__studio.schedule());
+  if (k === "studio" && window.__studio) requestAnimationFrame(() => { window.__studio.schedule(); window.__studio.renderLink && window.__studio.renderLink(); });
   if (k === "explore") requestAnimationFrame(() => { try { const m = window.__xmap && window.__xmap(); if (m) m.req(); } catch(_){} });
   if (k === "posts") requestAnimationFrame(() => { try { renderPosts(); } catch(e){ console.error(e); toast("Posts: " + e.message); } });
   if (k === "report" && G.D && !G.autoLog){ $("repEmpty").style.display = "block"; $("repBody").style.display = "none"; }
   window.scrollTo(0, 0);
 }
-document.querySelectorAll(".seg button").forEach(b => b.onclick = () => showApp(b.dataset.app));
+/* ---------- four workspaces: Explore · Analyze · Compare · Report ---------- */
+const WS = {
+  explore: [["rivers", "Rivers", () => showApp("explore")], ["places", "Places", () => showApp("discover")]],
+  analyze: [["rmod", "River modules", () => { showApp("explore", "analyze"); if (window.__xr && window.__xr.river){ if (window.__xr.tab === "compare") showXTab("profile"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river first (Explore → Rivers), or open an image for the Image lab"); }], ["lab", "Image lab", () => showApp("lab")]],
+  compare: [["rcmp", "Rivers & reaches", () => { showApp("explore", "compare"); if (window.__xr && window.__xr.river){ showXTab("compare"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river, select a reach, then ＋ Compare"); }], ["dates", "Image dates", () => { showApp("lab", "compare"); if (G.D) setTimeout(() => showTab("change"), 80); }]],
+  report: [["find", "Findings", () => showApp("report")], ["fig", "Figure studio", () => showApp("studio")], ["posts", "Posts", () => showApp("posts")], ["rrep", "River report", () => { showApp("explore", "report"); if (window.__xr && window.__xr.river){ showXTab("data"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river first"); }]],
+};
+const APPWS = {home: null, explore: "explore", discover: "explore", lab: "analyze", report: "report", studio: "report", posts: "report"}, APPSUB = {explore: "rivers", discover: "places", lab: "lab", report: "find", studio: "fig", posts: "posts"};
+function renderSubnav(){
+  const el = $("subnav"); if (!el) return; const w = G.ws; document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.ws === w));
+  if (!w){ el.innerHTML = ""; el.classList.remove("on"); return; }
+  el.classList.add("on"); el.innerHTML = WS[w].map(([k, n]) => `<button class="${G.sub === k ? "on" : ""}" data-sub="${k}">${n}</button>`).join("") + (G.D && (w === "analyze" || w === "report") ? `<span class="subimg" title="The Image lab and the Figure studio work on this same image">🖼 ${esc((G.place && (G.place.title || G.place.caption)) || G.D.name || "image")} · ${G.pxm ? (+G.pxm).toPrecision(3) + " m/px" : "no scale"}</span>` : "");
+  el.querySelectorAll("[data-sub]").forEach(b => b.onclick = () => { const it = WS[w].find(x => x[0] === b.dataset.sub); G.sub = it[0]; it[2](); if (G.ws) G.sub = it[0]; renderSubnav(); });
+}
+function goWs(w){ const last = G.wsLast && G.wsLast[w], hasR = !!(window.__xr && window.__xr.river); let it = WS[w].find(x => x[0] === last) || WS[w][0];
+  if (!last){ if (w === "analyze" && !hasR && G.D) it = WS.analyze[1]; if (w === "report" && !G.D && hasR) it = WS.report[3]; if (w === "compare" && !hasR && G.D) it = WS.compare[1]; }
+  if ((it[0] === "find" || it[0] === "fig" || it[0] === "posts") && !G.D && hasR) it = WS.report[3]; G.sub = it[0]; it[2](); if (G.ws) G.sub = it[0]; renderSubnav(); }
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => goWs(b.dataset.ws));
 $("homeOpen").onclick = () => $("fileA").click();
 $("btnDelta").onclick = () => busy("Finding the delta…", () => { analyzeDelta(); G.hl = "delta"; requestDraw(); });
 $("btnBraid").onclick = () => busy("Mapping the braidplain…", () => { analyzeBraid(); G.hl = "braid"; rebuildOverlay(); });
@@ -534,4 +578,5 @@ window.__onLoaded = () => {
   sendToStudio(false);
   if ($("autoOnOpen").checked) runAuto(); else showApp("studio");
 };
+window.showAppGlobal = showApp;
 showApp("home");

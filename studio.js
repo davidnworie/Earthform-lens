@@ -359,6 +359,7 @@ function renderTo(canvas, W, opts={}){
     octx.putImageData(id,0,0);
   }
   if (!opts.raw && S.ov !== "off") drawOverlay(octx, ir.w, ir.h);
+  if (!opts.raw) drawFigureMarks(octx, ir.w, ir.h);
   ctx.drawImage(off, ir.x, ir.y);
   if (S.border === "data") drawDataCard(ctx, CW, CH, ir); else drawCaption(ctx, CW, CH, ir, dark);
 }
@@ -375,7 +376,7 @@ function drawOverlay(ctx, fw, fh){
   ctx.lineJoin = "round"; ctx.lineCap = "round";
   const sorted = geom.lines.slice().sort((a, b) => a.wt - b.wt);
   for (const L of sorted){
-    if (L.pts.length < 2) continue;
+    if (L.pts.length < 2 || !S.ovLayers[L.kind || "main"]) continue;
     ctx.beginPath(); L.pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
     let col = "rgba(255,255,255,.9)";
     if (S.ov === "gold") col = "rgba(255,210,122,.95)";
@@ -767,7 +768,7 @@ let toastT=0;
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),1800); }
 
 window.addEventListener("resize", () => schedule());
-markLook(); syncControls();
+markLook(); syncControls(); setTimeout(() => { try { renderLink(); } catch(_){} }, 0);
 
 /* ---------------- overlay chips ---------------- */
 chipGroup($("ovs"), OVSTYLES, it => S.ov===it[1], it => { S.ov = it[1]; if (S.ov !== "off" && !(window.__labAPI && window.__labAPI.geometry().lines.length)) toast("Run Channel, Network or Terrain → Flow in the Lab first"); schedule(); });
@@ -865,6 +866,47 @@ async function renderBlob(W, fmt){
   const c = document.createElement("canvas"); renderTo(c, W || 1080);
   return {canvas: c, blob: await new Promise(r => c.toBlob(r, fmt === "png" ? "image/png" : "image/jpeg", .93))};
 }
-window.__studio = {setSource, autoStyle, setStyle, setPreset, renderTo, renderBlob, schedule, applyPreset, syncAll, S, PRESETS, save: () => $("btnSave").click(), hasImage: () => !!S.img};
+
+/* ---------------- link with the Lab: one image, one set of measurements ---------------- */
+S.ovLayers = {main: true, net: true, flow: true}; S.fig = {scale: false, north: false, legend: false};
+const escS = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const LAYN = {main: "Main channel", net: "Channel network", flow: "Flow lines (terrain)"};
+function ovColor(kind, order){ return S.ov === "gold" ? "rgba(255,210,122,.95)" : S.ov === "ink" ? "rgba(8,10,14,.85)" : S.ov === "neon" ? (kind === "main" ? "#ffffff" : OV_ORDER[Math.min(OV_ORDER.length - 1, Math.max(0, (order || 1) - 1))]) : "rgba(255,255,255,.9)"; }
+function labInfo(){ const api = window.__labAPI; try { return api && api.linkInfo ? api.linkInfo() : null; } catch(_){ return null; } }
+function niceLen(m){ const p = 10**Math.floor(Math.log10(m)); return [1, 2, 5, 10].map(k => k*p).filter(v => v <= m).pop() || p; }
+function drawFigureMarks(ctx, fw, fh){
+  const L = labInfo(); if (!L || !S.srcMap) return; const unit = Math.max(1, Math.min(fw, fh)/700), sc = coverScale(fw, fh), pxOut = sc*S.srcMap.k; ctx.save();
+  if (S.fig.scale && L.pxm){ const mpp = L.pxm/pxOut, len = niceLen(fw*.22*mpp), w = len/mpp, x = fw*.05, y = fh - fh*.06;
+    ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillRect(x - 8*unit, y - 24*unit, w + 16*unit, 34*unit);
+    ctx.fillStyle = "#fff"; ctx.fillRect(x, y, w, 4*unit); ctx.fillRect(x, y - 5*unit, 2*unit, 9*unit); ctx.fillRect(x + w - 2*unit, y - 5*unit, 2*unit, 9*unit);
+    ctx.font = `600 ${12*unit}px Inter, 'Space Grotesk', sans-serif`; ctx.textBaseline = "alphabetic"; ctx.fillText(len >= 1000 ? len/1000 + " km" : len + " m", x, y - 8*unit); }
+  if (S.fig.north){ const r = 16*unit, cx = fw - fw*.06, cy = fh*.07 + r; ctx.translate(cx, cy); ctx.rotate(-((L.north || 0) - S.rot)*Math.PI/180);
+    ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.beginPath(); ctx.arc(0, 0, r*1.45, 0, 7); ctx.fill(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r*.55, r*.7); ctx.lineTo(0, r*.35); ctx.lineTo(-r*.55, r*.7); ctx.closePath(); ctx.fill();
+    ctx.rotate(((L.north || 0) - S.rot)*Math.PI/180); ctx.font = `700 ${11*unit}px Inter, sans-serif`; ctx.textAlign = "center"; ctx.fillText("N", 0, -r*1.65 + 2*unit); ctx.setTransform(1, 0, 0, 1, 0, 0); }
+  if (S.fig.legend && S.ov !== "off"){ const items = Object.entries(L.layers).filter(([k, n]) => n && S.ovLayers[k]); if (items.length){ const lh = 18*unit, bw = 170*unit, bh = lh*items.length + 12*unit, x = fw - bw - fw*.04, y = fh - bh - fh*.05;
+    ctx.fillStyle = "rgba(0,0,0,.5)"; ctx.fillRect(x, y, bw, bh); ctx.font = `500 ${11.5*unit}px Inter, sans-serif`; ctx.textAlign = "left";
+    items.forEach(([k], i) => { const yy = y + 6*unit + lh*i + lh/2; ctx.strokeStyle = ovColor(k, 3); ctx.lineWidth = (k === "main" ? 3.2 : 2)*unit; ctx.beginPath(); ctx.moveTo(x + 8*unit, yy); ctx.lineTo(x + 30*unit, yy); ctx.stroke(); ctx.fillStyle = "#fff"; ctx.fillText(LAYN[k], x + 38*unit, yy + 4*unit); }); } }
+  ctx.restore();
+}
+function renderLink(){
+  const el = $("link"); if (!el) return; const L = labInfo();
+  if (!L){ el.innerHTML = `<div class="lk-row"><span class="lk-dot off"></span><span class="lk-t">No image yet. Open an image, or send a map view from Rivers: the <b>Image lab</b> measures it and this <b>Figure studio</b> turns the same image and its measurements into figures and art.</span></div>`; return; }
+  const n = L.layers, any = n.main + n.net + n.flow;
+  el.innerHTML = `<div class="lk-row"><span class="lk-dot ${L.fresh ? "ok" : "warn"}"></span><span class="lk-t"><b>Linked to the Image lab:</b> ${escS(L.name)} <small>${escS(L.size)} · ${escS(L.scale)}${L.fresh ? "" : " · the Lab now has a different image or crop"}</small></span>${L.fresh ? "" : `<button class="sm pri" id="s_lkSync">↻ Use the Lab's image</button>`}<button class="sm" id="s_lkLab">‹ Measure in Lab</button></div>
+    <div class="lk-row"><span class="lk-l">Measured layers</span>${Object.keys(LAYN).map(k => `<button class="chip${S.ovLayers[k] && n[k] ? " on" : ""}${n[k] ? "" : " dim"}" data-lk="${k}" ${n[k] ? "" : "disabled"}>${LAYN[k]} ${n[k] ? "(" + n[k] + ")" : "· not measured"}</button>`).join("")}${any ? "" : `<span class="lk-h">Run Channel, Network or Terrain → Flow in the Lab to draw them here.</span>`}</div>
+    <div class="lk-row"><span class="lk-l">Figure marks</span>${[["scale", "Scale bar" + (L.pxm ? "" : " (needs scale)")], ["north", "North arrow"], ["legend", "Legend"]].map(([k, t]) => `<button class="chip${S.fig[k] ? " on" : ""}" data-fg="${k}" ${k === "scale" && !L.pxm ? "disabled" : ""}>${t}</button>`).join("")}<button class="chip" id="s_lkStats" ${L.keyStats.length ? "" : "disabled"}>Data card with ${L.keyStats.length || "no"} measurements</button><button class="chip" id="s_lkFig">✦ Scientific figure</button></div>`;
+  const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
+  on("lkLab", () => window.showAppGlobal && window.showAppGlobal("lab"));
+  on("lkSync", () => { window.__labAPI && window.__labAPI.sendToStudio(true); });
+  on("lkStats", () => { S.keyStats = L.keyStats; S.border = "data"; if (!S.title && L.name) S.title = L.name; syncAll(); schedule(); });
+  on("lkFig", () => figureMode({title: L.name, keyStats: L.keyStats, lines: any}));
+  el.querySelectorAll("[data-lk]").forEach(b => b.onclick = () => { S.ovLayers[b.dataset.lk] = !S.ovLayers[b.dataset.lk]; if (S.ov === "off") S.ov = "white"; syncAll(); schedule(); renderLink(); });
+  el.querySelectorAll("[data-fg]").forEach(b => b.onclick = () => { S.fig[b.dataset.fg] = !S.fig[b.dataset.fg]; schedule(); renderLink(); });
+}
+function figureMode(o){ const L = labInfo(); S.fig = {scale: !!(L && L.pxm), north: true, legend: !!o.lines}; if (o.lines && S.ov === "off") S.ov = "white"; S.ovLayers = {main: true, net: true, flow: true};
+  if (o.keyStats && o.keyStats.length){ S.keyStats = o.keyStats; S.border = "data"; } if (o.title && !S.title) S.title = o.title; syncAll(); schedule(); renderLink(); }
+function labChanged(){ renderLink(); if (S.img && S.ov !== "off") schedule(); }
+
+window.__studio = {figureMode, labChanged, renderLink, setSource, autoStyle, setStyle, setPreset, renderTo, renderBlob, schedule, applyPreset, syncAll, S, PRESETS, save: () => $("btnSave").click(), hasImage: () => !!S.img};
 
 })();

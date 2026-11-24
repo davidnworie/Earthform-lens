@@ -135,10 +135,10 @@ LAYERS.forEach(([k, n]) => {
 let toastT = 0;
 function toast(m, ms = 2400){ const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), ms); }
 async function busy(msg, fn){
-  $("busyMsg").textContent = msg; $("busy").classList.add("on"); await tick();
+  $("busyMsg").textContent = msg; $("busy").classList.add("on"); actSet("lab", msg); await tick();
   try { return await fn(); }
   catch (e){ console.error(e); toast("Error: " + (e.message || e), 4000); }
-  finally { $("busy").classList.remove("on"); }
+  finally { $("busy").classList.remove("on"); actEnd("lab"); }
 }
 function modal(html){ $("modalBox").innerHTML = html; $("modal").classList.add("on"); }
 function closeModal(){ $("modal").classList.remove("on"); }
@@ -567,7 +567,7 @@ bindRange("brush", v => v + " px");
 const ORDER_COL = ["#9ecae1","#4fb3d9","#2b8cbe","#e8c547","#ff7a45","#ff4d5e","#c2185b","#7b1fa2","#ffffff"];
 const hexRGB = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
 function rebuildOverlay(){
-  if (!G.D) return;
+  if (!G.D) return; setTimeout(labChanged, 0);
   const cmpMode = G.sv && ["compare","migration","dates"].includes(G.hl);
   const hlLay = {mask:"mask", lakes:"lakes", network:"net", basin:"basin", streams:"streams", change:"change"}[G.hl];
   if (hlLay && !G.lay[hlLay]){ G.lay[hlLay] = true; const b = document.querySelector('.lay[data-k="' + hlLay + '"]'); if (b) b.classList.add("on"); }
@@ -1871,5 +1871,5 @@ $("methods").innerHTML = `
 
 updateThrA();
 /*AUTO*/
-window.__labAPI = {pixelFeatures, seafloorChannels, analyzeBranches, isBathymetry, depthProxy, buildFindings: (...a) => buildFindings(...a), renderSlide: (...a) => renderSlide(...a), enhanceToStudio, atlasEnhance, geometry, sendToStudio, autoArt, runAuto, autoWater, autoChrome, waterModel, label, edtTo, notMask, thin, nbCount, transferModel, waterProb, refineProb, ensureLab, connectToMain, tapAt, setTool, runWater, analyzeChannel, analyzeNetwork, analyzeLakes, analyzePattern, analyzeCover, analyzeTerrain, runHydro, analyzeChange, finishShape, setMode, fitView, showTab, rebuildOverlay};
+window.__labAPI = {linkInfo, makeFigure, labChanged, pixelFeatures, seafloorChannels, analyzeBranches, isBathymetry, depthProxy, buildFindings: (...a) => buildFindings(...a), renderSlide: (...a) => renderSlide(...a), enhanceToStudio, atlasEnhance, geometry, sendToStudio, autoArt, runAuto, autoWater, autoChrome, waterModel, label, edtTo, notMask, thin, nbCount, transferModel, waterProb, refineProb, ensureLab, connectToMain, tapAt, setTool, runWater, analyzeChannel, analyzeNetwork, analyzeLakes, analyzePattern, analyzeCover, analyzeTerrain, runHydro, analyzeChange, finishShape, setMode, fitView, showTab, rebuildOverlay};
 })();
