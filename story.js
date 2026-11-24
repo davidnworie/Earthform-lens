@@ -31,6 +31,34 @@ function buildFindings(){
         box: bboxOf(seg, 3*c.W), hl: "bends"});
     }
   }
+  if (G.rivers && G.rivers.filter(r => r.major).length >= 2){
+    const M = G.rivers.filter(r => r.major).slice(0, 6), nm = r => G.chNames[r.id] || r.id;
+    add({key:"rivers", kicker:"Major rivers", big: String(M.length), bigLabel: "major rivers",
+      title: M.slice(0, 3).map(r => `${nm(r)} ${L$(r.len)}`).join(" · "),
+      text: M.map(r => `${nm(r)}${r.parentId ? ` joins ${G.chNames[r.parentId] || r.parentId}` : " has its own network"}`).join("; ") + ". Each was traced from its mouth, following the same water upstream at every junction.",
+      why: "Rivers ranked by length × median width; any river at least a fifth the size of the largest counts as major.",
+      geom: M.flatMap((r, i) => [{t:"line", pts: r.st.prof.pts, col: EX_COL[i % EX_COL.length], w: 1.3}, {t:"pin", x: r.mid[0], y: r.mid[1], col: EX_COL[i % EX_COL.length], label: r.id}]),
+      legend: M.map((r, i) => [EX_COL[i % EX_COL.length], nm(r)]), box: null, hl: "rivers"});
+  }
+  if (G.channelSet && !G.rivers){
+    const o = G.channelSet.list.filter(q => !q.main);
+    if (o.length) add({key:"channels", kicker: c ? "Separate channels" : "Channels", big: String(o.length), bigLabel: o.length > 1 ? "channels" : "channel",
+      title: c ? `${o.length} more channel${o.length > 1 ? "s" : ""}, not connected to the main ${river}` : `${o.length} separate channel${o.length > 1 ? "s" : ""} in view`,
+      text: `The longest, ${o[0].id}, is ${L$(o[0].len)} long with sinuosity ${o[0].sin.toFixed(2)}.` + (c ? " They may join outside the view, or under trees or bridges where the water can't be seen." : ""),
+      why: "Every piece of water at least 8 widths long; length is its longest route along the centreline, sinuosity = that length ÷ straight distance between its ends.",
+      geom: [...mainLine(.8), ...o.slice(0, 12).map((q, i) => ({t:"dots", pts: q.pts, col: CS_COL[i % CS_COL.length], w: .8})), ...o.slice(0, 8).map((q, i) => ({t:"pin", x: q.mid[0], y: q.mid[1], col: CS_COL[i % CS_COL.length], label: q.id}))],
+      legend: [[CS_COL[0], "Separate channels"]].concat(c ? [[PALETTE.main, "Main " + river]] : []), box: null, hl: "chanset"});
+  }
+  if (G.chStats && G.chStats.length >= 3){
+    const S0 = G.chStats, bigL = Math.max(...S0.map(r => r.st.len)), S = S0.filter(r => r.st.len >= .1*bigL), by = (f, d = 1) => S.slice().filter(r => Number.isFinite(f(r))).sort((a, b) => (f(b) - f(a))*d)[0];
+    const sinM = by(r => r.st.sin), lenM = by(r => r.st.len), widM = by(r => r.st.W), top = S.slice().sort((a, b) => b.st.len - a.st.len).slice(0, 8);
+    add({key:"compare", kicker:"Channels compared", big: String(S.length), bigLabel: "channels measured",
+      title: `Most winding: ${sinM.id}, sinuosity ${sinM.st.sin.toFixed(2)}`,
+      text: `Longest: ${lenM.id} (${L$(lenM.st.len)}). Widest: ${widM.id} (${L$(widM.st.W)}). Median sinuosity across all channels is ${median(S.map(r => r.st.sin).filter(Number.isFinite)).toFixed(2)}; ${S.filter(r => r.st.sin > 1.5).length} of ${S.length} are meandering.`,
+      why: "Every channel (main, tributaries, distributaries, side and separate channels) is measured with the same centreline method; the full table is in Findings and exports as CSV.",
+      geom: top.map((r, i) => ({t:"dots", pts: r.pts, col: r.type === "main" ? PALETTE.main : CS_COL[i % CS_COL.length], w: .9})).concat(top.map((r, i) => ({t:"pin", x: r.mid[0], y: r.mid[1], col: r.type === "main" ? PALETTE.main : CS_COL[i % CS_COL.length], label: r.id === "Main" ? "M" : r.id}))),
+      legend: [[PALETTE.main, "Main"], [CS_COL[0], "Other channels"]], box: null, hl: "chanset"});
+  }
   if (G.chx && G.chx.necks.length && G.chx.necks[0].ratio <= 3 && c){
     const nk = G.chx.necks[0], loop = c.pts.slice(Math.min(nk.i ?? 0, nk.j ?? 0), Math.max(nk.i ?? 0, nk.j ?? 0) + 1);
     add({key:"neck", kicker:"Cutoff watch", big: L$(nk.gap), bigLabel: "of land left",
@@ -182,6 +210,7 @@ function fitFont(ctx, text, maxW, size, weight, fam, minSize){ let s = size; do 
 const SERIF = '"Libre Baskerville", Georgia, serif', SANS = '"Space Grotesk", system-ui, sans-serif';
 const POST_FMT = {"4:5": [1080, 1350], "1:1": [1080, 1080], "9:16": [1080, 1920]};
 const POST_THEME = {
+  science: {name:"Science report", bg:"#fbfaf6", fg:"#16191d", sub:"#4b525a", acc:"#0e5a8a"},
   photo: {name:"Photo", bg:"#000", fg:"#fff", sub:"rgba(255,255,255,.82)", acc:"#ffd84a"},
   print: {name:"Print", bg:"#f6f3ec", fg:"#16181b", sub:"#4a4f55", acc:"#0e6aa8"},
   night: {name:"Night", bg:"#0d1013", fg:"#f2f4f6", sub:"#a9b0b8", acc:"#43d9e8"},
@@ -190,6 +219,7 @@ function rrect(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.a
 
 /** one slide: kind "cover" | "finding" | "summary" */
 function renderSlide(cv, slide, idx, total, opt = {}){
+  if ((opt.theme || "science") === "science") return renderSciSlide(cv, slide, idx, total, opt);
   const [W, H] = POST_FMT[opt.fmt || "4:5"], th = POST_THEME[opt.theme || "photo"], ctx = cv.getContext("2d"), M = Math.round(W*.065);
   cv.width = W; cv.height = H; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
   const place = placeName(), type = landscapeType(), pager = `${String(idx + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
@@ -246,10 +276,10 @@ function renderSlide(cv, slide, idx, total, opt = {}){
     const g = ctx.createLinearGradient(0, H*.42, 0, H); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(.35, "rgba(0,0,0,.55)"); g.addColorStop(1, "rgba(0,0,0,.9)"); ctx.fillStyle = g; ctx.fillRect(0, H*.42, W, H*.58);
   }
   const fg = photo ? "#fff" : th.fg, sub = photo ? "rgba(255,255,255,.85)" : th.sub, acc = photo ? th.acc : th.acc;
-  ctx.font = `400 ${Math.round(W*.031)}px ${SANS}`; const body = wrapText(ctx, f.text || "", tw).slice(0, H > W*1.5 ? 6 : 4);
+  ctx.font = `400 ${Math.round(W*.031)}px ${SANS}`; const body = f.bars ? [] : wrapText(ctx, f.text || "", tw).slice(0, H > W*1.5 ? 6 : 4), barH = f.bars ? f.bars.items.length*W*.05 + W*.05 : 0;
   const bigS = Math.round(W*(H > W*1.5 ? .15 : .12)), titleS = Math.round(W*.046);
   ctx.font = `700 ${titleS}px ${SERIF}`; const tl = wrapText(ctx, f.title || "", tw).slice(0, 2);
-  const blockH = bigS*1.05 + W*.03 + tl.length*titleS*1.3 + W*.02 + body.length*W*.044 + W*.07;
+  const blockH = bigS*1.05 + W*.03 + tl.length*titleS*1.3 + W*.02 + body.length*W*.044 + barH + W*.07;
   y = photo ? H - M*1.1 - blockH : imgH + (H - imgH - blockH)/2 + M*.25;
   if (!photo){ ctx.fillStyle = acc; ctx.fillRect(tx, y - W*.01, W*.08, W*.008); }
   y += bigS;
@@ -257,11 +287,17 @@ function renderSlide(cv, slide, idx, total, opt = {}){
   const bwid = ctx.measureText(f.big || "").width; ctx.fillStyle = acc; ctx.font = `600 ${Math.round(W*.028)}px ${SANS}`; if (bwid + W*.04 + ctx.measureText(f.bigLabel || "").width < tw) ctx.fillText(f.bigLabel || "", tx + bwid + W*.025, y); else { y += W*.04; ctx.fillText(f.bigLabel || "", tx, y); }
   y += W*.03; ctx.fillStyle = fg; ctx.font = `700 ${titleS}px ${SERIF}`; for (const l of tl){ y += titleS*1.3; ctx.fillText(l, tx, y); }
   y += W*.02; ctx.fillStyle = sub; ctx.font = `400 ${Math.round(W*.031)}px ${SANS}`; for (const l of body){ y += W*.044; ctx.fillText(l, tx, y); }
+  if (f.bars){ y += W*.02; ctx.fillStyle = sub; ctx.font = `600 ${Math.round(W*.024)}px ${SANS}`; y += W*.03; ctx.fillText(f.bars.label.toUpperCase(), tx, y);
+    const mx = Math.max(...f.bars.items.map(i => i.v).filter(Number.isFinite), 1e-9), lw = tw*.3, bw = tw*.55;
+    for (const it of f.bars.items){ y += W*.05; ctx.fillStyle = fg; ctx.font = `500 ${Math.round(W*.027)}px ${SANS}`; ctx.fillText(it.name.slice(0, 16), tx, y);
+      ctx.fillStyle = photo ? "rgba(255,255,255,.15)" : "rgba(0,0,0,.08)"; ctx.fillRect(tx + lw, y - W*.026, bw, W*.03);
+      if (Number.isFinite(it.v)){ ctx.fillStyle = it.col; ctx.fillRect(tx + lw, y - W*.026, bw*it.v/mx, W*.03); }
+      ctx.fillStyle = fg; ctx.fillText(it.s, tx + lw + bw + W*.02, y); } }
   footer(photo ? "rgba(255,255,255,.7)" : sub, H - M*.55);
 }
 
 /* ---------- slide deck, captions, saving ---------- */
-G.post = {fmt: "4:5", theme: "photo", slides: null, edits: {}};
+G.post = {fmt: "4:5", theme: "science", slides: null, edits: {}, meta: {src: "Google Earth", date: "", author: ""}};
 function deckSlides(){
   const F = G.findings || [], on = F.filter(f => !G.post.edits[f.key] || !G.post.edits[f.key].off);
   const S = [{kind:"cover", key:"cover"}];
@@ -305,11 +341,13 @@ async function allSlideFiles(){ const S = deckSlides(), out = []; for (let i = 0
 /* ---------- Report: findings list ---------- */
 function renderFindings(){
   const box = $("repFindings"); if (!box) return;
-  const F = G.findings = buildFindings();
+  const F = G.findings = sciEnrich(buildFindings()); if (G.post.userCmp && G.chStats){ const sel = G.chStats.filter(r => G.post.userCmp.includes(r.id)); if (sel.length) F.push(comparisonFinding(sel)); }
   if (!F.length){ box.innerHTML = `<p class="note">No specific features were measured. Try another landscape type above or inspect the image in Lab.</p>`; return; }
-  box.innerHTML = F.map((f, i) => `<div class="fd" data-fi="${i}"><canvas width="220" height="220"></canvas><div class="fdt"><small>${f.kicker}</small><div class="fdb"><b>${f.big}</b> <span>${f.bigLabel}</span></div><h5>${f.title}</h5><p>${f.text}</p><details><summary>How it's measured</summary><p class="note">${f.why}</p></details>${f.hl ? `<button class="sm" data-fmap="${i}">Show on map ›</button>` : ""}</div></div>`).join("");
+  const flow = G.chan ? (() => { const a = G.chan.pts[G.chan.pts.length-1], o = G.chan.pts[0]; return `<div class="card flowbar"><div><small>FLOW DIRECTION</small><p>From the <b>${whereIs(a[0], a[1])}</b> to the <b>${whereIs(o[0], o[1])}</b> <span class="note">(${G.seafloor ? "toward deeper, darker water" : G.flowWhy || "the widest end is taken as downstream"})</span>. This decides which branches count as tributaries or distributaries.${G.colourSplit ? ` At the confluence near the ${whereIs(G.colourSplit.at[0], G.colourSplit.at[1])} the water colour changes sharply, so the main channel stays with its own river and the ${G.colourSplit.dark ? "darker" : "lighter"} river is listed separately.` : ""}</p></div><button class="sm" id="repFlip">⇅ Reverse</button></div>`; })() : "";
+  box.innerHTML = flow + F.map((f, i) => `<div class="fd" data-fi="${i}"><canvas width="220" height="220"></canvas><div class="fdt"><small>${f.kicker}</small><div class="fdb"><b>${f.big}</b> <span>${f.bigLabel}</span></div><h5>${f.title}</h5><p>${f.text}</p><details><summary>How it's measured</summary><p class="note">${f.why}</p></details>${f.hl ? `<button class="sm" data-fmap="${i}">Show on map ›</button>` : ""}</div></div>`).join("");
+  if ($("repFlip")) $("repFlip").onclick = flipFlow;
   box.querySelectorAll(".fd").forEach(el => { const f = F[+el.dataset.fi], cv = el.querySelector("canvas"); drawScene(cv.getContext("2d"), f, 0, 0, 220, 220, {lw: .8}); });
-  box.querySelectorAll("[data-fmap]").forEach(b => b.onclick = () => { const f = F[+b.dataset.fmap]; showApp("lab"); setTimeout(() => { G.hl = f.hl; if (f.hl === "branches" || f.hl === "network") showTab("network"); else if (f.hl === "compare") showTab("change"); if (f.box){ const [x0, y0, x1, y1] = f.box; zoomTo((x0+x1)/2, (y0+y1)/2, Math.max(x1-x0, y1-y0)*1.2); } else fitView(); rebuildOverlay(); requestDraw(); }, 80); });
+  box.querySelectorAll("[data-fmap]").forEach(b => b.onclick = () => { const f = F[+b.dataset.fmap]; showApp("lab"); setTimeout(() => { G.hl = f.hl; if (f.hl === "branches" || f.hl === "network") showTab("network"); else if (f.hl === "compare") showTab("change"); else if (f.hl === "chanset") showTab("network"); if (f.box){ const [x0, y0, x1, y1] = f.box; zoomTo((x0+x1)/2, (y0+y1)/2, Math.max(x1-x0, y1-y0)*1.2); } else fitView(); rebuildOverlay(); requestDraw(); }, 80); });
 }
 
 /* ---------- Posts page ---------- */
@@ -317,7 +355,7 @@ function renderPosts(){
   const has = G.D && G.autoLog;
   $("postEmpty").style.display = has ? "none" : "block"; $("postBody").style.display = has ? "block" : "none";
   if (!has) return;
-  if (!G.findings) G.findings = buildFindings();
+  if (!G.findings) G.findings = sciEnrich(buildFindings()); else sciEnrich(G.findings);
   const P = G.post;
   $("postFmt").innerHTML = [["4:5", "Carousel 4:5"], ["1:1", "Square"], ["9:16", "Story 9:16"]].map(([k, n]) => `<button class="chip${P.fmt === k ? " on" : ""}" data-pf="${k}">${n}</button>`).join("");
   $("postTheme").innerHTML = Object.entries(POST_THEME).map(([k, t]) => `<button class="chip${P.theme === k ? " on" : ""}" data-pt="${k}">${t.name}</button>`).join("");
@@ -337,7 +375,8 @@ function renderPosts(){
     strip.appendChild(el);
   }
   $("postCount").textContent = `${S.length} slides`;
-  $("postCap").value = buildCaption();
+  $("postCap").value = P.theme === "science" ? sciCaption() : buildCaption();
+  const mt = P.meta; [["postSrc", "src"], ["postDate", "date"], ["postAuthor", "author"]].forEach(([id, k]) => { const el = $(id); if (el && document.activeElement !== el){ el.value = mt[k] || ""; el.onchange = () => { mt[k] = el.value.trim(); renderPosts(); }; } });
 }
 function editSlide(f){
   const e = G.post.edits[f.key] || {};

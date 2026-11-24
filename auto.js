@@ -119,6 +119,28 @@ function computeWater(){
   rebuildOverlay();
   return {area, share: area/ra, n: comps.length, largest: comps[0] ? comps[0].area : 0};
 }
+/** a drawn map (flat colours, few distinct shades) rather than a photo */
+function isMapGraphic(D){
+  if (!D.rgba || D.kind === "dem") return false;
+  const N = D.w*D.h, st = Math.max(1, Math.floor(N/60000)), hist = new Map(); let n = 0;
+  for (let i = 0; i < N; i += st){ const k = (D.rgba[i*4] >> 3) << 10 | (D.rgba[i*4+1] >> 3) << 5 | (D.rgba[i*4+2] >> 3); hist.set(k, (hist.get(k) || 0) + 1); n++; }
+  const top = [...hist.values()].sort((a, b) => b - a).slice(0, 8).reduce((s, v) => s + v, 0);
+  return top/n > .55;
+}
+/** on a drawn map, rivers and lakes are the blue strokes and fills */
+function mapWater(){
+  const D = G.D, w = G.w, h = G.h, N = w*h, L = ensureLab(D); let m = new Uint8Array(N), n = 0;
+  for (let i = 0; i < N; i++){ const l = L[i*3], a = L[i*3+1], b = L[i*3+2]; if (b < -12 && Math.hypot(a, b) > 16 && l > 20 && l < 88 && a < 12){ m[i] = 1; n++; } }
+  if (n < .002*N) return null;
+  // the sea is often drawn in a pale blue too: drop very large flat blobs touching the frame
+  const lb = label(m, w, h); for (const c of lb.comps) if (c.area > .12*N && (c.x0 === 0 || c.y0 === 0 || c.x1 === w-1 || c.y1 === h-1)) for (let i = 0; i < N; i++) if (lb.L[i] === c.id) m[i] = 0;
+  m = closing(m, w, h, 1); // drawn lines are clean: no gap bridging, which would join neighbouring rivers' headwaters
+  G.mask = m; G.maskV++; G.prep = G.chan = G.net = G.lakes = null; G.isMap = true;
+  const {comps} = label(m, w, h); let area = 0; for (const c of comps) area += c.area; comps.sort((a, b) => b.area - a.area); const ra = roiArea();
+  showRes("water", [SEC("Drawn map"), R("Share of analysis area", U.P(area/ra), "blue lines and fills"), R("Separate water bodies", U.N(comps.length, 0)), R("Largest body", U.A(comps[0] ? comps[0].area : 0))]);
+  rebuildOverlay();
+  return {ok: true, share: area/ra, n: comps.length, largest: comps[0] ? Math.max(comps[0].area, ra*.005) : 0, msg: `drawn map: rivers and lakes taken from the blue lines (${(area/ra*100).toFixed(1)}% of the view)`};
+}
 /** build a colour-cluster water model for dataset D within valid pixels (no global side-effects) */
 function waterModel(D, valid){
   const w = D.w, h = D.h;
@@ -215,6 +237,7 @@ function autoWater(){
     setMode("ndwi"); G.thrVal = otsu(getIdx(D, "ndwi"), roiMask()); updateThrSlider();
     const r = computeWater(); return {ok:true, msg:`NDWI threshold ${G.thrVal.toFixed(2)} · ${(r.share*100).toFixed(1)}% water`, ...r};
   }
+  if (isMapGraphic(D)){ const r = mapWater(); if (r) return r; }
   const md = waterModel(D);
   G.arid = !!md.isArid;
   if (md.skip) return md;
@@ -354,10 +377,10 @@ function autoArt(fromButton){
 async function runAuto(){
   if (!G.D) return toast("Open an image first");
   const D = G.D, dem = D.kind === "dem", F = G.focus;
-  G.autoLog = null; G.findings = null; if (G.post) G.post.edits = {};
+  G.autoLog = null; G.findings = null; if (G.post) G.post.edits = {}; G.chSel = null; G.chStats = null; if (G.post) G.post.userCmp = null; G._autoRunning = true;
   G.mask = null; applyFocusSettings(F === "auto" ? "meander" : F); clearTimeout(waterT);
   G.excl.fill(0); G.roi = null; G.pbox = null; G.autoC = null; G.enhanced = null; G.enhOn = false; G.outlet = null; G.head = null; G.hl = null; G.arid = false; G.focusEff = null;
-  G.seafloor = G.depth = G.branches = null; if (G.tables) delete G.tables.branches;
+  G.seafloor = G.depth = G.branches = G.channelSet = G.rivers = null; G.outlet = null; if (G.tables) delete G.tables.branches;
   G.prep = G.chan = G.net = G.lakes = G.pattern = G.cover = G.terr = G.hydro = null; G.chanCls = G.chanStats = null; G.chx = G.netx = G.delta = G.braid = G.field = null; G.mask = null; G.results = {};
   document.querySelectorAll('#app-lab [id^="res-"]').forEach(e => { if (e.id !== "res-change") e.innerHTML = ""; });
   const steps = []; let water = null;
@@ -371,10 +394,17 @@ async function runAuto(){
   const hasChannel = () => water && water.ok && water.largest > roiArea()*.004 && F !== "lakes";
   S("Tracing the main channel", () => {
     analyzeChannel();
+    // flow direction: by default the widest end is the outlet. Deltas and fans are the exception (the wide trunk is upstream), and the user can reverse it
+    { const hint = deltaHint(); G.flowWhy = hint ? hint : "the widest end is taken as downstream";
+      if (G.chan && (!!hint !== !!G.flowFlip)){ const e = G.chan.pts[G.chan.pts.length-1]; G.outlet = [e[0], e[1]]; G.prep = null; analyzeChannel(); }
+      if (G.flowFlip) G.flowWhy = "reversed by you"; }
+    G.colourSplit = null; try { rerouteByColour(); } catch(e){ console.error(e); }
     if (G.chan.len/Math.max(1, G.chan.W) < 6 || (G.chan.bends.length === 0 && G.chan.len/Math.max(1, G.chan.W) < 25)){ G.chan = null; G.chanCls = G.chanStats = null; delete G.results.channel; delete G.results.channelx; $("res-channel").innerHTML = ""; $("res-channelx").innerHTML = ""; G.chx = null; rebuildOverlay(); return {skip:"the main water body is a lake or bay, not a channel"}; }
     return `sinuosity ${disp("channel", "Sinuosity")}, ${disp("channel", "Bends between inflections")} bends, ${G.chx ? G.chx.necks.filter(n => n.ratio <= 1.5).length : 0} narrow necks`; }, hasChannel);
   S("Mapping the channel network", () => { analyzeNetwork(); return `order ${G.net.maxO}, ${G.net.sources} heads, ${G.net.loops} loops`; }, () => hasChannel() && !!G.chan);
-  S("Finding tributaries & distributaries", () => { analyzeBranches(); const B = G.branches; return `${B.tribs.length} tributar${B.tribs.length === 1 ? "y" : "ies"} join, ${B.dists.length} distributar${B.dists.length === 1 ? "y" : "ies"} leave, ${B.sides.length} side channel${B.sides.length === 1 ? "" : "s"}`; }, () => !!G.chan);
+  S("Splitting networks into rivers", () => { const R0 = analyzeRivers(); const maj = R0.filter(r => r.major); return R0.length ? `${R0.length} rivers, ${maj.length} major (${maj.slice(0, 4).map(r => r.id).join(", ")})` : {skip:"no river-shaped water"}; }, () => water && water.ok && !G.seafloor);
+  S("Inventory of separate channels", () => { const r = analyzeChannelSet(); return r.list.length ? `${r.list.length} channel${r.list.length > 1 ? "s" : ""} (${r.list.filter(c => !c.main).length} not connected to the main one)` : {skip:"no channel-shaped water"}; }, () => water && water.ok);
+  S("Finding tributaries & distributaries", () => { analyzeBranches(); buildChannelStats(true); const B = G.branches; return `${B.tribs.length} tributar${B.tribs.length === 1 ? "y" : "ies"} join, ${B.dists.length} distributar${B.dists.length === 1 ? "y" : "ies"} leave, ${B.sides.length} side channel${B.sides.length === 1 ? "" : "s"}`; }, () => !!G.chan);
   S("Measuring lakes and ponds", () => { $("lkNoNet").checked = !!G.chan; try { analyzeLakes(); } catch(e){ return {skip: e.message}; } return `${G.lakes.lakes.length} water bodies`; }, () => water && water.ok && !G.seafloor);
   if (dem){
     S("Terrain statistics", () => { analyzeTerrain(); return `relief ${disp("terrain", "Relief")}, HI ${disp("terrain", "Hypsometric integral")}`; });
@@ -387,7 +417,7 @@ async function runAuto(){
   });
   S("Focus analysis", () => {
     const f = fx2();
-    if (f === "delta"){ analyzeDelta(); return `${G.delta.mouths.length} mouths, opening angle ${fx(G.delta.opening, 0)}°`; }
+    if (f === "delta"){ if (!analyzeDelta(true)){ const B = G.branches; return {skip: `no sea or lake in view, so this is the upper delta: ${B ? B.dists.length : 0} distributaries split from the trunk`}; } analyzeDelta(); return `${G.delta.mouths.length} mouths, opening angle ${fx(G.delta.opening, 0)}°`; }
     if (f === "braided"){ analyzeBraid(); return `channel count ${disp("braid", "Channel count index (full braidplain)")}, ${disp("braid", "Bars")} bars`; }
     if (f === "dunes"){ analyzeField(); return `${G.field.tiles.length} tiles, mean crest ${disp("field", "Mean crest trend")}`; }
     if (f === "meander") return G.chx ? `${G.chx.necks.length} necks, ${G.chx.oxbows.length} oxbow candidates` : {skip:"no channel"};
@@ -413,7 +443,7 @@ async function runAuto(){
     } catch (e){ console.error(e); ic.textContent = "!"; el.classList.add("bad"); sm.textContent = e.message; log.push({step:s.name, status:"failed", note:e.message}); }
     el.classList.remove("run");
   }
-  G.autoLog = log;
+  G.autoLog = log; G._autoRunning = false;
   G.hl = {submarine:"branches", delta:"delta", braided:"braid", dunes:"field", meander: G.chx && G.chx.necks.length ? "necks" : null, tidal: G.netx ? "junctions" : null}[G.focusEff] || null;
   rebuildOverlay();
   await renderReport();
@@ -442,6 +472,8 @@ async function renderReport(){
     `<details><summary>${n} <small>${G.results[k].length} measures</small></summary><table class="res">${G.results[k].map((r, i) => `<tr data-gk="${k}|${i}"><td>${r.k}${r.n ? `<br><small>${r.n}</small>` : ""}</td><td>${r.s}</td></tr>`).join("")}</table><button class="sm" data-goto="${k === "hydro" ? "terrain" : k === "channelx" ? "channel" : ["networkx","delta","braid","branches"].includes(k) ? "network" : k === "field" ? "pattern" : k}">Open in Lab ›</button></details>`).join("");
   $("repDetails").querySelectorAll("[data-goto]").forEach(b => b.onclick = () => { showApp("lab"); showTab(b.dataset.goto); });
   renderReportChange();
+  try { renderChannelStats(); } catch(e){ console.error(e); }
+  try { renderRiverCard(); } catch(e){ console.error(e); }
   try { renderFindings(); } catch(e){ console.error(e); $("repFindings").innerHTML = `<p class="warn">Couldn't build findings: ${e.message}</p>`; }
   $("repLog").innerHTML = (G.autoLog || []).map(l => `<div class="lg ${l.status}"><span>${l.status === "done" ? "✓" : l.status === "failed" ? "!" : "–"}</span>${l.step}<small>${l.note}</small></div>`).join("");
 }
@@ -472,11 +504,12 @@ $("repPlot").onclick = () => { showApp("lab"); setTimeout(() => showTab("plot"),
 
 /* ---------- app shell ---------- */
 function showApp(k){
-  if (k !== "home" && k !== "discover" && k !== "posts" && !G.D) k = "home";
+  if (k !== "home" && k !== "discover" && k !== "posts" && k !== "explore" && !G.D) k = "home";
   document.querySelectorAll(".appsec").forEach(s => s.classList.toggle("on", s.id === "app-" + k));
   document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.app === k));
   if (k === "lab"){ requestAnimationFrame(() => { fitView(); showTab(G.tab || "setup"); }); }
   if (k === "studio" && window.__studio) requestAnimationFrame(() => window.__studio.schedule());
+  if (k === "explore") requestAnimationFrame(() => { try { const m = window.__xmap && window.__xmap(); if (m) m.req(); } catch(_){} });
   if (k === "posts") requestAnimationFrame(() => { try { renderPosts(); } catch(e){ console.error(e); toast("Posts: " + e.message); } });
   if (k === "report" && G.D && !G.autoLog){ $("repEmpty").style.display = "block"; $("repBody").style.display = "none"; }
   window.scrollTo(0, 0);
@@ -490,11 +523,14 @@ G.pathMode = "widest";
 function renderPathModes(){ const el = $("pathModes"); el.innerHTML = [["widest","Follow widest"],["shortest","Shortest route"]].map(([k, n]) => `<button class="chip${G.pathMode === k ? " on" : ""}" data-pm="${k}">${n}</button>`).join(""); el.querySelectorAll("[data-pm]").forEach(b => b.onclick = () => { G.pathMode = b.dataset.pm; renderPathModes(); }); }
 renderPathModes(); renderFocusChips();
 $("homeFind").onclick = () => showApp("discover");
+$("homeRiver") && ($("homeRiver").onclick = () => showApp("explore"));
 $("repAuto").onclick = () => runAuto();
 $("btnAutoLab").onclick = () => runAuto();
 window.__onLoaded = () => {
+  G.isMap = false;
+  G.flowFlip = false; G.channelSet = null; G.chSel = null; G.chNames = {};
   G.autoLog = null; G.hl = null; G.enhanced = null; G.enhOn = false; G.labelMask = null; G.labelMaskFor = null; G.scaleBar = null;
-  G.place = window.__pendingPlace || null; window.__pendingPlace = null; if ($("dPending")) $("dPending").innerHTML = "";
+  G.place = window.__pendingPlace || null; window.__pendingPlace = null; if (window.__pendingScale){ G.pxm = window.__pendingScale*(G.D.f || 1); G.pxSrc = "from the map's zoom level"; G.north = 0; window.__pendingScale = null; try { updateInfo(); } catch(_){} } if ($("dPending")) $("dPending").innerHTML = "";
   sendToStudio(false);
   if ($("autoOnOpen").checked) runAuto(); else showApp("studio");
 };

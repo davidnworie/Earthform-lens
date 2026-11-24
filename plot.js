@@ -11,6 +11,7 @@ function datasets(){
     add("necks", "Meander necks", G.chx.necks.map((n, i) => ({neck: i+1, ["gap_" + u]: n.gap*sc, gap_widths: n.ratio, ["loop_" + u]: n.loop*sc, loop_sinuosity: n.loopSin, status: n.cls})));
     add("oxbows", "Oxbow candidates", G.chx.oxbows.map((o, i) => ({oxbow: i+1, ["area_" + u + "2"]: o.area*sc*sc, ["width_" + u]: o.width*sc, ["length_" + u]: o.len*sc, width_ratio: o.rW, elongation: o.el, solidity: o.sol, ["distance_" + u]: o.dist*sc, crescent: o.crescent ? "yes" : "no"})));
   }
+  if (G.tables.channelStats) add("channels", "Channel statistics (every channel)", G.tables.channelStats.map(r => { const o = {...r}; delete o.length_unit; return o; }));
   if (G.tables.lakes) add("lakes", "Lakes & ponds", G.tables.lakes);
   if (G.netx){
     add("junctions", "Junction angles", G.netx.angles.map((a, i) => ({junction: i+1, angle_deg: a.ang, x: a.x, y: a.y})));

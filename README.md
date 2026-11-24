@@ -23,6 +23,22 @@ Everything runs in the browser. Images never leave your device.
 - **Lakes, patterns, land cover, terrain, dunes** (Fourier crest spacing and trend).
 - **Change over time:** Fourier–Mellin alignment (handles different crop, zoom and rotation), then river-migration or shoreline mode with numbered change events.
 
+## Rivers: explore a whole river from source to mouth
+
+Open the **Rivers** tab (or **Explore a river** on the home screen), type a river's name (for example *Danube*) and pick it from the list. Earthform Lens then:
+
+- **traces the river's course** from OpenStreetMap, following the direction OSM waterways are drawn in (downstream), and finds every tributary, distributary, dam and weir along it;
+- **builds the long profile** from AWS Terrain Tiles: elevation and slope from source to mouth, knickpoints, Langbein concavity, total fall and mean gradient;
+- **splits the river into reaches** (length adjustable) with sinuosity, bends, meander wavelength, slope, fall, a multi-channel index and, on request, channel width measured across OpenStreetMap's water areas;
+- **lists the tributaries** with the kilometre where each joins and its bank, plus length, basin area and discharge from Wikidata; charts how the basin grows downstream and fits Hack's law; any tributary can be opened and explored in turn;
+- **flies along the river** over satellite imagery, and sends any view to the image tools (Lab, Findings, Studio, Posts) with its scale already set;
+- lets you **draw a river by hand** on the map when it isn't in OpenStreetMap;
+- exports the long profile, reaches and tributaries as CSV and the course as GeoJSON.
+
+The explorer needs an internet connection and runs on a normal web host such as GitHub Pages. Pages hosted inside Claude cannot reach these services.
+
+Data sources: © OpenStreetMap contributors (ODbL), AWS Terrain Tiles (Mapzen; SRTM and others), imagery © Esri, Maxar, Earthstar Geographics, Wikidata (CC0). Please respect the [Nominatim](https://operations.osmfoundation.org/policies/nominatim/) and Overpass usage policies: the app makes one search and one geometry request per river.
+
 ## Use it
 Open the hosted page, or download `index.html` and open it in any modern browser. No install and no server needed.
 

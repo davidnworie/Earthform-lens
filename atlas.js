@@ -39,7 +39,9 @@ function atlasEnhance(src, mask, opts = {}){
   }
   // 3. per-channel levels (white balance + stretch)
   const pct = (arr, lo, hi) => { const s = []; for (let i = 0; i < N; i += Math.max(1, Math.floor(N/60000))) s.push(arr[i]); return [quantile(s, lo), quantile(s, hi)]; };
-  for (const ch of [R, Gc, B]){ const [lo, hi] = pct(ch, .005, .996); const k = Math.min(1.7, .92/Math.max(.05, hi - lo)); for (let i = 0; i < N; i++) ch[i] = .04 + (ch[i] - lo)*k; }
+  { // mostly a common stretch (keeps the scene's real colours); only 30% per-channel balance, so hazy green scenes don't turn purple
+    const Ls = new Float32Array(N); for (let i = 0; i < N; i++) Ls[i] = (R[i] + Gc[i] + B[i])/3; const [Llo, Lhi] = pct(Ls, .005, .996), kL = Math.min(1.7, .92/Math.max(.05, Lhi - Llo));
+    for (const ch of [R, Gc, B]){ const [lo, hi] = pct(ch, .005, .996), kc = Math.min(1.7, .92/Math.max(.05, hi - lo)), k = .3*kc + .7*kL, o = .3*lo + .7*Llo; for (let i = 0; i < N; i++) ch[i] = .04 + (ch[i] - o)*k; } }
   { // lift dark scenes (e.g. rainforest) so mid-tones keep detail
     const s = []; for (let i = 0; i < N; i += Math.max(1, Math.floor(N/40000))) s.push(.2126*R[i] + .7152*Gc[i] + .0722*B[i]);
     const md = median(s); if (md < .3){ const gma = clamp(Math.log(.34)/Math.log(Math.max(.05, md)), .55, 1); for (const ch of [R, Gc, B]) for (let i = 0; i < N; i++) ch[i] = Math.pow(clamp(ch[i], 0, 1), gma); } }
@@ -54,7 +56,9 @@ function atlasEnhance(src, mask, opts = {}){
   const fine = boxBlurF(lum, W, H, 1), kC = .28 + .27*res, kS = .08 + .7*res;
   let wc = null;
   if (ww){ const s = [[], [], []]; for (let i = 0; i < N; i += 3) if (ww[i] > .85){ s[0].push(R[i]); s[1].push(Gc[i]); s[2].push(B[i]); }
-    if (s[0].length > 100){ const m3 = s.map(median), sp = Math.sqrt(s.reduce((acc, a, k) => acc + (quantile(a, .84) - quantile(a, .16))**2/4, 0)); wc = [...m3, Math.max(.05, 1.7*sp)]; } }
+    if (s[0].length > 100){ const m3 = s.map(median), sp = Math.sqrt(s.reduce((acc, a, k) => acc + (quantile(a, .84) - quantile(a, .16))**2/4, 0)); wc = [...m3, Math.max(.05, 1.7*sp)];
+      // sediment-laden (tan / brown) rivers keep their real colour: grading them navy would misrepresent them
+      if (m3[0] > m3[2] + .04 && (m3[0] + m3[1])/2 > m3[2] + .03){ ww = null; wc = null; G.atlasMuddy = true; } else G.atlasMuddy = false; } }
   const lumW = boxBlurF(boxBlurF(lum, W, H, 2), W, H, 2);
   let nVeg = 0, nWat = 0;
   for (let i = 0; i < N; i++){

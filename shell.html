@@ -132,6 +132,25 @@ header{flex-wrap:wrap;gap:8px}
 .rep h2{margin:6px 0 2px;font-size:21px}
 .rep .rsub{color:var(--muted);font-size:12px;font-family:"JetBrains Mono",monospace;margin-bottom:8px}
 #repArt{width:100%;max-width:520px;display:block;margin:8px auto;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.flowbar{display:flex;gap:10px;align-items:center;padding:9px 11px}.flowbar small{color:var(--muted);letter-spacing:.08em;font-size:10.5px}.flowbar p{margin:2px 0 0;font-size:12.8px}
+.chxchips .chip i,.chs .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}.chxmap{display:block;border-radius:10px;margin:6px 0;cursor:crosshair}.exn{text-decoration:underline dotted;cursor:pointer}.exh{margin:12px 0 4px;font-size:12.5px;color:#cfd4d9}
+.rivercard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 11px;margin-top:6px;font-size:12.5px}
+.rivercard .rch{display:flex;align-items:center;gap:8px}.rivercard .rch b{font-size:14px}.rivercard .rcs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 10px;margin:6px 0}
+.rivercard .rcs div small{display:block;color:var(--muted);font-size:10.5px}.rivercard .rcs div span{font-family:"JetBrains Mono",monospace}
+.chsw{overflow-x:auto;max-height:340px;overflow-y:auto}.chs th,.chs td{white-space:nowrap}.chs th[data-chss]{cursor:pointer;text-decoration:underline dotted}
+.xwrap{max-width:1100px;margin:0 auto;padding:10px 12px 40px}.xsearch{display:flex;gap:6px}.xsearch input{flex:1;font-size:16px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:inherit}
+.xresults{display:flex;flex-direction:column;gap:6px;margin:6px 0}.xres{text-align:left;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:inherit}.xres span{display:block;font-size:12px;color:var(--muted)}
+.xstatus{font-size:13px;margin:8px 2px;color:var(--muted)}.xstatus.busy{color:#ffd84a}.xstatus.err{color:#ff7a7a}.xstatus.ok{color:#9fe3a8}
+.xmapbox{position:relative;height:min(58vh,560px);border-radius:14px;overflow:hidden;border:1px solid var(--line);touch-action:none}.xmapbox canvas{width:100%;height:100%;display:block;cursor:grab}
+.xmapctl{position:absolute;top:8px;left:8px;display:flex;gap:6px;flex-wrap:wrap}.xmapctl select{font-size:13px;padding:6px;border-radius:8px;background:rgba(0,0,0,.7);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.xdrawbar{position:absolute;bottom:26px;left:8px;right:8px;display:flex;gap:6px;align-items:center;background:rgba(0,0,0,.75);padding:6px 8px;border-radius:10px;font-size:12.5px;color:#fff}.xdrawbar span{flex:1}
+.xempty{margin:12px 2px}.xtop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:8px;margin-top:12px}#xHead{flex:1 1 100%}.xtop h2{margin:0}
+.xstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0}.xstats div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 9px}.xstats span{display:block;font-size:11.5px;color:var(--muted)}.xstats b{font-size:15px}
+.xpos{margin:10px 0;padding:10px}.xposrow{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}.xposrow input[type=range]{flex:1;min-width:120px}
+.xposinfo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;font-size:12.5px}.xkv{display:flex;justify-content:space-between;gap:6px;border-bottom:1px solid var(--line);padding:3px 0}.xkv span{color:var(--muted)}.xkv.wide{grid-column:1/-1}
+.xtabs{display:flex;gap:4px;margin:10px 0;overflow-x:auto}.xtabs button{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:inherit;white-space:nowrap}.xtabs button.on{background:#ff8a4c;color:#111;border-color:#ff8a4c}
+.xchart{min-height:120px}.xsvg{display:block}.xsvg text{fill:var(--muted);font:11px Space Grotesk,sans-serif}.xsvg .al{fill:#cfd4d9}.xsvg .gl{stroke:rgba(255,255,255,.08)}.xsvg .cur{stroke:#fff;stroke-width:1.5}.xsvg .vl{font-size:10px}
+#xBody td{white-space:nowrap}#xBody tr.on td{background:rgba(255,138,76,.15)}#xBody tr[data-k],#xBody tr[data-t]{cursor:pointer}
 .finds{display:flex;flex-direction:column;gap:10px;margin:8px 0}
 .fd{display:flex;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px;align-items:flex-start}
 .fd canvas{width:104px;height:104px;border-radius:8px;flex:0 0 104px}
@@ -213,7 +232,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
 <div class="app">
 <header>
   <div class="logo"><i></i>Earthform Lens</div>
-  <nav class="seg"><button data-app="discover">Discover</button><button data-app="report">✦ Findings</button><button data-app="posts">Posts</button><button data-app="studio">Studio</button><button data-app="lab">Lab</button></nav>
+  <nav class="seg"><button data-app="explore">Rivers</button><button data-app="discover">Discover</button><button data-app="report">✦ Findings</button><button data-app="posts">Posts</button><button data-app="studio">Studio</button><button data-app="lab">Lab</button></nav>
   <button class="sm" id="btnOpen">Open…</button>
 </header>
 
@@ -221,12 +240,62 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
   <div class="hero">🛰️</div>
   <h1>Satellite art and landscape science, from one image</h1>
   <p>Open a Google Earth screenshot, a satellite GeoTIFF or an elevation model. Earthform Lens reads the landscape: it detects water and channels (rivers, tributaries, deltas, coasts, even seafloor canyons), measures them, compares dates, explains every number, and turns the findings into art and ready-to-post carousels.</p>
-  <div class="btns" style="justify-content:center"><button class="pri bigbtn" id="homeOpen">Open image</button><button class="bigbtn" id="homeFind">Find a place</button></div>
+  <div class="btns" style="justify-content:center"><button class="pri bigbtn" id="homeRiver">Explore a river</button><button class="bigbtn" id="homeOpen">Open image</button><button class="bigbtn" id="homeFind">Find a place</button></div>
   <div class="note" style="margin-top:16px">What will you be looking at?</div>
   <div class="chips focuschips" style="justify-content:center;max-width:520px;margin:6px auto"></div>
   <div class="note focusdesc"></div>
   <div style="margin-top:12px"><label class="chk"><input type="checkbox" id="autoOnOpen" checked> Run everything automatically when opened</label></div>
   <div class="modes"><div><b>Discover</b>A curated atlas of striking places, with links to frame them in Google Earth.</div><div><b>✦ Report</b>One-tap analysis and art, with a plain-language summary and a data poster.</div><div><b>Studio</b>Hand-tune looks, colour, crop, captions and line-art overlays.</div><div><b>Lab</b>Every measurement tool, adjustable step by step.</div></div>
+</div></section>
+
+<section class="appsec" id="app-explore"><div class="xwrap">
+  <div class="xsearch"><input id="xQ" type="search" placeholder="River name, e.g. Danube" autocomplete="off"><button class="pri" id="xGo">Find</button><button id="xDraw" title="Tap points along a river on the map">✎ Draw</button></div>
+  <div id="xResults" class="xresults"></div>
+  <div id="xStatus" class="xstatus">Search any river by name to follow it from source to mouth, or draw one on the map.</div>
+  <div class="xmapbox"><canvas id="xMap"></canvas>
+    <div class="xmapctl"><select id="xBase"></select><select id="xMetric"></select><button class="sm" id="xFit">Whole river</button></div>
+    <div id="xDrawBar" class="xdrawbar" style="display:none"><span id="xDrawN"></span><button class="sm" id="xDrawUndo">Undo</button><button class="sm pri" id="xDrawUse">Analyse line</button><button class="sm" id="xDrawCancel">Cancel</button></div>
+  </div>
+  <div id="xEmpty" class="xempty"><p>Try:</p><div class="chips"><button class="chip" data-xq="Danube">Danube</button><button class="chip" data-xq="Rhine">Rhine</button><button class="chip" data-xq="Mississippi">Mississippi</button><button class="chip" data-xq="Amazon">Amazon</button><button class="chip" data-xq="Niger">Niger</button><button class="chip" data-xq="Yangtze">Yangtze</button><button class="chip" data-xq="Mekong">Mekong</button><button class="chip" data-xq="Colorado River">Colorado River</button><button class="chip" data-xq="Thames">Thames</button><button class="chip" data-xq="Volga">Volga</button></div>
+    <p class="note">The app loads the river's course from OpenStreetMap, elevation from open terrain tiles, satellite imagery from Esri and river facts from Wikidata. Nothing to install; it needs an internet connection and works on the GitHub Pages version (pages hosted inside Claude can't reach these services).</p></div>
+  <div id="xBody" style="display:none">
+    <div class="xtop"><div id="xHead"></div><button class="sm" id="xBack" style="display:none">← Back to the main river</button></div>
+    <div class="xpos card">
+      <div class="xposrow"><button class="sm" id="xSrc">Source</button><input type="range" id="xPos" min="0" max="1" step="0.01" value="0"><button class="sm" id="xMouth">Mouth</button></div>
+      <div class="xposrow"><label class="chk"><input type="checkbox" id="xFollow"> Map follows</label><button class="sm" id="xPlay">▶ Fly along</button><button class="sm pri" id="xToLab">Analyse this view in Lab</button></div>
+      <div id="xPosInfo" class="xposinfo"></div>
+    </div>
+    <div class="xtabs" id="xTabs"><button data-xt="profile" class="on">Long profile</button><button data-xt="reaches">Reaches</button><button data-xt="tribs">Tributaries</button><button data-xt="data">Data</button></div>
+    <div class="xpanel" id="xp-profile">
+      <h4>Elevation from source to mouth</h4><div class="xchart" id="xcProfile"></div>
+      <p class="note">Blue: elevation along the channel with noise removed and no uphill steps (grey: raw values). Red dashes: knickpoints, where the river is much steeper than around it; yellow: dams and weirs. Tap the chart to move there.</p>
+      <h4>Slope</h4><div class="xchart" id="xcSlope"></div>
+      <div id="xProfStats"></div>
+      <div class="btns"><button class="sm" id="xRefine">Finer elevation</button><button class="sm" data-xexp="profile">⬇ Profile CSV</button></div>
+    </div>
+    <div class="xpanel" id="xp-reaches" style="display:none">
+      <div class="row"><label>Reach length (km)</label><input id="xReachLen" type="number" min="0" step="1" placeholder="auto" style="width:110px"><button class="sm" id="xWidthAll">Measure all widths</button></div>
+      <h4>Sinuosity by reach</h4><div class="xchart" id="xcReach"></div>
+      <h4>Channel width</h4><div class="xchart" id="xcWidth"></div>
+      <div id="xReachTbl"></div>
+      <p class="note">Sinuosity = channel length ÷ straight distance across the reach; bends from curvature sign changes on the smoothed centreline; wavelength = twice the median bend length; multi-channel index = (main + side-channel length) ÷ main length; width = across OpenStreetMap's water areas, sampled every few hundred metres.</p>
+      <div class="btns"><button class="sm" data-xexp="reaches">⬇ Reaches CSV</button></div>
+    </div>
+    <div class="xpanel" id="xp-tribs" style="display:none">
+      <div id="xTribSel"></div>
+      <h4>Where tributaries join</h4><div class="xchart" id="xcTrib"></div>
+      <p class="note">Blue: left bank, green: right bank (looking downstream). Height: basin area from Wikidata, where known.</p>
+      <h4>How the river grows downstream</h4><div class="xchart" id="xcGrow"></div>
+      <h4>Hack's law</h4><div class="xchart" id="xcHack"></div><p class="note" id="xHackNote"></p>
+      <div id="xTribTbl"></div>
+      <div class="btns"><button class="sm" data-xexp="tribs">⬇ Tributaries CSV</button></div>
+    </div>
+    <div class="xpanel" id="xp-data" style="display:none">
+      <p class="note">Everything measured here, ready for a spreadsheet or GIS.</p>
+      <div class="btns"><button class="sm" data-xexp="profile">⬇ Long profile CSV</button><button class="sm" data-xexp="reaches">⬇ Reaches CSV</button><button class="sm" data-xexp="tribs">⬇ Tributaries CSV</button><button class="sm" data-xexp="geojson">⬇ River GeoJSON</button></div>
+      <p class="note">Sources: river course, tributaries and dams © OpenStreetMap contributors (ODbL); elevation: AWS Terrain Tiles (Mapzen; SRTM and other sources); imagery © Esri, Maxar, Earthstar Geographics; facts: Wikidata (CC0). Elevation cells are tens to hundreds of metres, so short steep steps are smoothed.</p>
+    </div>
+  </div>
 </div></section>
 
 <section class="appsec" id="app-discover"><div class="rep">
@@ -260,6 +329,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
     <h4>What we found</h4><p class="note" style="margin-top:-4px">Each card is one result: the number, what it means and where it is. Tap “Show on map” to inspect it.</p>
     <div id="repFindings" class="finds"></div>
     <div class="btns" style="justify-content:center"><button class="pri" id="repPosts">✦ Turn findings into posts</button></div>
+    <div id="repChanWrap" class="card" style="display:none"><div id="repExplorer"></div><details class="how"><summary>All channels: full table</summary><div id="repChanStats"></div></details></div>
     <details class="how"><summary>Full write-up</summary><div id="repText"></div></details>
     <h4>Changes over time</h4><div id="repChange" class="card"></div>
     <h4>All measurements</h4><div id="repDetails"></div>
@@ -273,6 +343,11 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
   <div id="postBody" style="display:none">
     <h2>Posts</h2><p class="note">A ready-made carousel: a cover, one slide per finding and a numbers slide. Swipe the previews, leave out or reword any slide, then share or save them all.</p>
     <div class="chips" id="postFmt"></div><div class="chips" id="postTheme"></div>
+    <details class="how"><summary>Source & credit (shown on every slide)</summary>
+      <div class="row"><label>Imagery</label><input id="postSrc" placeholder="Google Earth" style="flex:1"></div>
+      <div class="row"><label>Image date</label><input id="postDate" placeholder="e.g. 2024 (from Google Earth's date bar)" style="flex:1"></div>
+      <div class="row"><label>Credit</label><input id="postAuthor" placeholder="your name or handle" style="flex:1"></div>
+    </details>
     <div id="postStrip" class="strip"></div>
     <div class="btns" style="justify-content:center"><button class="pri" id="postShare">Share all <span id="postCount"></span></button><button id="postZip">Save all (.zip)</button></div>
     <h4>Caption</h4><textarea id="postCap" style="width:100%;min-height:200px"></textarea>
@@ -373,6 +448,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
   <div class="tools" id="tools"></div>
   <div class="labctl"><button class="sm pri" id="btnAutoLab">✦ Auto</button><select id="labFocus" title="What is this landscape?"></select><button class="sm" id="btnLayers">Layers ▾</button><button class="sm" id="btnFit">Fit</button></div>
   <div class="layers" id="layers" style="display:none"></div>
+  <div class="rivercard" id="riverCard" style="display:none"></div>
 </div>
 <input type="file" id="fileA" accept="image/*,.tif,.tiff" hidden>
 <input type="file" id="fileB" accept="image/*,.tif,.tiff" multiple hidden>
@@ -434,7 +510,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
   <div class="row"><label>Spur pruning</label><input type="range" id="pruneK" min="0" max="40" value="15"><output id="pruneKO">1.5× width</output></div>
   <div class="row"><label>Transect length</label><input type="range" id="trK" min="1" max="20" value="3"><output id="trKO">±3 widths</output></div>
   <div class="row"><label>Main channel</label><div class="chips" id="pathModes"></div></div>
-  <div class="btns"><button class="pri" id="btnChannel">Analyse channel</button></div>
+  <div class="btns"><button class="pri" id="btnChannel">Analyse channel</button><button class="sm" id="btnFlip" title="Swap which end of the main channel is downstream, then re-run the analysis">⇅ Reverse flow</button></div>
   <div id="res-channel"></div>
   <h4>Channel+: necks, oxbows, bend shape</h4>
   <div class="btns"><button class="sm" data-hl="necks">Show necks</button><button class="sm" data-hl="oxbows">Show oxbows</button><button class="sm" data-hl="localsin">Colour by local sinuosity</button></div>
@@ -453,6 +529,18 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
   <p class="note">Every branch that meets the main channel: tributaries flow in, distributaries flow out, side channels split and rejoin. Measures where each joins, its length, width and junction angle.</p>
   <div class="btns"><button class="sm pri" id="btnBranches">Find branches</button><button class="sm" data-hl="branches">Show</button></div>
   <div id="res-branches"></div>
+  <h4>Rivers</h4>
+  <p class="note">Each network split into individual rivers: at every junction the river continues into the arm with the same water and the larger upstream network; other arms start new rivers. The largest are major rivers.</p>
+  <div class="btns"><button class="sm pri" id="btnRivers">Split into rivers</button><button class="sm" data-hl="rivers">Show</button></div>
+  <div id="res-rivers"></div>
+  <h4>All channels in the image</h4>
+  <p class="note">Every channel-shaped piece of water, connected or not: its own length, width and sinuosity.</p>
+  <div class="btns"><button class="sm pri" id="btnChanSet">List channels</button><button class="sm" data-hl="chanset">Show</button></div>
+  <div id="res-channels"></div>
+  <h4>Compare channels</h4>
+  <div id="labExplorer"></div>
+  <h4>Statistics for every channel</h4>
+  <div id="res-chanstats"></div>
   <h4>Delta</h4>
   <p class="note">Finds the open water (sea or lake), the mouths where distributaries reach it, the apex where they split, and the delta's area and shoreline.</p>
   <div class="btns"><button class="sm pri" id="btnDelta">Analyse delta</button><button class="sm" data-hl="delta">Show</button></div>

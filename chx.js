@@ -341,6 +341,7 @@ function renderFocusChips(){
 /** decide the landscape type after the generic analyses */
 function detectFocus(){
   if (G.D.kind === "dem") return ["basin", "elevation model loaded"];
+  if (G.chan && /delta|distribut/i.test(((G.D && G.D.name) || "") + " " + ((G.place && G.place.caption) || ""))) return ["delta", "the image name mentions a delta"];
   if (G.seafloor) return ["submarine", `ocean-floor shading with ${G.seafloor.systems} incised channel system${G.seafloor.systems > 1 ? "s" : ""}`];
   const c = G.chan, n = G.net;
   if (!G.mask || !c){

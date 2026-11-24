@@ -206,7 +206,7 @@ function askKind(dem){
 function loadImg(file){
   return new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error("Can't read image")); im.src = u; });
 }
-function workSize(W, H){ const s = Math.min(1, G.maxDim/Math.max(W, H)); return [Math.max(2, Math.round(W*s)), Math.max(2, Math.round(H*s)), W/Math.max(2, Math.round(W*s))]; }
+function workSize(W, H){ const M = Math.max(W, H), s = M < 900 ? Math.min(2, 1100/M) : Math.min(1, G.maxDim/M); /* small screenshots are upsampled so thin creeks are wide enough to detect */ return [Math.max(2, Math.round(W*s)), Math.max(2, Math.round(H*s)), W/Math.max(2, Math.round(W*s))]; }
 function fromBitmap(img, fw, fh){
   let [w, h, f] = fw ? [fw, fh, img.naturalWidth/fw] : workSize(img.naturalWidth, img.naturalHeight);
   const c = document.createElement("canvas"); c.width = w; c.height = h;
@@ -439,7 +439,8 @@ function draw(){
         if (iv && iv.vecs) iv.vecs.forEach(m => { const a = m.p, b = [a[0] + m.v[0]*X, a[1] + m.v[1]*X]; line([a, b], "#000", 3.5); line([a, b], "#fff", 1.6); dot(b[0], b[1], "#fff", 1.8); });
         if (iv && iv.cutoffs) iv.cutoffs.forEach(c => { dot(c.mid[0], c.mid[1], "#ff4d5e", 7); label(c.mid[0], c.mid[1], "cutoff"); }); }
     }
-    if (G.branches && G.chan && !(G.sv && ["compare","migration","dates"].includes(G.hl))) drawBranchesLab(ctx, P, v);
+    if (G.rivers && !(G.sv && ["compare","migration","dates"].includes(G.hl))) drawRiversLab(ctx, P); else if (G.channelSet && !(G.sv && ["compare","migration","dates"].includes(G.hl))) drawChannelSetLab(ctx, P);
+    if (G.branches && G.chan && (!G.rivers || ["branches", "chanset"].includes(G.hl)) && !(G.sv && ["compare","migration","dates"].includes(G.hl))) drawBranchesLab(ctx, P, v);
     if (G.hydro && G.hydro.stem) { line(G.hydro.stem, "rgba(0,0,0,.6)", 4.5); line(G.hydro.stem, "#ff7a45", 2.5); }
     if (G.lakes && G.lakes.axes && (G.tab === "lakes" || G.hl === "lakes")) for (const a of G.lakes.axes) line(a, "rgba(255,255,255,.75)", 1);
     for (const m of G.meas.concat(G.cur ? [G.cur] : [])){
@@ -455,11 +456,13 @@ function draw(){
   if (G.tool === "erase" && G.brushPos){ const q = P(G.brushPos[0], G.brushPos[1]); ctx.beginPath(); ctx.arc(q[0], q[1], +$("brush").value, 0, 7); ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; ctx.stroke(); }
   // legend for channel classes / change
   { const items = [];
-    if (G.lay.chans && G.chanCls && G.chanStats && !(G.sv && ["compare","migration","dates"].includes(G.hl))){ const st = G.chanStats;
+    const rivMode = G.rivers && G.rivers.length && !["branches", "necks", "oxbows", "network", "delta", "bends"].includes(G.hl) && !(G.sv && ["compare","migration","dates"].includes(G.hl));
+    if (rivMode){ const maj = G.rivers.filter(r => r.major).slice(0, 7); for (const r of maj) items.push([exColor(r.id), `${G.chNames[r.id] || r.id} (${U.L(r.len).s})`]); const n = G.rivers.length - maj.length; if (n > 0) items.push(["rgba(160,220,255,.8)", `${n} smaller river${n > 1 ? "s" : ""} (tap one to see it)`]); }
+    else if (G.lay.chans && G.chanCls && G.chanStats && !(G.sv && ["compare","migration","dates"].includes(G.hl))){ const st = G.chanStats;
       items.push(["#ff7a45", `${G.seafloor ? "Main channel" : "Main river"} (${U.L(st.main).s})`]);
       if (G.branches){ const B = G.branches; if (B.tribs.length) items.push([BR_COL.trib, `Tributary junctions T (${B.tribs.length})`]); if (B.dists.length) items.push([BR_COL.dist, `Distributary junctions D (${B.dists.length})`]); if (B.sides.length) items.push([BR_COL.side, `Side channels S (${B.sides.length})`]); }
       if (st.other) items.push(["#3fc1d3", `Tributaries & side channels (${U.L(st.other).s})`]);
-      if (st.sep) items.push(["#78dcff", `Separate channels (${st.nSep})`]);
+      if (G.channelSet){ const n = G.channelSet.list.filter(c => !c.main).length; if (n) items.push(["#78dcff", `Separate channels C (${n})`]); } else if (st.sep) items.push(["#78dcff", `Separate channels (${st.nSep})`]);
       if (st.ox) items.push(["#c86bff", `Oxbows / abandoned (${st.nOx})`]); }
     if (G.sv && G.lay.change && (G.tab === "change" || G.hl === "migration" || G.hl === "dates")){ const iv = G.sv.intervals[G.sv.sel], lab = d => d.year ?? d.name.slice(0, 8);
       if (iv){ const A = G.sv.dates[iv.a], B = G.sv.dates[iv.b];
@@ -543,7 +546,8 @@ function tapAt(ix, iy){
     const lab = sampleLab(G.D, ix, iy); G.samples.push(lab);
     $("wSampN").textContent = G.samples.length + " sample" + (G.samples.length === 1 ? "" : "s");
     if ($("wMode").value === "samples") scheduleWater(true);
-  } else if (t === "outlet"){ G.outlet = [ix, iy]; requestDraw(); toast("Outlet set"); setTool("pan"); }
+  } else if (t === "pan"){ if (G.rivers) riverTap(ix, iy); }
+  else if (t === "outlet"){ G.outlet = [ix, iy]; requestDraw(); toast("Outlet set"); setTool("pan"); }
   else if (t === "head"){ G.head = [ix, iy]; requestDraw(); toast("Head set"); setTool("pan"); }
   else if (t === "line" || t === "poly"){
     if (!G.cur || G.cur.type !== t) G.cur = {type:t, pts:[]};
@@ -806,6 +810,38 @@ function connectToMain(m, w, h, P, budget){
   return {m: out, n: joined};
 }
 /** remove broad, patchy "water" (towns, clearings): areas much wider than the river whose lightness varies a lot inside */
+/** sediment-coloured (tan) water looks like bare soil: drop detached tan patches that are neither channel-like (long, thin, single-thread)
+    nor lake-like (compact, smooth). Also drops straight horizontal bars (map scale bars). */
+function dropPaleBlobs(D, m, w, h){
+  const N = w*h, Lab = ensureLab(D), lb = label(m, w, h); if (lb.comps.length < 2) return m;
+  const main = lb.comps.reduce((a, c) => c.area > a.area ? c : a);
+  const sk = thin(m, w, h), st = new Map();
+  for (let i = 0; i < N; i++){ const id = lb.L[i]; if (!id) continue; let s = st.get(id); if (!s) st.set(id, s = {n:0, per:0, sk:0, L:0, b:0, f:-1});
+    s.n++; s.L += Lab[i*3]; s.b += Lab[i*3+2]; const x = i % w, y = (i/w)|0;
+    if (x === 0 || y === 0 || x === w-1 || y === h-1 || !m[i-1] || !m[i+1] || !m[i-w] || !m[i+w]) s.per++;
+    if (sk[i]){ s.sk++; if (s.f < 0) s.f = i; } }
+  const ms = st.get(main.id), mainW = ms ? ms.n/Math.max(1, ms.sk) : 10, drop = new Set();
+  const mm = new Uint8Array(N); for (let i = 0; i < N; i++) mm[i] = lb.L[i] === main.id ? 1 : 0; const dM = edtTo(mm, w, h), near = new Map();
+  for (let i = 0; i < N; i++){ const id = lb.L[i]; if (id && id !== main.id){ const v = near.get(id); if (v === undefined || dM[i] < v) near.set(id, dM[i]); } }
+  for (const c of lb.comps){ if (c === main) continue; const s = st.get(c.id);
+    if (c.y1 - c.y0 <= 6 && c.x1 - c.x0 > 40){ drop.add(c.id); continue; }
+    if (s.n < 12 || s.f < 0) continue;
+    const Lm = s.L/s.n, bm = s.b/s.n; if (!(bm > 6 && Lm > 40)) continue; // only tan, sediment-like water
+    const D0 = skDiameter(sk, w, h, s.f), W = s.n/Math.max(1, s.sk), hair = s.sk/Math.max(1, D0), circ = 4*Math.PI*s.n/(s.per*s.per);
+    const channel = D0/W >= 8 && hair <= 1.4, lake = circ >= .6 && s.n > .001*N, belt = near.get(c.id) <= 5*mainW; // tan water away from the rivers is rarely a pond: usually bare ground
+    if (!channel && !lake && !belt) drop.add(c.id); }
+  if (!drop.size) return m;
+  const out = new Uint8Array(N); for (let i = 0; i < N; i++) out[i] = m[i] && !drop.has(lb.L[i]) ? 1 : 0;
+  return out;
+}
+/** longest route (geodesic diameter) through a skeleton component, starting from any of its pixels */
+function skDiameter(sk, w, h, s0, ret){
+  const dist = new Map([[s0, 0]]); let q = [s0], far = s0;
+  const run = () => { for (let qi = 0; qi < q.length; qi++){ const p = q[qi], x = p % w, y = (p/w)|0, d = dist.get(p);
+    for (const [dx, dy] of NB8){ const nx = x+dx, ny = y+dy; if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue; const r = ny*w+nx; if (!sk[r] || dist.has(r)) continue; dist.set(r, d + (dx && dy ? SQ2 : 1)); if (dist.get(r) > dist.get(far)) far = r; q.push(r); } } };
+  run(); const a = far; dist.clear(); dist.set(a, 0); q = [a]; far = a; run();
+  return ret ? {a, b: far, D: dist.get(far), n: dist.size} : dist.get(far);
+}
 function dropTowns(D, m, w, h){
   const N = w*h, sk = thin(m, w, h), hw = edtTo(notMask(m), w, h), ws = [];
   for (let i = 0; i < N; i++) if (sk[i]) ws.push(2*hw[i]);
@@ -907,6 +943,7 @@ function classify(D, opts = {}){
   const br = bridgeGaps(m, w, h, +$("wBridge").value, P);
   let n = br.n, out = br.m;
   if (+$("wBridge").value > 0 && !opts.noConnect){ const cn = connectToMain(out, w, h, P, 18*+$("wBridge").value); out = cn.m; n += cn.n; }
+  if (D.rgba && D.kind !== "dem") out = dropPaleBlobs(D, out, w, h);
   if (D === G.D) G.bridges = n;
   return out;
 }
@@ -1834,5 +1871,5 @@ $("methods").innerHTML = `
 
 updateThrA();
 /*AUTO*/
-window.__labAPI = {seafloorChannels, analyzeBranches, isBathymetry, depthProxy, buildFindings: (...a) => buildFindings(...a), renderSlide: (...a) => renderSlide(...a), enhanceToStudio, atlasEnhance, geometry, sendToStudio, autoArt, runAuto, autoWater, autoChrome, waterModel, label, edtTo, notMask, thin, nbCount, transferModel, waterProb, refineProb, ensureLab, connectToMain, tapAt, setTool, runWater, analyzeChannel, analyzeNetwork, analyzeLakes, analyzePattern, analyzeCover, analyzeTerrain, runHydro, analyzeChange, finishShape, setMode, fitView, showTab, rebuildOverlay};
+window.__labAPI = {pixelFeatures, seafloorChannels, analyzeBranches, isBathymetry, depthProxy, buildFindings: (...a) => buildFindings(...a), renderSlide: (...a) => renderSlide(...a), enhanceToStudio, atlasEnhance, geometry, sendToStudio, autoArt, runAuto, autoWater, autoChrome, waterModel, label, edtTo, notMask, thin, nbCount, transferModel, waterProb, refineProb, ensureLab, connectToMain, tapAt, setTool, runWater, analyzeChannel, analyzeNetwork, analyzeLakes, analyzePattern, analyzeCover, analyzeTerrain, runHydro, analyzeChange, finishShape, setMode, fitView, showTab, rebuildOverlay};
 })();
