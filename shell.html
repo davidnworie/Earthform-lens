@@ -148,6 +148,11 @@ header{flex-wrap:wrap;gap:8px}
 .xstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0}.xstats div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 9px}.xstats span{display:block;font-size:11.5px;color:var(--muted)}.xstats b{font-size:15px}
 .xpos{margin:10px 0;padding:10px}.xposrow{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}.xposrow input[type=range]{flex:1;min-width:120px}
 .xposinfo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;font-size:12.5px}.xkv{display:flex;justify-content:space-between;gap:6px;border-bottom:1px solid var(--line);padding:3px 0}.xkv span{color:var(--muted)}.xkv.wide{grid-column:1/-1}
+.filebtn{display:inline-flex;align-items:center;gap:4px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:inherit;cursor:pointer;font-size:14px;white-space:nowrap}.btns .filebtn,.filebtn.sm{padding:6px 11px;font-size:13px}
+.xsel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;padding:8px 10px}.xsel span{flex:1 1 100%;font-size:13px;opacity:.85}
+.zstrip{display:flex;height:18px;border-radius:6px;overflow:hidden;margin:8px 0}.zstrip span{min-width:1px}.zleg{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}.zleg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.cmpcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}.cmpc{border:2px solid;border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:4px;font-size:13px}.cmpmap{width:100%;height:110px;background:#0d1418;border-radius:6px}
+.warn{color:#ffb36b;font-size:13px}
 .xtabs{display:flex;gap:4px;margin:10px 0;overflow-x:auto}.xtabs button{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:inherit;white-space:nowrap}.xtabs button.on{background:#ff8a4c;color:#111;border-color:#ff8a4c}
 .xchart{min-height:120px}.xsvg{display:block}.xsvg text{fill:var(--muted);font:11px Space Grotesk,sans-serif}.xsvg .al{fill:#cfd4d9}.xsvg .gl{stroke:rgba(255,255,255,.08)}.xsvg .cur{stroke:#fff;stroke-width:1.5}.xsvg .vl{font-size:10px}
 #xBody td{white-space:nowrap}#xBody tr.on td{background:rgba(255,138,76,.15)}#xBody tr[data-k],#xBody tr[data-t]{cursor:pointer}
@@ -249,7 +254,7 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
 </div></section>
 
 <section class="appsec" id="app-explore"><div class="xwrap">
-  <div class="xsearch"><input id="xQ" type="search" placeholder="River name, e.g. Danube" autocomplete="off"><button class="pri" id="xGo">Find</button><button id="xDraw" title="Tap points along a river on the map">✎ Draw</button></div>
+  <div class="xsearch"><input id="xQ" type="search" placeholder="River name, e.g. Danube" autocomplete="off"><button class="pri" id="xGo">Find</button><button id="xDraw" title="Tap points along a river on the map">✎ Draw</button><label class="filebtn" title="Open your own GeoJSON (main channel + measured layers)">⇪ GeoJSON<input type="file" id="xGeoFile" accept=".json,.geojson,application/geo+json" hidden></label></div>
   <div id="xResults" class="xresults"></div>
   <div id="xStatus" class="xstatus">Search any river by name to follow it from source to mouth, or draw one on the map.</div>
   <div class="xmapbox"><canvas id="xMap"></canvas>
@@ -265,16 +270,19 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
       <div class="xposrow"><label class="chk"><input type="checkbox" id="xFollow"> Map follows</label><button class="sm" id="xPlay">▶ Fly along</button><button class="sm pri" id="xToLab">Analyse this view in Lab</button></div>
       <div id="xPosInfo" class="xposinfo"></div>
     </div>
-    <div class="xtabs" id="xTabs"><button data-xt="profile" class="on">Long profile</button><button data-xt="reaches">Reaches</button><button data-xt="tribs">Tributaries</button><button data-xt="data">Data</button></div>
+    <div class="xsel card" id="xSel"></div>
+    <div class="xtabs" id="xTabs"><button data-xt="profile" class="on">Longitudinal profile</button><button data-xt="reaches">Channel geometry</button><button data-xt="network">Drainage network</button><button data-xt="catchment">Catchment</button><button data-xt="floodplain">Floodplain</button><button data-xt="delta">Delta</button><button data-xt="time">Temporal evolution</button><button data-xt="sediment">Sediment routing</button><button data-xt="tribs">Tributaries</button><button data-xt="compare">Compare</button><button data-xt="data">Data</button></div>
     <div class="xpanel" id="xp-profile">
       <h4>Elevation from source to mouth</h4><div class="xchart" id="xcProfile"></div>
       <p class="note">Blue: elevation along the channel with noise removed and no uphill steps (grey: raw values). Red dashes: knickpoints, where the river is much steeper than around it; yellow: dams and weirs. Tap the chart to move there.</p>
       <h4>Slope</h4><div class="xchart" id="xcSlope"></div>
       <div id="xProfStats"></div>
+      <h4>Slope–area (concavity θ)</h4><div class="xchart" id="xcSA"></div><div id="xProfExtra"></div>
       <div class="btns"><button class="sm" id="xRefine">Finer elevation</button><button class="sm" data-xexp="profile">⬇ Profile CSV</button></div>
     </div>
     <div class="xpanel" id="xp-reaches" style="display:none">
       <div class="row"><label>Reach length (km)</label><input id="xReachLen" type="number" min="0" step="1" placeholder="auto" style="width:110px"><button class="sm" id="xWidthAll">Measure all widths</button></div>
+      <div id="xGeomStats"></div>
       <h4>Sinuosity by reach</h4><div class="xchart" id="xcReach"></div>
       <h4>Channel width</h4><div class="xchart" id="xcWidth"></div>
       <div id="xReachTbl"></div>
@@ -290,9 +298,45 @@ canvas.cmpcv{width:100%;display:block;border-radius:10px;margin:6px 0;touch-acti
       <div id="xTribTbl"></div>
       <div class="btns"><button class="sm" data-xexp="tribs">⬇ Tributaries CSV</button></div>
     </div>
+    <div class="xpanel" id="xp-network" style="display:none">
+      <div class="btns"><button class="sm pri" data-run="basin">Extract network &amp; catchment from terrain</button><label class="chk"><input type="checkbox" data-show="basin"> Show on map</label></div>
+      <div id="xNetStats"></div>
+      <h4>Horton plot: segments per Strahler order</h4><div class="xchart" id="xcHorton"></div>
+      <p class="note">Strahler ordering of the channels extracted from the terrain (cells draining more than the threshold area). Rb = geometric mean of Nᵤ/Nᵤ₊₁ (typically 3–5); drainage density = total channel length ÷ catchment area. Values depend on the threshold and terrain resolution: compare rivers at the same settings.</p>
+    </div>
+    <div class="xpanel" id="xp-catchment" style="display:none">
+      <div class="btns"><button class="sm pri" data-run="basin">Delineate catchment from terrain</button><label class="chk"><input type="checkbox" data-show="basin"> Show on map</label></div>
+      <div id="xBasinStats"></div>
+      <h4>Hypsometric curve</h4><div class="xchart" id="xcHyps"></div>
+      <p class="note">Water is routed over the terrain (depressions filled, steepest descent) and every cell draining to the river mouth is counted. Very large basins use coarser terrain (several hundred metres per cell).</p>
+    </div>
+    <div class="xpanel" id="xp-floodplain" style="display:none">
+      <div class="row"><label>Flood height above channel (m)</label><input id="xFpH" type="number" min="0.5" step="0.5" value="5" style="width:90px"><button class="sm pri" id="xFpRun">Measure floodplain (selection)</button></div>
+      <div id="xFpStats"></div>
+      <h4>Floodplain and valley width</h4><div class="xchart" id="xcFp"></div>
+      <p class="note">At regular cross-sections the terrain is followed out from the channel on both sides until it rises more than the flood height (green: floodplain) or four times that (yellow: valley floor). Blue dots: channel width (measure widths in Channel geometry). Confinement = floodplain width ÷ channel width: below 2 confined, 2–10 partly confined, above 10 unconfined. Channel migration: use Temporal evolution.</p>
+    </div>
+    <div class="xpanel" id="xp-delta" style="display:none">
+      <div id="xDeltaStats"></div>
+    </div>
+    <div class="xpanel" id="xp-time" style="display:none">
+      <p class="note">Compare archived satellite images (Esri World Imagery Wayback, 2014 onwards) of the current map view. The two images are sent to the Lab, aligned and differenced to measure erosion, accretion, bank retreat and migration rates. Zoom the map to the reach, bend or shoreline first.</p>
+      <div class="btns"><button class="sm" id="xTimeLoad">Load available dates</button><button class="sm" id="xTimeMouth">Go to the mouth (shoreline)</button></div>
+      <div class="row"><label>From</label><select id="xWbA"></select><label>To</label><select id="xWbB"></select><button class="sm pri" id="xTimeGo" disabled>Compare this view</button></div>
+      <p class="note">Archive imagery is mosaicked from different sensors and seasons; water level differences can look like bank change. Check the result images before quoting rates.</p>
+    </div>
+    <div class="xpanel" id="xp-sediment" style="display:none">
+      <h4>Potential sediment zones along the profile</h4><div class="xchart" id="xcSed"></div>
+      <div id="xSedStats"></div>
+    </div>
+    <div class="xpanel" id="xp-compare" style="display:none">
+      <div class="btns"><label class="btn sm filebtn">＋ Add GeoJSON system<input type="file" id="xGeoCmp" accept=".json,.geojson,application/geo+json" hidden></label></div>
+      <div id="xCmpBody"></div>
+    </div>
     <div class="xpanel" id="xp-data" style="display:none">
       <p class="note">Everything measured here, ready for a spreadsheet or GIS.</p>
-      <div class="btns"><button class="sm" data-xexp="profile">⬇ Long profile CSV</button><button class="sm" data-xexp="reaches">⬇ Reaches CSV</button><button class="sm" data-xexp="tribs">⬇ Tributaries CSV</button><button class="sm" data-xexp="geojson">⬇ River GeoJSON</button></div>
+      <div id="xUserStats"></div>
+      <div class="btns"><button class="sm" data-xexp="profile">⬇ Long profile CSV</button><button class="sm" data-xexp="reaches">⬇ Reaches CSV</button><button class="sm" data-xexp="tribs">⬇ Tributaries CSV</button><button class="sm" data-xexp="geojson">⬇ River GeoJSON</button><button class="sm" data-xexp="basin">⬇ Catchment &amp; network CSV</button><button class="sm" data-xexp="floodplain">⬇ Floodplain sections CSV</button></div>
       <p class="note">Sources: river course, tributaries and dams © OpenStreetMap contributors (ODbL); elevation: AWS Terrain Tiles (Mapzen; SRTM and other sources); imagery © Esri, Maxar, Earthstar Geographics; facts: Wikidata (CC0). Elevation cells are tens to hundreds of metres, so short steep steps are smoothed.</p>
     </div>
   </div>

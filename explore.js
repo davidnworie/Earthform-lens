@@ -83,7 +83,8 @@ function makeMap(cv){
   M.draw = () => {
     const [w, h] = M.size(), ctx = M.ctx; ctx.setTransform(M.dpr, 0, 0, M.dpr, 0, 0); ctx.fillStyle = "#0d1418"; ctx.fillRect(0, 0, w, h);
     M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, EX.base[XR.base]);
-    drawRiverLayers(ctx, M, w, h);
+    drawBasinOnMap(ctx, M, w, h);
+    drawRiverLayers(ctx, M, w, h); drawSelOnMap(ctx, M);
     ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.font = "11px Space Grotesk, sans-serif"; const at = EX.base[XR.base].attr + " · rivers © OpenStreetMap contributors", tw = ctx.measureText(at).width; ctx.fillRect(w - tw - 10, h - 17, tw + 10, 17); ctx.fillStyle = "#ddd"; ctx.fillText(at, w - tw - 5, h - 5);
     // scale bar
     const mpp = M.mpp(), target = 100*mpp, p10 = 10**Math.floor(Math.log10(target)), nice = [1, 2, 5].map(k => k*p10).filter(v => v <= target).pop() || p10, bw = nice/mpp;
@@ -178,28 +179,42 @@ async function searchRivers(q){
   const url = `${EX.nominatim}?format=jsonv2&limit=12&extratags=1&q=${encodeURIComponent(q)}`;
   const res = await xfetchJSON(url, {headers: {"Accept-Language": "en"}});
   const water = res.filter(r => r.category === "waterway" || r.class === "waterway" || /river|stream|canal/.test(r.type || ""));
-  return (water.length ? water : res).slice(0, 8);
+  const rank = r => (r.osm_type === "relation" ? 0 : 2) + (/river/.test(r.type || "") ? 0 : 1);
+  return (water.length ? water : res).slice().sort((a, b) => rank(a) - rank(b)).slice(0, 8);
 }
-function overpassMainQuery(sel){
-  const head = sel.osm_type === "relation" ? `rel(${sel.osm_id})->.r; .r out body; way(r.r)->.w;` : `way(${sel.osm_id})->.s; .s out tags; way(around.s:50)[waterway][name="${(sel.name || "").replace(/"/g, "")}"]->.w; (.w; .s;)->.w;`;
+const XWW = '"waterway"~"^(river|stream|canal|drain|tidal_channel)$"';
+function relSet(id){ return `rel(${id})->.r0; (.r0; rel(r.r0);)->.rr;`; }
+function aroundQuery(waysSel){
   return `[out:json][timeout:240];
-${head}
-.w out geom;
+${waysSel}
 node(w.w)->.n;
-(way(bn.n)["waterway"~"^(river|stream|canal)$"]; - way.w;)->.t;
+(way(bn.n)[${XWW}]; - way.w;)->.t;
 .t out geom;
-rel(bw.t)["waterway"~"^(river|stream)$"]->.tr;
+rel(bw.t)["waterway"]->.tr;
 .tr out body;
-node(w.w)["waterway"~"^(dam|weir|lock_gate)$"]->.d1;
-way(bn.n)["waterway"~"^(dam|weir)$"]->.d2;
-.d1 out;
-.d2 out center tags;`;
+node(w.w)["waterway"~"^(dam|weir|lock_gate)$"];
+out;
+way(bn.n)["waterway"~"^(dam|weir)$"];
+out center tags;`;
+}
+const qstr = v => String(v || "").replace(/\\/g, "").replace(/"/g, '\\"');
+/** turn any search hit (relation, way or node) into a river relation if one exists */
+async function resolveSel(sel){
+  if (sel.osm_type === "relation") return sel;
+  let local = sel.name;
+  if (sel.osm_type === "way"){ try { const t = await overpass(`[out:json][timeout:30];way(${sel.osm_id});out tags;`); const w = (t.elements || [])[0]; if (w && w.tags && w.tags.name) local = w.tags.name; } catch(_){} }
+  const names = [...new Set([local, sel.name].filter(Boolean))], lat = +sel.lat, lon = +sel.lon;
+  const q = `[out:json][timeout:60];(${names.map(n => `rel["waterway"]["name"="${qstr(n)}"](around:40000,${lat},${lon});rel["waterway"]["name:en"="${qstr(n)}"](around:40000,${lat},${lon});`).join("")});out tags;`;
+  try { const r = await overpass(q), rel = (r.elements || []).find(e => e.type === "relation" && /river|stream|canal/.test((e.tags && e.tags.waterway) || "")) || (r.elements || [])[0];
+    if (rel) return {...sel, osm_type: "relation", osm_id: rel.id, name: (rel.tags && (rel.tags["name:en"] || rel.tags.name)) || sel.name}; } catch(_){}
+  return {...sel, localName: local};
 }
 function assembleMain(ways){
   // directed node graph (OSM waterways are drawn in the direction of flow)
   const main = ways.filter(w => w.role !== "side_stream" && w.role !== "tributary" && w.role !== "spring" || ways.every(v => v.role === "side_stream"));
   const coord = new Map(), out = new Map(), indeg = new Map();
-  for (const w of main){ for (let i = 0; i < w.nodes.length; i++){ coord.set(w.nodes[i], w.geom[i]); if (!indeg.has(w.nodes[i])) indeg.set(w.nodes[i], 0); }
+  for (const w of main){ if (!w.nodes || w.nodes.length !== w.geom.length) w.nodes = w.geom.map(p => p[0].toFixed(7) + "," + p[1].toFixed(7));
+    for (let i = 0; i < w.nodes.length; i++){ coord.set(w.nodes[i], w.geom[i]); if (!indeg.has(w.nodes[i])) indeg.set(w.nodes[i], 0); }
     for (let i = 0; i + 1 < w.nodes.length; i++){ const a = w.nodes[i], b = w.nodes[i+1]; if (a === b) continue; let o = out.get(a); if (!o) out.set(a, o = []); o.push(b); indeg.set(b, (indeg.get(b) || 0) + 1); } }
   // bridge small gaps in the mapping: link each dead end to the nearest start of another stretch within 3 km
   { const outdeg = n => (out.get(n) || []).length, srcs = [...indeg].filter(([, d]) => d === 0).map(([n]) => n), sinks = [...coord.keys()].filter(n => !outdeg(n));
@@ -217,33 +232,47 @@ function assembleMain(ways){
   let end = null, bd = -1; for (const [n, d] of best) if (d > bd){ bd = d; end = n; }
   const path = []; for (let n = end; n != null; n = prev.get(n)) path.push(n); path.reverse();
   const nodeIdx = new Map(path.map((n, i) => [n, i]));
-  return {pts: path.map(n => coord.get(n)), nodes: path, nodeIdx, coord};
+  return {pts: path.map(n => coord.get(n)), nodes: path, nodeIdx, coord, coordKeys: typeof path[0] === "string"};
 }
-async function loadRiver(sel){
-  XR.river = null; XR.sel = null; renderX(); xstatus("Loading the river's course from OpenStreetMap… (large rivers take up to a minute)", "busy");
-  const data = await overpass(overpassMainQuery(sel));
-  if (data.remark && !(data.elements || []).some(e => e.type === "way")) throw new Error("OpenStreetMap server: " + data.remark.slice(0, 160));
-  const els = data.elements || [], rel = sel.osm_type === "relation" ? els.find(e => e.type === "relation" && e.id === +sel.osm_id) : null, relTag = rel;
-  const roles = new Map(); if (rel && rel.members) for (const m of rel.members) if (m.type === "way") roles.set(m.ref, m.role || "");
-  const allWays = els.filter(e => e.type === "way" && e.geometry && e.nodes), memberWays = [], tribWays = [];
-  const nm0 = (rel && rel.tags && rel.tags.name) || sel.name;
-  for (const w of allWays) ((rel ? roles.has(w.id) : (w.tags && w.tags.name === nm0)) ? memberWays : tribWays).push(w);
-  if (!memberWays.length) throw new Error("no river geometry came back for this choice");
-  const ways = memberWays.map(w => ({id: w.id, role: roles.get(w.id) || (w.tags && w.tags.waterway === "river" ? "" : "side_stream"), nodes: w.nodes, geom: w.geometry.map(g => [g.lat, g.lon])}));
+async function loadRiver(sel0){
+  XR.river = null; XR.sel = null; renderX(); xstatus("Finding the river in OpenStreetMap…", "busy");
+  const sel = await resolveSel(sel0), isRel = sel.osm_type === "relation";
+  xstatus("Loading the river's course from OpenStreetMap… (large rivers take up to a minute)", "busy");
+  let q1;
+  if (isRel) q1 = `[out:json][timeout:240];${relSet(sel.osm_id)}.rr out body;way(r.rr)->.w;.w out geom;`;
+  else { const bb = sel.boundingbox ? sel.boundingbox.map(Number) : [+sel.lat - 1, +sel.lat + 1, +sel.lon - 1, +sel.lon + 1], p = .3; q1 = `[out:json][timeout:240];way[${XWW}]["name"="${qstr(sel.localName || sel.name)}"](${bb[0] - p},${bb[2] - p},${bb[1] + p},${bb[3] + p});out geom;`; }
+  const data = await overpass(q1), els = data.elements || [];
+  if (data.remark && !els.some(e => e.type === "way")) throw new Error("OpenStreetMap server: " + data.remark.slice(0, 160));
+  const rels = els.filter(e => e.type === "relation"), rel = isRel ? (rels.find(e => e.id === +sel.osm_id) || rels[0]) : null, relTag = rel;
+  const roles = new Map(); for (const r of rels) if (r.members) for (const m of r.members) if (m.type === "way" && !roles.has(m.ref)) roles.set(m.ref, m.role || "");
+  const memberWays = els.filter(e => e.type === "way" && e.geometry && e.geometry.length > 1);
+  if (!memberWays.length) throw new Error(`OpenStreetMap returned no lines for “${esc(sel.name || sel0.name)}” (${els.length} items). Try another result in the list, or the local name.`);
+  // tributaries, distributaries and dams: a second, separate request so a slow answer can't lose the river itself
+  xstatus(`Course loaded (${memberWays.length} pieces). Finding tributaries and dams…`, "busy");
+  let around = {elements: []};
+  try { around = await overpass(aroundQuery(isRel ? `${relSet(sel.osm_id)}way(r.rr)->.w;` : `way(id:${memberWays.map(w => w.id).join(",")})->.w;`)); } catch(e){ console.warn(e); xstatus("Tributaries could not be loaded (" + esc(e.message) + "); showing the river alone.", "err"); }
+  const tribWays = (around.elements || []).filter(e => e.type === "way" && e.geometry && e.nodes && !roles.has(e.id) && !(e.tags && /dam|weir/.test(e.tags.waterway || "")));
+  const aroundEls = around.elements || [];
+  const ways = memberWays.map(w => ({id: w.id, role: roles.has(w.id) ? roles.get(w.id) : "", nodes: w.nodes && w.nodes.length === w.geometry.length ? w.nodes : w.geometry.map(g => g.lat.toFixed(7) + "," + g.lon.toFixed(7)), geom: w.geometry.map(g => [g.lat, g.lon])}));
   const A = assembleMain(ways);
   const name = (relTag && relTag.tags && (relTag.tags["name:en"] || relTag.tags.name)) || sel.name || sel.display_name.split(",")[0];
-  const R = {name, osm: sel.osm_type + "/" + sel.osm_id, wikidata: relTag && relTag.tags && relTag.tags.wikidata, main: A.pts, cum: withCum(A.pts), side: [], tribs: [], dams: [], prof: null, reaches: null, wd: null, nodeIdx: A.nodeIdx};
-  R.L = R.cum[R.cum.length - 1];
+  const R = {name, osm: isRel ? "relation/" + sel.osm_id : sel0.osm_type + "/" + sel0.osm_id, wikidata: relTag && relTag.tags && relTag.tags.wikidata, main: A.pts, cum: withCum(A.pts), side: [], tribs: [], dams: [], prof: null, reaches: null, wd: null, nodeIdx: A.nodeIdx};
+  R.L = R.cum[R.cum.length - 1]; R.mainNodes = A.nodes;
+  // full directed graph of every mapped channel (main, side streams, ways touching the river) for delta analysis
+  { const out = new Map(), coord = new Map(), add = (ns, gs) => { for (let i = 0; i < ns.length; i++) coord.set(ns[i], gs[i]); for (let i = 0; i + 1 < ns.length; i++){ if (ns[i] === ns[i+1]) continue; const o = out.get(ns[i]) || out.set(ns[i], []).get(ns[i]); if (!o.includes(ns[i+1])) o.push(ns[i+1]); } };
+    for (const w of ways) add(w.nodes, w.geom);
+    for (const w of tribWays){ const ns = A.coordKeys ? w.geometry.map(g => g.lat.toFixed(7) + "," + g.lon.toFixed(7)) : w.nodes; if (ns.length === w.geometry.length) add(ns, w.geometry.map(g => [g.lat, g.lon])); }
+    R.graph = {out, coord}; }
   const onMain = new Set(A.nodes);
   R.side = ways.filter(w => !w.nodes.every(n => onMain.has(n))).map(w => w.geom);
   R.sideLen = ways.filter(w => !w.nodes.every(n => onMain.has(n))).reduce((s, w) => s + withCum(w.geom).pop(), 0);
   // tributaries: ways that touch the main stem; group by their river relation (or name)
-  const relOf = new Map(); for (const e of els) if (e.type === "relation" && e !== relTag && e.members) for (const m of e.members) if (m.type === "way") relOf.set(m.ref, e);
+  const relOf = new Map(); for (const e of aroundEls) if (e.type === "relation" && e.id !== (relTag && relTag.id) && e.members) for (const m of e.members) if (m.type === "way") relOf.set(m.ref, e);
   const groups = new Map();
   for (const w of tribWays){
-    const j = w.nodes.findIndex(n => A.nodeIdx.has(n)); if (j < 0) continue;
+    const keys = A.coordKeys ? w.geometry.map(g => g.lat.toFixed(7) + "," + g.lon.toFixed(7)) : w.nodes; const j = keys.findIndex(n => A.nodeIdx.has(n)); if (j < 0) continue;
     const r = relOf.get(w.id), nm = (r && r.tags && (r.tags["name:en"] || r.tags.name)) || (w.tags && (w.tags["name:en"] || w.tags.name)); if (!nm) continue;
-    const key = r ? "r" + r.id : "n" + nm, mi = A.nodeIdx.get(w.nodes[j]);
+    const key = r ? "r" + r.id : "n" + nm, mi = A.nodeIdx.get(keys[j]);
     // the tributary must flow INTO the main stem: its touching node is (near) the end of the way
     const flowsIn = j >= w.nodes.length - 2, flowsOut = j <= 1 && w.nodes.length > 3;
     const g = groups.get(key); const cand = {key, name: nm, rel: r ? r.id : null, wikidata: r && r.tags && r.tags.wikidata, waterway: (r && r.tags && r.tags.waterway) || w.tags.waterway, mi, j, w, flowsOut: flowsOut && !flowsIn};
@@ -257,7 +286,7 @@ async function loadRiver(sel){
     R.tribs.push({name: g.name, rel: g.rel, wikidata: g.wikidata, waterway: g.waterway, km: R.cum[g.mi], lat: p[0], lon: p[1], side: cross > 0 ? "right" : "left", distributary: g.flowsOut, stub});
   }
   R.tribs.sort((a, b) => a.km - b.km);
-  for (const e of els){ if (e.type === "node" && e.tags && /dam|weir|lock_gate/.test(e.tags.waterway || "")){ const i = A.nodeIdx.get(e.id); if (i != null) R.dams.push({lat: e.lat, lon: e.lon, km: R.cum[i], name: e.tags.name || e.tags.waterway, kind: e.tags.waterway}); }
+  for (const e of aroundEls){ if (e.type === "node" && e.tags && /dam|weir|lock_gate/.test(e.tags.waterway || "")){ const i = A.nodeIdx.get(A.coordKeys ? e.lat.toFixed(7) + "," + e.lon.toFixed(7) : e.id); if (i != null) R.dams.push({lat: e.lat, lon: e.lon, km: R.cum[i], name: e.tags.name || e.tags.waterway, kind: e.tags.waterway}); }
     if (e.type === "way" && e.center && e.tags && /dam|weir/.test(e.tags.waterway || "")){ let bi = 0, bd = Infinity; const st = Math.max(1, Math.floor(A.pts.length/3000)); for (let i = 0; i < A.pts.length; i += st){ const d = hav(A.pts[i], [e.center.lat, e.center.lon]); if (d < bd){ bd = d; bi = i; } } if (bd < 3) R.dams.push({lat: e.center.lat, lon: e.center.lon, km: R.cum[bi], name: e.tags.name || e.tags.waterway, kind: e.tags.waterway}); } }
   R.dams.sort((a, b) => a.km - b.km);
   XR.river = R; XR.pos = 0; XR.sel = null; XR.reachKm = 0;
@@ -274,11 +303,16 @@ async function loadProfile(R, zoom){
   const d = new Float64Array(n), zr = new Float64Array(n); let done = 0;
   const pts = []; for (let i = 0; i < n; i++){ d[i] = Math.min(R.L, i*step); pts.push(pointAtKm(R, d[i])); }
   const need = new Map(); pts.forEach((p, i) => { const X = lon2x(p[1], z), Y = lat2y(p[0], z), k = Math.floor(X/256) + "/" + Math.floor(Y/256); (need.get(k) || need.set(k, []).get(k)).push([i, X, Y]); });
-  const keys = [...need.keys()]; let failed = 0;
+  let failed = 0;
+  if (R.zUser){ // elevations supplied with the line (GeoJSON third coordinate): interpolate, no download
+    let j = 0; for (let i = 0; i < n; i++){ while (j + 1 < R.cum.length - 1 && R.cum[j + 1] < d[i]) j++; const t = (d[i] - R.cum[j])/Math.max(1e-9, R.cum[j + 1] - R.cum[j]); zr[i] = R.zUser[j] + (R.zUser[j + 1] - R.zUser[j])*clamp(t, 0, 1); }
+  } else {
+  const keys = [...need.keys()];
   for (let b = 0; b < keys.length; b += 8){
     await Promise.all(keys.slice(b, b + 8).map(async k => { const [tx, ty] = k.split("/").map(Number), e = await demTile(z, tx, ty); done++;
       for (const [i, X, Y] of need.get(k)){ if (!e){ zr[i] = NaN; failed++; continue; } const px = Math.floor(X - tx*256), py = Math.floor(Y - ty*256); let m = Infinity; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const xx = clamp(px + dx, 0, 255), yy = clamp(py + dy, 0, 255); m = Math.min(m, e[yy*256 + xx]); } zr[i] = m; } }));
     xstatus(`Reading elevation along the river: ${Math.round(done/keys.length*100)}%`, "busy");
+  }
   }
   // conditioned profile: median filter, then water can't flow uphill (running minimum from the source)
   const med = new Float64Array(n); for (let i = 0; i < n; i++){ const a = []; for (let k = Math.max(0, i - 3); k <= Math.min(n - 1, i + 3); k++) if (Number.isFinite(zr[k])) a.push(zr[k]); med[i] = a.length ? median(a) : NaN; }
@@ -298,7 +332,7 @@ async function loadProfile(R, zoom){
   // per main-stem vertex lookups (for colouring the map)
   const zcAt = new Float32Array(R.main.length), sAt = new Float32Array(R.main.length);
   for (let i = 0; i < R.main.length; i++){ const k = Math.min(n - 1, Math.round(R.cum[i]/step)); zcAt[i] = zc[k]; sAt[i] = s[k]; }
-  R.prof = {z: zoom || z, step, d: Array.from(d), zr: Array.from(zr), zc: Array.from(zc), s: Array.from(s), knick: kp.map(i => ({km: d[i], z: zc[i], slope: s[i]})), conc, drop: H, zSrc: zc[0], zMouth: zc[n - 1], grad: H/R.L, failed, zcAt, sAt, res: 40075016.686*Math.cos(R.main[0][0]*D2R)/(256*2**z)};
+  R.prof = {z: zoom || z, user: !!R.zUser, step, d: Array.from(d), zr: Array.from(zr), zc: Array.from(zc), s: Array.from(s), knick: kp.map(i => ({km: d[i], z: zc[i], slope: s[i]})), conc, drop: H, zSrc: zc[0], zMouth: zc[n - 1], grad: H/R.L, failed, zcAt, sAt, res: 40075016.686*Math.cos(R.main[0][0]*D2R)/(256*2**z)};
   return R.prof;
 }
 
@@ -435,7 +469,9 @@ function renderCharts(){
       $("xHackNote").textContent = `Hack's law fit over ${LA.length} tributaries: length ≈ ${tfmt(c0)} × area^${hk.toFixed(2)} (Hack 1957 found an exponent near 0.6).`; }
     else { $("xcHack").innerHTML = ""; $("xHackNote").textContent = "Hack's law needs length and basin area for at least four tributaries (from Wikidata)."; XR.hack = null; }
   }
+  renderChartsTail();
 }
+function renderChartsTail(){ try { moduleCharts(); } catch(e){ console.error(e); } }
 function renderX(){
   const R = XR.river;
   $("xEmpty").style.display = R ? "none" : ""; $("xBody").style.display = R ? "" : "none";
@@ -463,6 +499,7 @@ function renderX(){
   const ot = $("xOpenTrib"); if (ot) ot.onclick = () => { XR.stack = XR.stack || []; XR.stack.push(R); loadRiver({osm_type: "relation", osm_id: sel.rel, name: sel.name, display_name: sel.name}).catch(e => xstatus(esc(e.message), "err")); };
   const tc = $("xTribClose"); if (tc) tc.onclick = () => { XR.sel = null; renderX(); };
   $("xBack").style.display = XR.stack && XR.stack.length ? "" : "none";
+  try { renderModules(); } catch(e){ console.error(e); }
   document.querySelectorAll("#xBody [data-k]").forEach(tr => tr.onclick = () => setPos(+tr.dataset.k));
   document.querySelectorAll("#xBody [data-t]").forEach(tr => tr.onclick = () => { XR.sel = R.tribs[+tr.dataset.t]; setPos(XR.sel.km); const p = pointAtKm(R, XR.sel.km); xmap.lat = p[0]; xmap.lon = p[1]; xmap.z = Math.max(xmap.z, 9); renderX(); });
   document.querySelectorAll("#xBody [data-w]").forEach(b => b.onclick = e => { e.stopPropagation(); runWidth([R.reaches[+b.dataset.w]]); });
@@ -511,6 +548,8 @@ function exportX(kind){
   if (kind === "profile" && R.prof) save(nm + "_long_profile.csv", xcsv(R.prof.d.map((d, i) => ({km_from_source: d, elevation_raw_m: R.prof.zr[i], elevation_conditioned_m: R.prof.zc[i], slope_m_per_km: R.prof.s[i]}))));
   if (kind === "reaches") save(nm + "_reaches.csv", xcsv(R.reaches.map(r => ({reach: r.i + 1, km_start: r.k0, km_end: r.k1, length_km: r.L, straight_km: r.straight, sinuosity: r.sin, bends: r.bends, wavelength_km: r.lambda, slope_m_per_km: r.slope, fall_m: r.drop, multichannel_index: r.multi, median_width_m: r.width ? r.width.med : NaN, width_p10_m: r.width ? r.width.p10 : NaN, width_p90_m: r.width ? r.width.p90 : NaN, direction: compass(r.az), tributaries: r.tribs}))));
   if (kind === "tribs") save(nm + "_tributaries.csv", xcsv(R.tribs.map(t => ({name: t.name, joins_at_km: t.km, bank: t.side, distributary: t.distributary ? "yes" : "no", length_km: t.len ?? NaN, basin_km2: t.area ?? NaN, discharge_m3s: t.q ?? NaN, osm_relation: t.rel || "", wikidata: t.wikidata || "", lat: t.lat, lon: t.lon}))));
+  if (kind === "basin" && R.basin){ const B = R.basin, N2 = R.net2; save(nm + "_catchment_network.csv", xcsv([...[["catchment_area_km2", B.area], ["relief_m", B.relief], ["max_elevation_m", B.zmax], ["min_elevation_m", B.zmin], ["hypsometric_integral", B.HI], ["basin_length_km", B.Lb], ["relief_ratio", B.reliefRatio], ["elongation_ratio", B.Re], ["terrain_cell_m", B.cellKm*1000], ["edge_clipped", B.clipped ? 1 : 0], ...(N2 ? [["channel_threshold_km2", N2.At], ["max_strahler_order", N2.maxO], ["bifurcation_ratio", N2.Rb], ["length_ratio", N2.Rl], ["drainage_density_km_per_km2", N2.Dd], ["stream_frequency_per_km2", N2.freq], ...N2.orders.flatMap(o => [["order_" + o + "_segments", N2.counts[o]], ["order_" + o + "_length_km", N2.lens[o]]])] : []), ...B.curve.map(c => ["hypsometry_a" + c[0].toFixed(2), c[1]])].map(([k, v]) => ({measure: k, value: v}))])); }
+  if (kind === "floodplain" && R.fp) save(nm + "_floodplain_sections.csv", xcsv(R.fp.secs.map(q => ({km_from_source: q.km, channel_elevation_m: q.z0, floodplain_width_m: q.fp, valley_floor_width_m: q.valley, at_search_limit: q.capped ? 1 : 0, asymmetry_left_minus_right: q.asym}))));
   if (kind === "geojson") save(nm + ".geojson", JSON.stringify({type: "FeatureCollection", features: [{type: "Feature", properties: {name: R.name, length_km: R.L}, geometry: {type: "LineString", coordinates: R.main.map(p => [+p[1].toFixed(6), +p[0].toFixed(6)])}}, ...R.tribs.map(t => ({type: "Feature", properties: {name: t.name, km: t.km, bank: t.side}, geometry: {type: "Point", coordinates: [t.lon, t.lat]}}))]}));
 }
 
