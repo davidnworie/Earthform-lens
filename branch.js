@@ -323,7 +323,7 @@ function channelStatsHTML(){
 function wireChannelStats(el){
   el.querySelectorAll("[data-chss]").forEach(t => t.onclick = () => { const k = t.dataset.chss; chsSort = {k, d: chsSort.k === k ? -chsSort.d : -1}; renderChannelStats(); });
   el.querySelectorAll("[data-chsf]").forEach(t => t.onclick = () => { chsFilter = t.dataset.chsf; renderChannelStats(); });
-  el.querySelectorAll("[data-chscsv]").forEach(t => t.onclick = () => { const T = G.tables.channelStats || []; if (!T.length) return toast("No channels measured"); const keys = Object.keys(T[0]); save(base() + "-channels.csv", [keys.join(","), ...T.map(r => keys.map(k => typeof r[k] === "number" ? +r[k].toPrecision(6) : `"${String(r[k]).replace(/"/g, '""')}"`).join(","))].join("\n")); });
+  el.querySelectorAll("[data-chscsv]").forEach(t => t.onclick = () => { const T = G.tables.channelStats || []; if (!T.length) return toast("No channels measured"); const keys = Object.keys(T[0]); save(base() + "-channels.csv", [keys.join(","), ...T.map(r => keys.map(k => typeof r[k] === "number" ? +r[k].toPrecision(6) : `"${csvSafe(r[k]).replace(/"/g, '""')}"`).join(","))].join("\n")); });
   el.querySelectorAll("[data-chsplot]").forEach(t => t.onclick = () => { showApp("lab"); setTimeout(() => { showTab("plot"); try { const s = $("plSrc"); if (s){ s.value = "channels"; s.dispatchEvent(new Event("change")); } const d = $("plDs"); if (d){ d.value = "channels"; d.dispatchEvent(new Event("change")); } } catch(e){} }, 80); });
 }
 function renderChannelStats(){

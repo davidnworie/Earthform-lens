@@ -17,10 +17,29 @@ The self-test runs the app's own geometry, routing and export code on shapes wit
 | Catchment area, closed synthetic valley (Web Worker routing) | 139.24 km² | 139.24 km² | 1 % | pass |
 | Repeatability (identical inputs) | identical | identical | exact | pass |
 | Export integrity (unit + method on every result) | 29/29 | 29/29 | exact | pass |
+| Multithread transect: total wetted width B (180 + 95 + 65 m) | 340 m | 340 m | 0.5 % | pass |
+| Multithread transect: thread count N | 3 | 3 | exact | pass |
+| Multithread transect: mean thread width B/N | 113.3 m | 113.3 m | 0.5 % | pass |
+| Multithread transect: dominant fraction | 52.9 % | 52.9 % | 0.5 % | pass |
+| Multithread transect: wetted fraction of a 600 m braidplain | 56.7 % | 56.7 % | 0.5 % | pass |
+| Straight 200 m channel, rasterised polygon, station engine | 200 m | 200 m | 5 % | pass |
+| Medial-axis (distance-transform) width, same channel | 200 m | 200 m | 8 % | pass |
+| Profile with 3 deep multi-sample dips (DEM voids): max error after spike removal + isotonic conditioning (old running-minimum method: 150 m) | 0 m | 0.45 m | exact | pass |
+| Dip samples detected and removed | 20 | 20 | exact | pass |
 
 The amplitude test failed on its first run (1.51 km, −25 %): the valley axis was smoothed over one wavelength measured along the valley instead of along the channel. Fixed; it now passes at 5 %. The export test also caught two results without a stated method.
 
+## Statistics checks (in the self-test)
+- Kruskal–Wallis H and p on the Hollander & Wolfe example match SciPy (H = 0.7714, p = 0.680).
+- On 80 records with random group labels, the cross-validated classifier accuracy is near chance (43 %), as it should be without leakage.
+- A feature with no variation is left out of the classifier.
+
 ## Not yet validated
+
+- Long profiles and knickpoints against surveyed or lidar profiles; the noisy-DEM mock (±3 m noise, 0.4 % pits of −120 m) gives 77 spikes removed, ≤6.5 m conditioning and no false knickpoints, but this is synthetic.
+- Sediment-zone confidence labels (strong / moderate / weak) are rule-based margins, not calibrated probabilities.
+
+- Channel width on curved channels, islands, junctions and missing data against hand-digitised boundaries; error and coverage by width class and source.
 
 - Channel width against independent bank-to-bank measurements or the Global River Widths from Landsat dataset.
 - Catchment area against HydroBASINS or published basin areas (target: within 5 % for suitable basins).

@@ -262,7 +262,7 @@ function classifyZonesOld(R){
     const z = Object.entries(sc).sort((a, b) => b[1] - a[1])[0][0]; r.zone = z; r.zoneWhy = why.join(", ");
   });
 }
-const ZCOL = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff", sink: "#9b6bff"};
+const ZCOL = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff", sink: "#9b6bff", unknown: "#bdbdbd"};
 XMETRIC.zone = {n: "Sediment zone", u: "", get: (R, i) => { const r = reachAt(R, R.cum[i]); return r && r.zone ? {source: 1, transfer: .55, storage: .2, sink: 0}[r.zone] : NaN; }};
 XMETRIC.ksn = {n: "Steepness ksn", u: "", log: true, get: (R, i) => { const r = reachAt(R, R.cum[i]); return r ? r.ksn : NaN; }};
 XMETRIC.floodplain = {n: "Floodplain width", u: "m", log: true, get: (R, i) => { const r = reachAt(R, R.cum[i]); return r ? r.fpW : NaN; }};
@@ -273,7 +273,7 @@ function selRange(){ const R = XR.river; if (!R) return null; return XR.range &&
 function rangeStats(R, k0, k1){
   const pr = R.prof, rs = (R.reaches || []).filter(r => r.k1 > k0 && r.k0 < k1), a = pointAtKm(R, k0), b = pointAtKm(R, k1), L = k1 - k0;
   let z0 = NaN, z1 = NaN, conc = NaN; if (pr){ const i0 = Math.round(k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(k1/pr.step)); z0 = pr.zc[i0]; z1 = pr.zc[i1]; const H = z0 - z1; let ar = 0; for (let i = i0 + 1; i <= i1; i++) ar += ((z0 - H*(pr.d[i] - k0)/L) - pr.zc[i])*(pr.d[i] - pr.d[i - 1]); conc = H > 0 ? 2*ar/(H*L) : NaN; }
-  const wmed = rs.map(r => r.width && r.width.med).filter(Number.isFinite), zones = {source: 0, transfer: 0, storage: 0, sink: 0}; rs.forEach(r => { if (r.zone) zones[r.zone] += r.L; });
+  const wmed = rs.map(r => r.width && r.width.med).filter(Number.isFinite), zones = {source: 0, transfer: 0, storage: 0, sink: 0, unknown: 0}; rs.forEach(r => { if (r.zone) zones[r.zone] = (zones[r.zone] || 0) + r.L; });
   // clip to the exact selection: planform measured on the selected stretch itself, not on whole overlapping reaches
   const exact = (k0 > 0 || k1 < R.L) ? reachStats(R, k0, k1, -1) : null;
   return {L, straight: hav(a, b), sin: L/Math.max(1e-6, hav(a, b)), z0, z1, fall: z0 - z1, grad: (z0 - z1)/L, conc, bends: exact ? exact.bends : rs.reduce((s, r) => s + r.bends, 0), lambda: exact ? exact.lambda : median(rs.map(r => r.lambda).filter(Number.isFinite)), width: median(wmed), fp: median(rs.map(r => r.fpW).filter(Number.isFinite)),
@@ -282,7 +282,7 @@ function rangeStats(R, k0, k1){
     basin: R.basin && !(k0 > 0 || k1 < R.L) ? R.basin : null, net: R.net2 && !(k0 > 0 || k1 < R.L) ? R.net2 : null, wd: R.wd};
 }
 const CMPC = ["#ff8a4c", "#43d9e8", "#c9a7ff", "#7ee081"];
-function addCompare(){ const s = selRange(); if (!s) return; if (XR.cmp.length >= 4) XR.cmp.shift(); XR.cmp.push({R: s.R, k0: s.k0, k1: s.k1, label: s.whole ? s.R.name : `${s.R.name} km ${nf(s.k0)}–${nf(s.k1)}`}); toast(`Added to comparison (${XR.cmp.length} of up to 4)`); renderX(); }
+function addCompare(){ const s = selRange(); if (!s) return; if (XR.cmp.length >= CMPMAX) XR.cmp.shift(); XR.cmp.push({R: s.R, k0: s.k0, k1: s.k1, label: s.whole ? s.R.name : `${s.R.name} km ${nf(s.k0)}–${nf(s.k1)}`}); toast(`Added to comparison (${XR.cmp.length} of up to 4)`); renderX(); }
 
 /* ---------- rendering of the module panels ---------- */
 const kv = rows => `<div class="xstats">${rows.filter(Boolean).map(([a, b]) => `<div${String(b).replace(/<[^>]+>/g, "").length > 22 ? ' class="long"' : ""}><span>${a}</span><b>${b}</b></div>`).join("")}</div>`;
@@ -313,9 +313,9 @@ function renderModules(){
     kv([["Delta apex", `km ${nf(dl.apexKm)} (${km(R.L - dl.apexKm)} above the mouth)`], ["Mouths reaching the sea", String(dl.mouths)], ["Bifurcations", String(dl.bif)], ["Channel length below the apex", km(dl.chanLen)], ["Apex → mouth (median)", km(dl.length)], ["Opening angle", nf(dl.opening) + "°"], ["Delta area (hull)", nf(dl.area) + " km²"]]) + `<p class="note">From the river's mapped channels: the apex is the first point downstream from which more than one mouth can be reached. Shoreline change: open <b>Time</b> at the mouth.</p>`;
   // 7. temporal
   // 8. sediment
-  const rs = R.reaches || [], zl = {source: 0, transfer: 0, storage: 0, sink: 0}; rs.forEach(r => { if (r.zone) zl[r.zone] += r.L; });
+  const rs = R.reaches || [], zl = {source: 0, transfer: 0, storage: 0, sink: 0, unknown: 0}; rs.forEach(r => { if (r.zone) zl[r.zone] = (zl[r.zone] || 0) + r.L; });
   $("xSedStats").innerHTML = rs.some(r => r.zone) ? `<div class="zstrip">${rs.map(r => `<span style="flex:${r.L};background:${ZCOL[r.zone]}" title="${esc(r.zone)}"></span>`).join("")}</div><div class="zleg"><span><i style="background:${ZCOL.source}"></i>Source ${nf(zl.source/R.L*100)}%</span><span><i style="background:${ZCOL.transfer}"></i>Transfer ${nf(zl.transfer/R.L*100)}%</span><span><i style="background:${ZCOL.storage}"></i>Storage ${nf(zl.storage/R.L*100)}%</span><span><i style="background:${ZCOL.sink}"></i>Terminal sink ${nf(zl.sink/R.L*100)}%</span></div>
-    <div class="scroll"><table class="grid"><tr><th>Reach</th><th>km</th><th>zone</th><th>why</th><th>stream power*</th></tr>${rs.map(r => `<tr data-k="${(r.k0 + r.k1)/2}"><td>${r.i + 1}</td><td>${nf(r.k0)}–${nf(r.k1)}</td><td><b style="color:${ZCOL[r.zone]}">${esc(r.zone || "")}</b></td><td>${esc(r.zoneWhy || "")}</td><td>${Number.isFinite(r.power) ? tfmt(r.power) : "–"}</td></tr>`).join("")}</table></div><p class="note">* Stream power proxy = drainage area × slope (discharge grows with area). Run Catchment and Floodplain for the full classification.</p>` : `<p class="note">Needs the long profile; add Catchment and Floodplain for a fuller picture.</p>`;
+    <div class="scroll"><table class="grid"><tr><th>Reach</th><th>km</th><th>zone</th><th>evidence</th><th>why</th><th>stream power*</th></tr>${rs.map(r => `<tr data-k="${(r.k0 + r.k1)/2}"><td>${r.i + 1}</td><td>${nf(r.k0)}–${nf(r.k1)}</td><td><b style="color:${ZCOL[r.zone]}">${esc(r.zone || "")}</b></td><td>${esc(r.zoneConf || "")}</td><td>${esc(r.zoneWhy || "")}</td><td>${Number.isFinite(r.power) ? tfmt(r.power) : "–"}</td></tr>`).join("")}</table></div><p class="note">* Stream power proxy = drainage area × slope (discharge grows with area). Evidence = how clearly the winning zone beats the next one and how many indicators were available (strong / moderate / weak); it is a rule-based label, not a probability. Run Catchment, Channel width and Floodplain for the fuller classification.</p>` : `<p class="note">Needs the long profile; add Catchment and Floodplain for a fuller picture.</p>`;
   renderCompare();
   try { renderModules3(); } catch(e){ console.error(e); }
   try { renderModules4(); } catch(e){ console.error(e); }
@@ -336,7 +336,7 @@ function moduleCharts(){
 }
 function renderCompare(){
   const el = $("xCmpBody"); if (!el) return; const C = XR.cmp;
-  if (!C.length){ el.innerHTML = `<p class="note">Select a river or a stretch (Start here / End here), then press <b>＋ Compare</b>. Load another river and add it too, or add a GeoJSON study area: up to four side by side.</p>`; return; }
+  if (!C.length){ el.innerHTML = `<p class="note">Select a river or a stretch (Start here / End here), then press <b>＋ Compare</b>. Load another river and add it too, or add a GeoJSON study area: up to eight side by side.</p>`; return; }
   const S = C.map(c => rangeStats(c.R, c.k0, c.k1));
   const rows = [["Length", s => km(s.L)], ["Fall", s => nf(s.fall) + " m"], ["Mean gradient", s => nf(s.grad, 3) + " m/km"], ["Concavity (Langbein)", s => nf(s.conc, 2)], ["Sinuosity", s => nf(s.sin, 2)], ["Mean curvature", s => Number.isFinite(s.meanK) ? nf(s.meanK, 3) + " rad/km" : "–"], ["Bends", s => String(s.bends)], ["Meander wavelength", s => km(s.lambda)], ["Median width", s => Number.isFinite(s.width) ? nf(s.width) + " m" : "–"], ["Floodplain width", s => Number.isFinite(s.fp) ? nf(s.fp) + " m" : "–"], ["Median ksn", s => Number.isFinite(s.ksn) ? tfmt(s.ksn) : "–"], ["Tributaries joining", s => String(s.tribs)], ["Dams & weirs", s => String(s.dams)],
     ["Catchment area", s => s.basin ? nf(s.basin.area) + " km²" : (s.whole && s.wd && s.wd.area ? nf(s.wd.area) + " km² (Wikidata)" : "–")], ["Hypsometric integral", s => s.basin ? nf(s.basin.HI, 2) : "–"], ["Strahler order", s => s.net ? String(s.net.maxO) : "–"], ["Drainage density", s => s.net ? nf(s.net.Dd, 3) + " km/km²" : "–"], ["Bifurcation ratio", s => s.net ? nf(s.net.Rb, 2) : "–"],
@@ -440,7 +440,7 @@ async function importGeoJSON(file, toCompare){
     R.L = R.cum[R.cum.length - 1]; if (!(R.L > 0)) throw new Error("the main line has zero length");
     xstatus(`${esc(file.name)}: ${km(R.L)} main channel, ${U.features} features. ${z ? "Using the elevations in the file…" : "No elevations in the file: reading terrain…"}`, "busy");
     buildReaches(R); await loadProfile(R); buildReaches(R);
-    if (toCompare){ if (XR.cmp.length >= 4) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: nm}); if (!XR.river){ XR.river = R; XR.pos = 0; xmap.fit(R.main); } showXTab("compare"); }
+    if (toCompare){ if (XR.cmp.length >= CMPMAX) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: nm}); if (!XR.river){ XR.river = R; XR.pos = 0; xmap.fit(R.main); } showXTab("compare"); }
     else { if (XR.river){ XR.stack = XR.stack || []; XR.stack.push(XR.river); } XR.river = R; XR.pos = 0; XR.range = null; xmap.fit(R.main); renderX(); }
     xstatus(`<b>${esc(nm)}</b> loaded from ${esc(file.name)}: ${km(R.L)}, fall ${nf(R.prof.drop)} m${z ? " (elevations from the file)" : " (terrain tiles)"}.${toCompare ? " Added to the comparison." : ""}`, "ok");
   } catch(e){ console.error(e); xstatus("GeoJSON: " + esc(e.message), "err"); }

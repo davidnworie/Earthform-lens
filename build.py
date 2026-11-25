@@ -2,7 +2,7 @@
 from pathlib import Path
 S = Path(__file__).parent / "src"
 r = lambda f: (S / f).read_text(encoding="utf-8")
-mods = ["ml.js", "atlas.js", "align.js", "chx.js", "branch.js", "auto.js", "series.js", "discover.js", "gloss.js", "plot.js", "story.js", "sci.js", "explore.js", "explore2.js", "explore3.js", "explore4.js", "explore5.js"]
+mods = ["ml.js", "atlas.js", "align.js", "chx.js", "branch.js", "auto.js", "series.js", "discover.js", "gloss.js", "plot.js", "story.js", "sci.js", "explore.js", "explore2.js", "explore3.js", "explore4.js", "explore5.js", "explore6.js", "explore7.js", "explore8.js", "explore9.js", "explore10.js", "explore11.js", "explore12.js", "explore13.js"]
 lab = r("lab.js").replace("/*AUTO*/", "".join(r(m) for m in mods))
 out = r("shell.html").replace("/*CORE*/", r("core.js")).replace("/*TIFF*/", r("tiff.js")).replace("/*STUDIO*/", r("studio.js")).replace("/*LAB*/", lab)
 (Path(__file__).parent / "index.html").write_text(out, encoding="utf-8")

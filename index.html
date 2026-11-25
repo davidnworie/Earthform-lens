@@ -450,6 +450,8 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px
 #dnTable tr[data-s]{cursor:pointer}#dnTable tr.on td{background:rgba(76,195,255,.12)}details.x10opt{margin-top:8px}details.x10opt summary{cursor:pointer;font-size:13px;opacity:.85}
 .x10msg{margin-top:10px;padding:9px 11px;border-radius:10px;font-size:13.5px;line-height:1.45;border:1px solid var(--line)}.x10msg.ok{border-color:rgba(95,191,119,.5);background:rgba(95,191,119,.08)}.x10msg.err{border-color:rgba(255,90,95,.55);background:rgba(255,90,95,.08);color:#ffb0b3}.x10msg.busy{opacity:.85}
 #dnvWrap{position:fixed;inset:0;z-index:300;background:#fff;color:#111;overflow:auto;display:flex;flex-direction:column}#dnvWrap .cvbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #e3e6ea;flex-wrap:wrap;position:sticky;top:0;background:#fff;z-index:2}#dnvWrap select,#dnvWrap .note{color:#111}#dnvWrap .card{background:#f6f8fa;color:#111;border-color:#e3e6ea}#dnvWrap .chip{color:#222;border-color:#cfd6dd}#dnvWrap .chip.on{background:#1f6fd6;color:#fff}#dnvWrap .cvrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}#dnvWrap button.sm:not(.pri),#dnvWrap .btns button:not(.pri){background:#fff;color:#111;border:1px solid #cfd6dd}#dnvWrap select{background:#fff;color:#111;border:1px solid #cfd6dd;border-radius:8px;padding:6px 8px}#dnvWrap .cvl,#dnvWrap h4,#dnvWrap label{color:#333}#dnvWrap input[type=range]{accent-color:#1f6fd6}
+.chipbtn.x12hi{border-color:rgba(255,140,80,.7);box-shadow:0 0 0 1px rgba(255,140,80,.35) inset}#rvLib{scroll-margin-top:140px}#xStatus a{color:#ffb38a;text-decoration:none}
+.chipbtn.off{opacity:.65;text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -490,7 +492,7 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px
       <div class="xmapctl"><select id="xBase"></select><select id="xOver"></select><select id="xMetric"></select><button class="sm" id="xFit">⤢ Whole river</button><button class="sm" id="xClean" title="The river alone, to scale, on white">⬜ Clean view</button></div>
       <div id="xDrawBar" class="xdrawbar" style="display:none"><span id="xDrawN"></span><button class="sm" id="xDrawUndo">Undo</button><button class="sm pri" id="xDrawUse">Analyse line</button><button class="sm" id="xDrawCancel">Cancel</button></div>
     </div>
-    <div id="xStatus" class="xstatus">Search any river by name to follow it from source to sink, or draw one on the map.</div>
+    <div id="xStatus" class="xstatus">Search any river by name to follow it from source to sink, or draw one on the map. To run many rivers at once, tap <a href="#" onclick="event.preventDefault();document.getElementById('rvBtn')&&document.getElementById('rvBtn').click()"><b>☰ Many rivers</b></a>.</div>
   </div>
   <div class="xside">
   <div id="xEmpty" class="xempty">
@@ -5442,7 +5444,7 @@ function channelStatsHTML(){
 function wireChannelStats(el){
   el.querySelectorAll("[data-chss]").forEach(t => t.onclick = () => { const k = t.dataset.chss; chsSort = {k, d: chsSort.k === k ? -chsSort.d : -1}; renderChannelStats(); });
   el.querySelectorAll("[data-chsf]").forEach(t => t.onclick = () => { chsFilter = t.dataset.chsf; renderChannelStats(); });
-  el.querySelectorAll("[data-chscsv]").forEach(t => t.onclick = () => { const T = G.tables.channelStats || []; if (!T.length) return toast("No channels measured"); const keys = Object.keys(T[0]); save(base() + "-channels.csv", [keys.join(","), ...T.map(r => keys.map(k => typeof r[k] === "number" ? +r[k].toPrecision(6) : `"${String(r[k]).replace(/"/g, '""')}"`).join(","))].join("\n")); });
+  el.querySelectorAll("[data-chscsv]").forEach(t => t.onclick = () => { const T = G.tables.channelStats || []; if (!T.length) return toast("No channels measured"); const keys = Object.keys(T[0]); save(base() + "-channels.csv", [keys.join(","), ...T.map(r => keys.map(k => typeof r[k] === "number" ? +r[k].toPrecision(6) : `"${csvSafe(r[k]).replace(/"/g, '""')}"`).join(","))].join("\n")); });
   el.querySelectorAll("[data-chsplot]").forEach(t => t.onclick = () => { showApp("lab"); setTimeout(() => { showTab("plot"); try { const s = $("plSrc"); if (s){ s.value = "channels"; s.dispatchEvent(new Event("change")); } const d = $("plDs"); if (d){ d.value = "channels"; d.dispatchEvent(new Event("change")); } } catch(e){} }, 80); });
 }
 function renderChannelStats(){
@@ -8363,7 +8365,7 @@ async function loadRiverInner(sel0, tok){
 
 /* ---------- 2. long profile ---------- */
 async function loadProfile(R, zoom, quiet){
-  const PP = XR.pp || {}, z = zoom || (R.L > 1500 ? 9 : R.L > 400 ? 10 : R.L > 80 ? 11 : 12), step = PP.step > 0 ? Math.max(.02, PP.step, R.L/20000) : Math.max(.1, R.L/2500), n = Math.floor(R.L/step) + 1;
+  const PP = XR.pp || {}, z = zoom || (R.L > 1500 ? 9 : R.L > 400 ? 10 : R.L > 80 ? 11 : 12), step = PP.step > 0 ? Math.max(.02, PP.step, R.L/20000) : Math.max(.1, R.L/2500), n = Math.floor(R.L/step) + 1 + (R.L - Math.floor(R.L/step)*step > 1e-6 ? 1 : 0); // the last sample is always the mouth itself
   const d = new Float64Array(n), zr = new Float64Array(n); let done = 0;
   const pts = []; for (let i = 0; i < n; i++){ d[i] = Math.min(R.L, i*step); pts.push(pointAtKm(R, d[i])); }
   const need = new Map(); pts.forEach((p, i) => { const X = lon2x(p[1], z), Y = lat2y(p[0], z), k = Math.floor(X/256) + "/" + Math.floor(Y/256); (need.get(k) || need.set(k, []).get(k)).push([i, X, Y]); });
@@ -8373,6 +8375,8 @@ async function loadProfile(R, zoom, quiet){
   } else {
   failed = await sampleElev(R, pts, z, need, zr);
   }
+  // samples with no elevation at all (missing tiles, outside a user DEM) are flagged, not silently trusted
+  const gap = new Uint8Array(n); let nGap = 0; for (let i = 0; i < n; i++) if (!Number.isFinite(zr[i])){ gap[i] = 1; nGap++; } if (nGap === n) throw new Error("no elevation data could be read for this river");
   // 1. remove spikes: raw samples far below (DEM voids, water-surface artefacts) or above (bridges, embankments) the local median
   const hw = Math.max(5, Math.round((PP.smoothKm > 0 ? PP.smoothKm : 3)/step)), zs = Float64Array.from(zr), spike = new Uint8Array(n), kS = PP.spikeK ?? 4;
   if (PP.despike !== false) for (let i = 0; i < n; i++){ const a = []; for (let k = Math.max(0, i - hw); k <= Math.min(n - 1, i + hw); k++) if (Number.isFinite(zr[k])) a.push(zr[k]); if (a.length < 5 || !Number.isFinite(zr[i])) continue;
@@ -8415,7 +8419,7 @@ async function loadProfile(R, zoom, quiet){
   // per main-stem vertex lookups (for colouring the map)
   const zcAt = new Float32Array(R.main.length), sAt = new Float32Array(R.main.length);
   for (let i = 0; i < R.main.length; i++){ const k = Math.min(n - 1, Math.round(R.cum[i]/step)); zcAt[i] = zc[k]; sAt[i] = s[k]; }
-  R.prof = {z: zoom || z, user: !!R.zUser, params: {stepKm: step, smoothKm: (2*mh + 1)*step, slopeKm: 2*win*step, contextKm: 2*big*step, kRatio: kR, kDrop: kD, cond: {iso: "isotonic (least-squares monotone)", min: "running minimum (carve)", fill: "running maximum (fill)", none: "none"}[cm], despike: PP.despike !== false, spikeK: kS}, cond: {max: condMax, km: condKm, at: condAt}, spikes: Array.from(spike).map((v, i) => v ? i : -1).filter(i => i >= 0), zs: Array.from(zs), zm: Array.from(med), made: new Date().toISOString(), step, d: Array.from(d), zr: Array.from(zr), zc: Array.from(zc), s: Array.from(s), knick: kp.map(i => { const k = {km: d[i], z: zc[i], slope: s[i], ...kDetail(i)}; k.artefact = k.spikesNear > 0 || k.condHere > Math.max(10, .5*k.drop); k.confidence = k.artefact ? "possible artefact" : k.scales === 3 ? "robust (3 of 3 scales)" : k.scales === 2 ? "moderate (2 of 3 scales)" : "weak (1 of 3 scales)"; return k; }), unc: Array.from(unc), conc, drop: H, zSrc: zc[0], zMouth: zc[n - 1], grad: H/R.L, failed, zcAt, sAt, res: 40075016.686*Math.cos(R.main[0][0]*D2R)/(256*2**z)};
+  R.prof = {z: zoom || z, user: !!R.zUser, gaps: Array.from(gap.entries()).filter(e => e[1]).map(e => e[0]), gapKm: nGap*step, params: {stepKm: step, smoothKm: (2*mh + 1)*step, slopeKm: 2*win*step, contextKm: 2*big*step, kRatio: kR, kDrop: kD, cond: {iso: "isotonic (least-squares monotone)", min: "running minimum (carve)", fill: "running maximum (fill)", none: "none"}[cm], despike: PP.despike !== false, spikeK: kS}, cond: {max: condMax, km: condKm, at: condAt}, spikes: Array.from(spike).map((v, i) => v ? i : -1).filter(i => i >= 0), zs: Array.from(zs), zm: Array.from(med), made: new Date().toISOString(), step, d: Array.from(d), zr: Array.from(zr), zc: Array.from(zc), s: Array.from(s), knick: kp.map(i => { const k = {km: d[i], z: zc[i], slope: s[i], ...kDetail(i)}; k.artefact = k.spikesNear > 0 || k.condHere > Math.max(10, .5*k.drop); k.confidence = k.artefact ? "possible artefact" : k.scales === 3 ? "robust (3 of 3 scales)" : k.scales === 2 ? "moderate (2 of 3 scales)" : "weak (1 of 3 scales)"; return k; }), unc: Array.from(unc), conc, drop: H, zSrc: zc[0], zMouth: zc[n - 1], grad: H/R.L, failed, zcAt, sAt, res: 40075016.686*Math.cos(R.main[0][0]*D2R)/(256*2**z)};
   return R.prof;
 }
 
@@ -8574,7 +8578,7 @@ function renderX(){
   const sl = $("xPos"); sl.max = R.L; sl.step = Math.max(.01, R.L/2000); sl.value = XR.pos;
   $("xMetric").innerHTML = Object.entries(XMETRIC).map(([k, m]) => `<option value="${k}"${k === XR.metric ? " selected" : ""}>Colour by ${m.n.toLowerCase()}</option>`).join("");
   // profile panel
-  $("xProfStats").innerHTML = pr ? `${pr.cond && pr.cond.max > 15 ? `<p class="warn">Quality flag: forcing the profile to only go downhill changed it by up to ${nf(pr.cond.max)} m (near km ${nf(pr.cond.at)}) and changed ${km(pr.cond.km)} of it by more than 2 m. A low outlier (bridge, dense forest, DEM pit) may be flattening the profile downstream: compare conditioning methods in Parameters.</p>` : ""}<div class="xstats">${[["Source elevation", nf(pr.zSrc) + " m"], ["Mouth elevation", nf(pr.zMouth) + " m"], ["Concavity (0 straight, 1 very concave)", nf(pr.conc, 2)], ["Knickpoints", String(pr.knick.length)], ["Elevation data", `AWS Terrain Tiles z${pr.z} (~${nf(pr.res)} m cells)`], ["Spikes removed", `${pr.spikes ? pr.spikes.length : 0} of ${pr.d.length} samples`], ["Conditioning", pr.params.cond === "none" ? "none (smoothed samples)" : `${pr.params.cond}: changed up to ${nf(pr.cond.max, 1)} m over ${km(pr.cond.km)}`]].map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join("")}</div>
+  $("xProfStats").innerHTML = pr ? `${(pr.gaps || []).length > .05*pr.d.length ? `<p class="warn">Quality flag: ${pr.gaps.length} samples (${nf(100*pr.gaps.length/pr.d.length, 0)} %) had no elevation data and were interpolated.</p>` : ""}${pr.cond && pr.cond.max > 15 ? `<p class="warn">Quality flag: forcing the profile to only go downhill changed it by up to ${nf(pr.cond.max)} m (near km ${nf(pr.cond.at)}) and changed ${km(pr.cond.km)} of it by more than 2 m. A low outlier (bridge, dense forest, DEM pit) may be flattening the profile downstream: compare conditioning methods in Parameters.</p>` : ""}<div class="xstats">${[["Source elevation", nf(pr.zSrc) + " m"], ["Mouth elevation", nf(pr.zMouth) + " m"], ["Concavity (0 straight, 1 very concave)", nf(pr.conc, 2)], ["Knickpoints", String(pr.knick.length)], ["Elevation data", `${demLabel(pr, true)} — a terrain surface, not the channel bed; tile zoom sets sampling, not accuracy`], ["Spikes removed", `${pr.spikes ? pr.spikes.length : 0} of ${pr.d.length} samples`], ["Samples with no data (interpolated)", `${(pr.gaps || []).length} (${km(pr.gapKm || 0)})`], ["Conditioning", pr.params.cond === "none" ? "none (smoothed samples)" : `${pr.params.cond}: changed up to ${nf(pr.cond.max, 1)} m over ${km(pr.cond.km)}`]].map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join("")}</div>
     ${pr.knick.length ? `<table class="grid"><tr><th>Knickpoint</th><th>km</th><th>elevation</th><th>slope</th><th>dam nearby</th></tr>${pr.knick.map((k, j) => { const dm = R.dams.find(d => Math.abs(d.km - k.km) < Math.max(2, R.L/200)); return `<tr data-k="${k.km}"><td>K${j + 1}</td><td>${nf(k.km, 1)}</td><td>${nf(k.z)} m</td><td>${nf(k.slope, 2)} m/km</td><td>${dm ? esc(dm.name) : "–"}</td></tr>`; }).join("")}</table>` : ""}` : `<p class="note">Reading elevation…</p>`;
   // reaches panel
   const rs = R.reaches || [];
@@ -8635,10 +8639,13 @@ async function useDrawn(){
 }
 
 /* ---------- exports ---------- */
-function xcsv(rows){ const k = Object.keys(rows[0] || {}); return [k.join(","), ...rows.map(r => k.map(c => typeof r[c] === "number" ? (Number.isFinite(r[c]) ? +r[c].toPrecision(7) : "") : `"${String(r[c] ?? "").replace(/"/g, '""')}"`).join(","))].join("\n"); }
+/* text that a spreadsheet would run as a formula (=, +, -, @, tab, CR at the start) is prefixed with ' so a downloaded CSV is safe to open */
+function csvSafe(v){ const t = String(v ?? ""); return /^[=+\-@\t\r]/.test(t) && !/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(t) ? "'" + t : t; }
+function csvCell(v){ if (v == null || (typeof v === "number" && !Number.isFinite(v))) return ""; if (typeof v === "number") return String(v); const t = csvSafe(v); return /[,"\n\r]/.test(t) || t !== String(v) ? `"${t.replace(/"/g, '""')}"` : t; }
+function xcsv(rows){ const k = Object.keys(rows[0] || {}); return [k.map(csvCell).join(","), ...rows.map(r => k.map(c => typeof r[c] === "number" ? (Number.isFinite(r[c]) ? +r[c].toPrecision(7) : "") : `"${csvSafe(r[c]).replace(/"/g, '""')}"`).join(","))].join("\n"); }
 function exportX(kind){
   const R = XR.river; if (!R) return; const nm = R.name.replace(/[^\w]+/g, "_");
-  if (kind === "profile" && R.prof) save(nm + "_long_profile.csv", xcsv(R.prof.d.map((d, i) => ({km_from_source: d, elevation_raw_m: R.prof.zr[i], elevation_conditioned_m: R.prof.zc[i], slope_m_per_km: R.prof.s[i]}))));
+  if (kind === "profile" && R.prof) { const G = new Set(R.prof.gaps || []), S = new Set(R.prof.spikes || []); save(nm + "_long_profile.csv", xcsv(R.prof.d.map((d, i) => ({km_from_source: d, elevation_raw_m: R.prof.zr[i], elevation_despiked_m: R.prof.zs ? R.prof.zs[i] : "", elevation_smoothed_m: R.prof.zm ? R.prof.zm[i] : "", elevation_conditioned_m: R.prof.zc[i], residual_raw_minus_conditioned_m: Number.isFinite(R.prof.zr[i]) ? R.prof.zr[i] - R.prof.zc[i] : "", spread_1sd_m: R.prof.unc ? R.prof.unc[i] : "", slope_m_per_km: R.prof.s[i], flag_no_data_interpolated: G.has(i) ? 1 : 0, flag_spike_removed: S.has(i) ? 1 : 0, dem: demLabel(R.prof, true), vertical_datum: (R.prof.src && R.prof.src.key === "glo90") ? "EGM2008 (Copernicus)" : "mixed (EGM96 / national; see source)", conditioning: String(R.prof.params.cond)})))); }
   if (kind === "reaches") save(nm + "_reaches.csv", xcsv(R.reaches.map(r => ({reach: r.i + 1, km_start: r.k0, km_end: r.k1, length_km: r.L, straight_km: r.straight, sinuosity: r.sin, bends: r.bends, wavelength_km: r.lambda, slope_m_per_km: r.slope, fall_m: r.drop, multichannel_index: r.multi, median_width_m: r.width ? r.width.med : NaN, width_p10_m: r.width ? r.width.p10 : NaN, width_p90_m: r.width ? r.width.p90 : NaN, direction: compass(r.az), tributaries: r.tribs}))));
   if (kind === "tribs") save(nm + "_tributaries.csv", xcsv(R.tribs.map(t => ({name: t.name, joins_at_km: t.km, bank: t.side, distributary: t.distributary ? "yes" : "no", length_km: t.len ?? NaN, basin_km2: t.area ?? NaN, discharge_m3s: t.q ?? NaN, osm_relation: t.rel || "", wikidata: t.wikidata || "", lat: t.lat, lon: t.lon}))));
   if (kind === "basin" && R.basin){ const B = R.basin, N2 = R.net2; save(nm + "_catchment_network.csv", xcsv([...[["catchment_area_km2", B.area], ["relief_m", B.relief], ["max_elevation_m", B.zmax], ["min_elevation_m", B.zmin], ["hypsometric_integral", B.HI], ["basin_length_km", B.Lb], ["relief_ratio", B.reliefRatio], ["elongation_ratio", B.Re], ["terrain_cell_m", B.cellKm*1000], ["edge_clipped", B.clipped ? 1 : 0], ...(N2 ? [["channel_threshold_km2", N2.At], ["max_strahler_order", N2.maxO], ["bifurcation_ratio", N2.Rb], ["length_ratio", N2.Rl], ["drainage_density_km_per_km2", N2.Dd], ["stream_frequency_per_km2", N2.freq], ...N2.orders.flatMap(o => [["order_" + o + "_segments", N2.counts[o]], ["order_" + o + "_length_km", N2.lens[o]]])] : []), ...B.curve.map(c => ["hypsometry_a" + c[0].toFixed(2), c[1]])].map(([k, v]) => ({measure: k, value: v}))])); }
@@ -8963,7 +8970,7 @@ function classifyZonesOld(R){
     const z = Object.entries(sc).sort((a, b) => b[1] - a[1])[0][0]; r.zone = z; r.zoneWhy = why.join(", ");
   });
 }
-const ZCOL = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff", sink: "#9b6bff"};
+const ZCOL = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff", sink: "#9b6bff", unknown: "#bdbdbd"};
 XMETRIC.zone = {n: "Sediment zone", u: "", get: (R, i) => { const r = reachAt(R, R.cum[i]); return r && r.zone ? {source: 1, transfer: .55, storage: .2, sink: 0}[r.zone] : NaN; }};
 XMETRIC.ksn = {n: "Steepness ksn", u: "", log: true, get: (R, i) => { const r = reachAt(R, R.cum[i]); return r ? r.ksn : NaN; }};
 XMETRIC.floodplain = {n: "Floodplain width", u: "m", log: true, get: (R, i) => { const r = reachAt(R, R.cum[i]); return r ? r.fpW : NaN; }};
@@ -8974,7 +8981,7 @@ function selRange(){ const R = XR.river; if (!R) return null; return XR.range &&
 function rangeStats(R, k0, k1){
   const pr = R.prof, rs = (R.reaches || []).filter(r => r.k1 > k0 && r.k0 < k1), a = pointAtKm(R, k0), b = pointAtKm(R, k1), L = k1 - k0;
   let z0 = NaN, z1 = NaN, conc = NaN; if (pr){ const i0 = Math.round(k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(k1/pr.step)); z0 = pr.zc[i0]; z1 = pr.zc[i1]; const H = z0 - z1; let ar = 0; for (let i = i0 + 1; i <= i1; i++) ar += ((z0 - H*(pr.d[i] - k0)/L) - pr.zc[i])*(pr.d[i] - pr.d[i - 1]); conc = H > 0 ? 2*ar/(H*L) : NaN; }
-  const wmed = rs.map(r => r.width && r.width.med).filter(Number.isFinite), zones = {source: 0, transfer: 0, storage: 0, sink: 0}; rs.forEach(r => { if (r.zone) zones[r.zone] += r.L; });
+  const wmed = rs.map(r => r.width && r.width.med).filter(Number.isFinite), zones = {source: 0, transfer: 0, storage: 0, sink: 0, unknown: 0}; rs.forEach(r => { if (r.zone) zones[r.zone] = (zones[r.zone] || 0) + r.L; });
   // clip to the exact selection: planform measured on the selected stretch itself, not on whole overlapping reaches
   const exact = (k0 > 0 || k1 < R.L) ? reachStats(R, k0, k1, -1) : null;
   return {L, straight: hav(a, b), sin: L/Math.max(1e-6, hav(a, b)), z0, z1, fall: z0 - z1, grad: (z0 - z1)/L, conc, bends: exact ? exact.bends : rs.reduce((s, r) => s + r.bends, 0), lambda: exact ? exact.lambda : median(rs.map(r => r.lambda).filter(Number.isFinite)), width: median(wmed), fp: median(rs.map(r => r.fpW).filter(Number.isFinite)),
@@ -9014,7 +9021,7 @@ function renderModules(){
     kv([["Delta apex", `km ${nf(dl.apexKm)} (${km(R.L - dl.apexKm)} above the mouth)`], ["Mouths reaching the sea", String(dl.mouths)], ["Bifurcations", String(dl.bif)], ["Channel length below the apex", km(dl.chanLen)], ["Apex → mouth (median)", km(dl.length)], ["Opening angle", nf(dl.opening) + "°"], ["Delta area (hull)", nf(dl.area) + " km²"]]) + `<p class="note">From the river's mapped channels: the apex is the first point downstream from which more than one mouth can be reached. Shoreline change: open <b>Time</b> at the mouth.</p>`;
   // 7. temporal
   // 8. sediment
-  const rs = R.reaches || [], zl = {source: 0, transfer: 0, storage: 0, sink: 0}; rs.forEach(r => { if (r.zone) zl[r.zone] += r.L; });
+  const rs = R.reaches || [], zl = {source: 0, transfer: 0, storage: 0, sink: 0, unknown: 0}; rs.forEach(r => { if (r.zone) zl[r.zone] = (zl[r.zone] || 0) + r.L; });
   $("xSedStats").innerHTML = rs.some(r => r.zone) ? `<div class="zstrip">${rs.map(r => `<span style="flex:${r.L};background:${ZCOL[r.zone]}" title="${esc(r.zone)}"></span>`).join("")}</div><div class="zleg"><span><i style="background:${ZCOL.source}"></i>Source ${nf(zl.source/R.L*100)}%</span><span><i style="background:${ZCOL.transfer}"></i>Transfer ${nf(zl.transfer/R.L*100)}%</span><span><i style="background:${ZCOL.storage}"></i>Storage ${nf(zl.storage/R.L*100)}%</span><span><i style="background:${ZCOL.sink}"></i>Terminal sink ${nf(zl.sink/R.L*100)}%</span></div>
     <div class="scroll"><table class="grid"><tr><th>Reach</th><th>km</th><th>zone</th><th>evidence</th><th>why</th><th>stream power*</th></tr>${rs.map(r => `<tr data-k="${(r.k0 + r.k1)/2}"><td>${r.i + 1}</td><td>${nf(r.k0)}–${nf(r.k1)}</td><td><b style="color:${ZCOL[r.zone]}">${esc(r.zone || "")}</b></td><td>${esc(r.zoneConf || "")}</td><td>${esc(r.zoneWhy || "")}</td><td>${Number.isFinite(r.power) ? tfmt(r.power) : "–"}</td></tr>`).join("")}</table></div><p class="note">* Stream power proxy = drainage area × slope (discharge grows with area). Evidence = how clearly the winning zone beats the next one and how many indicators were available (strong / moderate / weak); it is a rule-based label, not a probability. Run Catchment, Channel width and Floodplain for the fuller classification.</p>` : `<p class="note">Needs the long profile; add Catchment and Floodplain for a fuller picture.</p>`;
   renderCompare();
@@ -9250,7 +9257,7 @@ function drawMapExtras(ctx, M, w, h){
   ctx.restore();
 }
 const DCOL = {belt: "#c9a7ff", water: "#4aa8ff", floodplain: "#4cd17a", lobe: "#c9a7ff", shoreline: "#4aa8ff", delta: "#ff8a4c", terrace: "#ffd84a", channel: "#43d9e8", oxbow: "#c9a7ff"};
-const ZCOL3 = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff", sink: "#9b6bff"};
+const ZCOL3 = {source: "#e8452c", transfer: "#f7b733", storage: "#4aa8ff", sink: "#9b6bff", unknown: "#bdbdbd"};
 
 /* ---------- 2. channel geometry: amplitude, valley sinuosity, braiding, distributions ---------- */
 function geomExtras(R, r){
@@ -9342,17 +9349,20 @@ function deltaExtras(R){
 /* ---------- 8. sediment routing: weights and terminal sinks ---------- */
 XR.sw = {slope: 2, conf: 1, multi: 1, power: 1, delta: 2, dam: .5};
 function classifyZones3(R){
-  const rs = R.reaches; if (!rs || !rs.length || !R.prof) return; const W = XR.sw, S = rs.map(r => r.slope).filter(Number.isFinite).sort((a, b) => a - b), hi = quantile(S, .67), lo = quantile(S, .33);
+  const rs = R.reaches; if (!rs || !rs.length || !R.prof) return; const W = XR.sw, ZO = XR.zoneOpt, S = rs.map(r => r.slope).filter(Number.isFinite).sort((a, b) => a - b), rel = ZO.slopeMode !== "absolute", hi = rel ? quantile(S, .67) : ZO.hiAbs, lo = rel ? quantile(S, .33) : ZO.loAbs;
+  R.zoneRule = {version: "efl-zones-2", slopeClasses: rel ? `within-river terciles (≤ ${nf(lo, 3)} gentle, ≥ ${nf(hi, 3)} m/km steep)` : `absolute thresholds (≤ ${ZO.loAbs} gentle, ≥ ${ZO.hiAbs} m/km steep)`, upstreamPrior: ZO.prior !== false, unknownMargin: ZO.unknownMargin, weights: {...W}};
   rs.forEach((r, i) => { const next = rs[i + 1], P = Number.isFinite(r.power) ? r.power : null, dP = P != null && next && Number.isFinite(next.power) ? (next.power - P)/Math.max(P, 1e-9) : 0, sc = {source: 0, transfer: 0, storage: 0}, why = [];
-    if (r.slope >= hi){ sc.source += W.slope; why.push("steep"); } else if (r.slope <= lo){ sc.storage += W.slope; why.push("gentle"); } else { sc.transfer += .75*W.slope; why.push("moderate slope"); }
+    if (!Number.isFinite(r.slope)){ why.push("no slope"); } else if (r.slope >= hi){ sc.source += W.slope; why.push("steep"); } else if (r.slope <= lo){ sc.storage += W.slope; why.push("gentle"); } else { sc.transfer += .75*W.slope; why.push("moderate slope"); }
     if (/^confined/.test(r.confClass || "")){ sc.source += .5*W.conf; sc.transfer += W.conf; why.push("confined valley"); } else if (/^unconfined/.test(r.confClass || "")){ sc.storage += 1.5*W.conf; why.push("wide floodplain"); } else if (r.confClass){ sc.transfer += W.conf; why.push("partly confined"); }
     if (r.multi > 1.15 || (r.width && r.width.braid > 1.3)){ sc.storage += W.multi; why.push("multiple channels"); }
     if (dP < -.25){ sc.storage += W.power; why.push("stream power falls downstream"); } else if (dP > .25){ sc.transfer += .5*W.power; why.push("stream power rises downstream"); }
-    if (i < rs.length*.2) sc.source += .5;
+    if (ZO.prior !== false && i < rs.length*.2){ sc.source += .5; why.push("upstream prior (first 20 %)"); }
     if (R.delta && !R.delta.single && r.k1 >= R.delta.apexKm){ sc.storage += W.delta; why.push("delta"); }
     const dams = R.dams.filter(d => d.km >= r.k0 && d.km <= r.k1); if (dams.length){ sc.storage += W.dam*dams.length; why.push(`${dams.length} dam/weir (barrier, reservoir trapping)`); }
     const ord = Object.entries(sc).sort((a, b) => b[1] - a[1]), margin = ord[0][1] - ord[1][1], nInd = why.length;
-    r.zone = ord[0][0]; r.zoneWhy = why.join(", "); r.barrier = dams.length;
+    r.zoneScores = {...sc}; r.zonePredictors = {slope_m_per_km: r.slope, slopeClass: !Number.isFinite(r.slope) ? null : r.slope >= hi ? "steep" : r.slope <= lo ? "gentle" : "moderate", confClass: r.confClass || null, multi: r.multi, braid: r.width ? r.width.braid : null, powerChange: dP, dams: dams.length, delta: !!(R.delta && !R.delta.single && r.k1 >= R.delta.apexKm)};
+    const evid = why.filter(w => !/prior|no slope/.test(w)).length;
+    r.zone = margin < (ZO.unknownMargin ?? .5) || evid === 0 ? "unknown" : ord[0][0]; r.zoneWhy = why.join(", ") + (r.zone === "unknown" ? (evid ? `; top two zones within ${nf(margin, 2)} points — unknown` : "; no independent indicator — unknown") : ""); r.barrier = dams.length;
     // evidence strength (rule-based, not a calibrated probability): how clearly the top zone wins and how many indicators were available
     r.zoneConf = margin >= 2 && nInd >= 3 ? "strong" : margin >= 1 && nInd >= 2 ? "moderate" : "weak"; r.zoneMargin = margin; });
   // terminal sink: the last reach into the sea, a lake or a delta
@@ -9631,10 +9641,15 @@ async function openProject(P){
 }
 // keep the last session in this browser
 let autosaveT = 0;
-function autosave(){ clearTimeout(autosaveT); autosaveT = setTimeout(() => { try { if (XR.river || XR.cmp.length) localStorage.setItem("efl.lastProject", JSON.stringify(projectState())); } catch(_){} }, 1500); }
+function autosave(){ if (/[?&]efl-batch=1/.test(location.search)) return; clearTimeout(autosaveT); autosaveT = setTimeout(() => { try { if (XR.river || XR.cmp.length) localStorage.setItem("efl.lastProject", JSON.stringify(projectState())); } catch(_){} }, 1500); }
 {
   const rs = $("xRestore"); let last = null; try { last = JSON.parse(localStorage.getItem("efl.lastProject") || "null"); } catch(_){}
-  if (rs && last && last.rivers && last.rivers.length){ rs.style.display = ""; rs.innerHTML = `<span>Continue where you left off: <b>${esc(last.rivers.map(r => r.name).slice(0, 3).join(", "))}</b>${last.cmp && last.cmp.length ? ` · ${last.cmp.length} in comparison` : ""} <small>(${new Date(last.saved).toLocaleString()})</small></span><button class="sm pri" id="xRestoreGo">Restore session</button><button class="sm" id="xRestoreX">✕</button>`;
+  const isWorker = /[?&]efl-batch=1/.test(location.search);
+  // reloading the page carries on where you stopped: the last rivers, comparison and tab come back by themselves
+  if (!isWorker && last && last.rivers && last.rivers.length && Date.now() - new Date(last.saved).getTime() < 30*864e5){ setTimeout(() => { try { const w = document.querySelector('.seg button[data-ws=explore]'); if (w && !document.querySelector('#app-explore.on, .seg button[data-ws=explore].on')) w.click(); } catch(_){}
+      xstatus(`Restoring where you left off: <b>${esc(last.rivers.map(r => r.name).slice(0, 3).join(", "))}</b>… <a href="#" id="xFresh">Start fresh instead</a>`, "busy"); const fr = $("xFresh"); if (fr) fr.onclick = ev => { ev.preventDefault(); try { localStorage.removeItem("efl.lastProject"); localStorage.removeItem("efl.lastNet"); } catch(_){} location.reload(); };
+      openProject(last).catch(e => xstatus(esc(e.message), "err")); }, 600); }
+  else if (!isWorker && rs && last && last.rivers && last.rivers.length){ rs.style.display = ""; rs.innerHTML = `<span>Continue where you left off: <b>${esc(last.rivers.map(r => r.name).slice(0, 3).join(", "))}</b>${last.cmp && last.cmp.length ? ` · ${last.cmp.length} in comparison` : ""} <small>(${new Date(last.saved).toLocaleString()})</small></span><button class="sm pri" id="xRestoreGo">Restore session</button><button class="sm" id="xRestoreX">✕</button>`;
     $("xRestoreGo").onclick = () => { rs.style.display = "none"; openProject(last).catch(e => xstatus(esc(e.message), "err")); }; $("xRestoreX").onclick = () => { rs.style.display = "none"; }; }
   const pe = $("xProjOpen0"); if (pe) pe.onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f) f.text().then(t => openProject(JSON.parse(t))).catch(er => xstatus("Project: " + esc(er.message), "err")); };
 }
@@ -10778,7 +10793,7 @@ async function waterPolys(R, k0, k1){
 function stepSkip(k, note){ if (!XST) return; XST[k] = {s: "skip", note}; renderSteps(); if (XSTEPS.every(([q]) => XST[q].s === "done" || XST[q].s === "skip")){ clearTimeout(xstT); xstT = setTimeout(() => { XST = null; renderSteps(); }, 2600); } }
 async function autoWidth(R, tok, force, bg){
   const st = bg ? () => {} : null, sStart = bg ? st : stepStart, sDone = bg ? st : stepDone, sSkip = bg ? st : stepSkip;
-  if ((!XR.src.autoW && !force) || !R || !R.reaches || !R.reaches.length){ sSkip("width", XR.src.autoW ? "no reaches" : "off (see Data sources)"); return; }
+  if ((!XR.src.autoW && !force) || !R || !R.reaches || !R.reaches.length){ sSkip("width", XR.src.autoW ? "no reaches" : "off — turn on with ⇔ Widths, or measure in the Width tab"); return; }
   const list = R.reaches.filter(r => !r.width), total = list.length; if (!total){ sDone("width", "already measured"); return; }
   let i = 0, ok = 0, at = 0; sStart("width", `0 of ${total} reaches`);
   const worker = async () => { while (at < list.length){ if (tok !== XR.loadTok || (!bg && XR.river !== R)) return; const r = list[at++];
@@ -11040,6 +11055,8 @@ function initX7(){
   initMapCtl();
   const tools = document.querySelector(".xtools");
   if (tools && !$("x7SrcBtn")){ const a = document.createElement("button"); a.id = "x7SrcBtn"; a.className = "chipbtn"; a.textContent = "🗂 Data sources"; a.title = "Choose elevation, water and imagery sources (with recommendations)"; a.onclick = openSources; tools.appendChild(a);
+    const wb = document.createElement("button"); wb.id = "x7WBtn"; wb.className = "chipbtn"; const wlab = () => { wb.textContent = XR.src.autoW ? "⇔ Widths: on" : "⇔ Widths: off"; wb.classList.toggle("off", !XR.src.autoW); }; wlab();
+    wb.title = "Measure channel width automatically after a river loads (slower). Off: measure later from the Width tab."; wb.onclick = () => { XR.src.autoW = !XR.src.autoW; srcSave(); wlab(); toast(XR.src.autoW ? "Channel widths will be measured after each river loads" : "Channel widths are off: rivers load faster; measure them later in the Width tab", 4000); }; tools.insertBefore(wb, tools.children[1] || null);
     const e = document.createElement("button"); e.id = "x7EditBtn"; e.className = "chipbtn"; e.textContent = "✎ Edit trace"; e.title = "Fix an incomplete or wrong centreline"; e.onclick = traceStart; tools.appendChild(e); }
 }
 initX7();
@@ -12003,8 +12020,8 @@ async function dnRunBatch(){
     try { const t0 = Date.now(), N = await dnHeadless(job, {widths: B.widths}); const rec = dnRecord(N, {name: job.name, group: job.group}); await dnLibSave(rec); job.status = "done"; job.note = `${N.sum.n} channels, ${N.sum.maxOrder} orders, θ ${nf(N.sum.theta.mean, 1)}° (${Math.round((Date.now() - t0)/1000)} s)`; }
     catch(e){ job.status = "failed"; job.note = e.message; }
     B.done = B.jobs.filter(j => j.status === "done").length; actSet("dnb", `Batch: ${B.done + B.jobs.filter(j => j.status === "failed").length} of ${B.jobs.length} networks`, (B.done + B.jobs.filter(j => j.status === "failed").length)/B.jobs.length); dnLibRender();
-    try { localStorage.setItem("efl.dnbatch", JSON.stringify({jobs: B.jobs.map(j => ({...j, status: j.status === "running" ? "waiting" : j.status})), widths: B.widths})); } catch(_){} }
-  B.running = false; actEnd("dnb"); dnLibRender(); xstatus(`Batch finished: ${B.done} of ${B.jobs.length} networks stored in the library.`, "ok");
+    try { localStorage.setItem("efl.dnbatch", JSON.stringify({jobs: B.jobs.map(j => ({...j, status: j.status === "running" ? "waiting" : j.status})), widths: B.widths, running: !B.stop})); } catch(_){} }
+  B.running = false; try { const sv = JSON.parse(localStorage.getItem("efl.dnbatch") || "null"); if (sv){ sv.running = false; localStorage.setItem("efl.dnbatch", JSON.stringify(sv)); } } catch(_){} actEnd("dnb"); dnLibRender(); xstatus(`Batch finished: ${B.done} of ${B.jobs.length} networks stored in the library.`, "ok");
 }
 /* many hand-digitised networks at once: one GeoJSON per network, or one file with a "network" property per feature */
 async function dnImportMany(files, group){
@@ -12047,20 +12064,34 @@ function statsHTML(L, cfg){
   const pw = (() => { if (!W || !Number.isFinite(W.d)) return ""; const d = Math.abs(W.d); for (const n of [5, 10, 15, 20, 30, 40, 60, 80, 120, 200]){ const ncp = d*Math.sqrt(n/2); if (1 - .5*(1 + erf((1.96 - ncp)/Math.SQRT2)) >= .8) return `With an effect of this size (|d| = ${nf(d, 2)}), about <b>${n} networks per group</b> give 80 % power at p < 0.05.`; } return `The effect is small (|d| = ${nf(d, 2)}): more than 200 networks per group would be needed for 80 % power.`; })();
   // classifier
   const lab = L.filter(r => r.group === st.g1 || r.group === st.g2), F = st.feats.filter(k => met[k]), rows = lab.filter(r => F.every(k => Number.isFinite(r.m[k]))); let clsH = `<p class="note">Choose at least one measure and have 4+ networks in each of the two groups.</p>`;
-  if (F.length && rows.filter(r => r.group === st.g1).length >= 4 && rows.filter(r => r.group === st.g2).length >= 4){
-    const mu = F.map(k => meanCI(rows.map(r => r.m[k])).mean), sd = F.map(k => meanCI(rows.map(r => r.m[k])).sd || 1), Z = r => F.map((k, j) => ((F[j] === "Ln" ? Math.log10(Math.max(r.m[k], 1e-3)) : r.m[k]) - (F[j] === "Ln" ? Math.log10(Math.max(mu[j], 1e-3)) : mu[j]))/(F[j] === "Ln" ? Math.max(.1, Math.log10(1 + sd[j]/Math.max(mu[j], 1e-3))) : sd[j]));
-    const Xa = rows.map(Z), ya = rows.map(r => r.group === st.g2 ? 1 : 0); let ok = 0, tp = [0, 0], cnt = [0, 0]; for (let i = 0; i < rows.length; i++){ const w = logit(Xa.filter((_, j) => j !== i), ya.filter((_, j) => j !== i), 250); const pr = lpred(w, Xa[i]) >= .5 ? 1 : 0; cnt[ya[i]]++; if (pr === ya[i]){ ok++; tp[ya[i]]++; } }
-    const w = logit(Xa, ya), unk = L.filter(r => r.group !== st.g1 && r.group !== st.g2 && F.every(k => Number.isFinite(r.m[k])));
-    clsH = `<p>Leave-one-out accuracy: <b>${nf(100*ok/rows.length, 0)} %</b> (n = ${rows.length}; ${esc(st.g1)} recall ${nf(100*tp[0]/cnt[0], 0)} %, ${esc(st.g2)} recall ${nf(100*tp[1]/cnt[1], 0)} %; chance ≈ ${nf(100*Math.max(cnt[0], cnt[1])/rows.length, 0)} %).</p><p class="note">Standardised weights (positive → ${esc(st.g2)}): ${F.map((k, j) => `${esc(met[k])} ${w[j + 1] >= 0 ? "+" : ""}${nf(w[j + 1], 2)}`).join("; ")}.</p>${unk.length ? `<div class="scroll"><table class="grid x8t"><tr><th>Unassigned network</th><th>P(${esc(st.g2)})</th><th>Predicted</th></tr>${unk.slice(0, 200).map(r => { const pz = lpred(w, Z(r)); return `<tr><td>${esc(r.name)}</td><td>${nf(pz, 2)}</td><td>${pz >= .5 ? esc(st.g2) : esc(st.g1)}</td></tr>`; }).join("")}</table></div>` : ""}`; }
+  const Fv = F.filter(k => { const v = rows.map(r => r.m[k]); return v.length && Math.max(...v) - Math.min(...v) > 1e-12; }), dropped = F.filter(k => !Fv.includes(k));
+  if (Fv.length && rows.filter(r => r.group === st.g1).length >= 4 && rows.filter(r => r.group === st.g2).length >= 4){
+    // scaling is fitted on the training rows of each fold only (no leakage); whole basins are held out together
+    const tr = (k, v) => k === "Ln" || k === "area" || k === "totalL" || k === "L" ? Math.log10(Math.max(v, 1e-6)) : v;
+    const fitZ = R0 => { const mu = Fv.map(k => meanCI(R0.map(r => tr(k, r.m[k]))).mean), sd = Fv.map(k => meanCI(R0.map(r => tr(k, r.m[k]))).sd || 1); return r => Fv.map((k, j) => (tr(k, r.m[k]) - mu[j])/(sd[j] || 1)); };
+    const ya = rows.map(r => r.group === st.g2 ? 1 : 0), unit = r => r.basin || r.river || r.id, units = [...new Set(rows.map(unit))]; let ok = 0, tp = [0, 0], cnt = [0, 0];
+    const ug = new Map(); rows.forEach(r => ug.set(unit(r), r.group)); const ord = [...units].sort((x, y) => String(ug.get(x)).localeCompare(String(ug.get(y))) || String(x).localeCompare(String(y))), nF = Math.min(10, units.length), fold = new Map(); let sd0 = 99; const rr = () => (sd0 = (sd0*16807) % 2147483647)/2147483647; for (let i = ord.length - 1; i > 0; i--){ const j = Math.floor(rr()*(i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]]; } ord.sort((x, y) => String(ug.get(x)).localeCompare(String(ug.get(y)))); ord.forEach((u, i) => fold.set(u, i % nF));
+    for (let f = 0; f < nF; f++){ const test = rows.filter(r => fold.get(unit(r)) === f), train = rows.filter(r => fold.get(unit(r)) !== f); if (new Set(train.map(r => r.group)).size < 2) continue; const Z = fitZ(train), w = logit(train.map(Z), train.map(r => r.group === st.g2 ? 1 : 0), 250);
+      for (const r of test){ const y = r.group === st.g2 ? 1 : 0, pr = lpred(w, Z(r)) >= .5 ? 1 : 0; cnt[y]++; if (pr === y){ ok++; tp[y]++; } } }
+    const Zall = fitZ(rows), Xa = rows.map(Zall), w = logit(Xa, ya), Z = Zall, unk = L.filter(r => r.group !== st.g1 && r.group !== st.g2 && Fv.every(k => Number.isFinite(r.m[k]))), sep = w.slice(1).some(v => Math.abs(v) > 8);
+    const nTest = cnt[0] + cnt[1], F2 = Fv;
+    clsH = `<p>${nF}-fold cross-validated accuracy${units.length < rows.length ? " (whole basins held out together)" : ""}: <b>${nf(100*ok/Math.max(1, nTest), 0)} %</b> (n = ${nTest}; ${esc(st.g1)} recall ${nf(100*tp[0]/cnt[0], 0)} %, ${esc(st.g2)} recall ${nf(100*tp[1]/cnt[1], 0)} %; chance ≈ ${nf(100*Math.max(cnt[0], cnt[1])/Math.max(1, nTest), 0)} %). Folds are stratified by group; scaling is fitted inside each training fold.${dropped.length ? ` Left out (no variation): ${dropped.map(k => esc(met[k])).join(", ")}.` : ""}${sep ? " <b>Warning:</b> the groups are (almost) perfectly separated — weights are unstable and accuracy will not generalise." : ""}${nTest < 30 ? " With under 30 networks this estimate is very uncertain." : ""}</p><p class="note">Standardised weights (positive → ${esc(st.g2)}): ${F2.map((k, j) => `${esc(met[k])} ${w[j + 1] >= 0 ? "+" : ""}${nf(w[j + 1], 2)}`).join("; ")}.</p>${unk.length ? `<div class="scroll"><table class="grid x8t"><tr><th>Unassigned network</th><th>P(${esc(st.g2)})</th><th>Predicted</th></tr>${unk.slice(0, 200).map(r => { const pz = lpred(w, Z(r)); return `<tr><td>${esc(r.name)}</td><td>${nf(pz, 2)}</td><td>${pz >= .5 ? esc(st.g2) : esc(st.g1)}</td></tr>`; }).join("")}</table></div>` : ""}`; }
   const sx = L.filter(r => Number.isFinite(r.m[st.x]) && Number.isFinite(r.m[st.y])), PR = pearson(sx.map(r => r.m[st.x]), sx.map(r => r.m[st.y])), rx = ranks(sx.map(r => r.m[st.x])), ry = ranks(sx.map(r => r.m[st.y])), SP = pearson(rx, ry);
   return `<div class="card"><h4>${esc(cfg.title || "Statistics across the library")}</h4><p class="note">${cfg.unitNote || "The network is the unit of analysis (one value per network), as in Gezovich et al. (2026)."} Assign groups in the table; "unknown" networks are left out of tests and get a predicted class below.</p>
     <div class="row"><label>Measure</label>${opts(st.m, cfg.px + "M")}</div><div class="scroll"><table class="grid x8t"><tr><th>Group</th><th>n</th><th>Mean ± 95 % CI</th><th>Median</th><th>IQR</th><th>SD</th></tr>${summ}</table></div><div id="${cfg.px}Box" class="xchart"></div>
-    <h4>Is the difference significant?</h4><div class="row"><label>Compare</label>${gopt(st.g1, cfg.px + "G1")}<span>with</span>${gopt(st.g2, cfg.px + "G2")}</div>
+    ${G.length >= 3 ? omnibusHTML(L, st, met, G) : ""}<h4>Is the difference significant?</h4><div class="row"><label>Compare</label>${gopt(st.g1, cfg.px + "G1")}<span>with</span>${gopt(st.g2, cfg.px + "G2")}</div>
     <p>${verdict}</p>${W ? `<div class="kv x10kv"><div><span>Welch t-test</span><b>t = ${nf(W.t, 2)}, df = ${nf(W.df, 1)}, p = ${sig(W.p)}</b></div><div><span>Mann–Whitney U</span><b>U = ${nf(MW.U, 1)}, p = ${sig(MW.p)}</b></div><div><span>Kolmogorov–Smirnov</span><b>${KS ? `D = ${nf(KS.D, 2)}, p ≈ ${sig(KS.p)}` : "–"}</b></div><div><span>Difference in means (95 % CI)</span><b>${fmt(W.diff)} ± ${fmt(W.ci)}</b></div><div><span>Difference in medians (bootstrap 95 %)</span><b>${BD ? fmt(BD[0]) + " to " + fmt(BD[1]) : "–"}</b></div><div><span>Effect size</span><b>Cohen's d ${nf(W.d, 2)} · Cliff's δ ${nf(MW.cliff, 2)}</b></div></div><p class="note">${pw}</p>` : ""}
     <h4>Relationship between two measures</h4><div class="row"><label>X</label>${opts(st.x, cfg.px + "X")}<label>Y</label>${opts(st.y, cfg.px + "Y")}</div><div id="${cfg.px}Sc" class="xchart"></div>${PR ? `<p class="note">Pearson r = ${nf(PR.r, 2)} (p = ${sig(PR.p)}), Spearman ρ = ${nf(SP.r, 2)} (p = ${sig(SP.p)}), n = ${PR.n}; line: least squares Y = ${fmt(PR.a)} + ${fmt(PR.b)}·X.</p>` : ""}
     ${cfg.byOrder === false ? "" : `<h4>Channels pooled by order and group</h4><div class="x10charts"><div><h5>Normalised width</h5><div id="${cfg.px}OW"></div></div><div><h5>Normalised length</h5><div id="${cfg.px}OL"></div></div><div><h5>Bifurcation angle</h5><div id="${cfg.px}OA"></div></div></div>`}
     <h4>Classify ${esc(st.g1)} vs ${esc(st.g2)}</h4><div class="chips">${cfg.met.map(([k, t]) => `<button class="chip${st.feats.includes(k) ? " on" : ""}" data-${cfg.px}f="${k}">${esc(t)}</button>`).join("")}</div>${clsH}</div>`;
 }
+/* all groups at once: Kruskal–Wallis, then pairwise Mann–Whitney with Holm adjustment (multiple testing) */
+function gammp(a, x){ if (x <= 0) return 0; if (x < a + 1){ let sum = 1/a, del = sum, ap = a; for (let n = 0; n < 300; n++){ ap++; del *= x/ap; sum += del; if (Math.abs(del) < Math.abs(sum)*1e-12) break; } return sum*Math.exp(-x + a*Math.log(x) - lgamma(a)); } let b = x + 1 - a, c = 1/1e-30, d = 1/b, h = d; for (let i = 1; i < 300; i++){ const an = -i*(i - a); b += 2; d = an*d + b; if (Math.abs(d) < 1e-30) d = 1e-30; c = b + an/c; if (Math.abs(c) < 1e-30) c = 1e-30; d = 1/d; const del = d*c; h *= del; if (Math.abs(del - 1) < 1e-12) break; } return 1 - Math.exp(-x + a*Math.log(x) - lgamma(a))*h; }
+function kruskal(groups){ const all = groups.flatMap((v, g) => v.map(x => [x, g])); const N = all.length, k = groups.filter(v => v.length).length; if (k < 2 || N < 4) return null; const rk = ranks(all.map(a => a[0])); let H = 0; groups.forEach((v, g) => { if (!v.length) return; const Rg = all.reduce((s, a, i) => s + (a[1] === g ? rk[i] : 0), 0); H += Rg*Rg/v.length; }); H = 12/(N*(N + 1))*H - 3*(N + 1);
+  const cnt = new Map(); all.forEach(a => cnt.set(a[0], (cnt.get(a[0]) || 0) + 1)); const T = [...cnt.values()].reduce((s, t) => s + t**3 - t, 0), C = 1 - T/(N**3 - N); H = C > 0 ? H/C : H; const df = k - 1; return {H, df, p: 1 - gammp(df/2, H/2), eps2: (H - k + 1)/(N - k)}; }
+function omnibusHTML(L, st, met, G){ const V = G.map(g => vals(L, g, st.m)), K = kruskal(V); if (!K) return ""; const pairs = []; for (let i = 0; i < G.length; i++) for (let j = i + 1; j < G.length; j++){ const m = mannWhitney(V[i], V[j]); if (m) pairs.push({a: G[i], b: G[j], p: m.p, d: m.cliff}); }
+  pairs.sort((x, y) => x.p - y.p); let run = 0; pairs.forEach((q, i) => { run = Math.max(run, Math.min(1, q.p*(pairs.length - i))); q.adj = run; });
+  return `<h4>All groups together</h4><p>Kruskal–Wallis H = ${nf(K.H, 2)}, df = ${K.df}, p = ${K.p < .001 ? "<0.001" : nf(K.p, 3)} (effect ε² = ${nf(Math.max(0, K.eps2), 2)}): ${K.p < .05 ? "<b>the groups differ</b>" : "no evidence that the groups differ"} in ${esc(met[st.m])}.</p><div class="scroll"><table class="grid x8t"><tr><th>Pair</th><th>Mann–Whitney p</th><th>Holm-adjusted p</th><th>Cliff's δ</th></tr>${pairs.map(q => `<tr><td>${esc(q.a)} vs ${esc(q.b)}</td><td>${q.p < .001 ? "<0.001" : nf(q.p, 3)}</td><td>${q.adj < .05 ? "<b>" : ""}${q.adj < .001 ? "<0.001" : nf(q.adj, 3)}${q.adj < .05 ? "</b>" : ""}</td><td>${nf(q.d, 2)}</td></tr>`).join("")}</table></div><p class="note">Testing many measures or pairs inflates false positives: decide the primary measure in advance and use the adjusted p-values. Rivers in the same basin are not independent.</p>`; }
 function statsCharts(L, cfg){
   const st = cfg.st, G = groupsOf(L), met = Object.fromEntries(cfg.met);
   // strip + box by group
@@ -12101,7 +12132,7 @@ async function dnLibRender(){
     ${L.length >= 2 ? statsHTML(L, DNCFG) : ""}`;
   const q = id => c.querySelector("#" + id), rer = () => { dnStatSave(); dnLibRender(); };
   if (q("dlAdd")) q("dlAdd").onclick = async () => { await dnLibSave(dnRecord(XR.dn, {group: q("dlGrp").value})); toast("Stored in the library"); dnLibRender(); };
-  q("dlCsv").onclick = () => { const ks = ["n", "maxOrder", "nBif", "nOut", "totalL", "area", "dens", "radius", "w0", "theta", "thetaCI", "thetaMed", "thetaN", "thetaFar", "Ln", "Wn", "Rb", "Rl", "Rw", "cons", "asym", "relief", "slope", "sinMean", "nW", "loops", "verdict"]; save("network_library.csv", [`# Earthform Lens network library, ${DN_METHOD}, ${new Date().toISOString()}`, ["id", "name", "group", "region", "apex_lat", "apex_lon", "source", ...ks].join(","), ...L.map(r => [r.id, r.name, r.group, r.region, r.apex[0], r.apex[1], r.src, ...ks.map(k => r.m[k])].map(v => v == null || (typeof v === "number" && !Number.isFinite(v)) ? "" : /[,"]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(","))].join("\n")); };
+  q("dlCsv").onclick = () => { const ks = ["n", "maxOrder", "nBif", "nOut", "totalL", "area", "dens", "radius", "w0", "theta", "thetaCI", "thetaMed", "thetaN", "thetaFar", "Ln", "Wn", "Rb", "Rl", "Rw", "cons", "asym", "relief", "slope", "sinMean", "nW", "loops", "verdict"]; save("network_library.csv", [`# Earthform Lens network library, ${DN_METHOD}, ${new Date().toISOString()}`, ["id", "name", "group", "region", "apex_lat", "apex_lon", "source", ...ks].join(","), ...L.map(r => [r.id, r.name, r.group, r.region, r.apex[0], r.apex[1], r.src, ...ks.map(k => r.m[k])].map(csvCell).join(","))].join("\n")); };
   q("dlJson").onclick = () => save("network_library.json", JSON.stringify({format: "earthform-netlib-1", made: new Date().toISOString(), networks: L}));
   q("dlImp").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; try { const j = JSON.parse(await f.text()); let n = 0; for (const r of (j.networks || [])){ if (r && r.id && r.m){ await dnLibSave(r); n++; } } toast(`Merged ${n} networks`); dnLibRender(); } catch(err){ toast("Backup: " + err.message, 4000); } };
   q("dlMany").onchange = e => { const fs = [...e.target.files]; e.target.value = ""; if (fs.length) dnImportMany(fs, "unknown"); };
@@ -12120,19 +12151,19 @@ async function dnLibRender(){
 function dnLibOnMap(ctx, M){ if (!DNLIB || !DNLIB.length || !XR.dnStat.showMap || (XR.tab !== "dnet" && XR.river)) return; ctx.save(); for (const r of DNLIB){ if (r.kind === "river") continue; const q = M.toScr(r.apex[0], r.apex[1]); ctx.beginPath(); ctx.arc(q[0], q[1], 5, 0, 7); ctx.fillStyle = grpCol(r.group || "unknown"); ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke(); if (M.z > 6){ ctx.font = "600 10px Inter, sans-serif"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,.7)"; ctx.strokeText(r.name, q[0] + 7, q[1] + 4); ctx.fillStyle = "#fff"; ctx.fillText(r.name, q[0] + 7, q[1] + 4); } } ctx.restore(); }
 { const _dme2 = drawMapExtras; drawMapExtras = function(ctx, M, w, h){ _dme2(ctx, M, w, h); try { dnLibOnMap(ctx, M); } catch(_){} }; }
 /* resume an interrupted batch */
-try { const sb = JSON.parse(localStorage.getItem("efl.dnbatch") || "null"); if (sb && sb.jobs && sb.jobs.some(j => j.status === "waiting")) XR.dnBatch = {jobs: sb.jobs, widths: sb.widths}; } catch(_){}
+try { const sb = JSON.parse(localStorage.getItem("efl.dnbatch") || "null"); if (sb && sb.jobs && sb.jobs.some(j => j.status === "waiting")){ XR.dnBatch = {jobs: sb.jobs, widths: sb.widths}; if (sb.running && !/[?&]efl-batch=1/.test(location.search)) setTimeout(() => { toast("Resuming the network batch", 3500); dnRunBatch(); }, 4000); } } catch(_){}
 dnLibLoad();
 /* ⚙ in the map's layers panel */
 { const _rl = renderLayP; renderLayP = function(){ _rl(); const p = $("x7LayBody"); if (p && !p.querySelector("#x11Furn")){ p.insertAdjacentHTML("beforeend", `<div class="btns"><button class="sm" id="x11Furn">⚙ Legend, scale & north: size and style</button></div>`); $("x11Furn").onclick = () => furnDialog(); } }; }
 
 /* ===================== Earthform Lens — analyse a list of rivers (and their fans / deltas), store them, and test differences ===================== */
 const RVMET = [["L", "Length (km)"], ["fall", "Fall along the river (m)"], ["grad", "Mean gradient (m/km)"], ["conc", "Concavity (Langbein)"], ["sin", "Sinuosity (whole river)"], ["sinR", "Median reach sinuosity"], ["W", "Median channel width (m)"],
-  ["lw", "Wavelength ÷ width"], ["rcw", "Bend radius ÷ width"], ["ksn", "Median steepness ksn"], ["HI", "Hypsometric integral"], ["trib", "Tributaries per 100 km"], ["dams", "Dams per 100 km"], ["knick", "Robust knickpoints per 100 km"], ["src", "Share: potential source"], ["store", "Share: storage"],
+  ["lw", "Wavelength ÷ width"], ["rcw", "Bend radius ÷ width"], ["ksn", "Median steepness ksn"], ["HI", "Hypsometric integral"], ["trib", "Tributaries per 100 km"], ["dams", "Dams per 100 km"], ["knick", "Robust knickpoints per 100 km"], ["src", "Share: potential source (rule-based)"], ["store", "Share: storage (rule-based)"],
   ["zSrc", "Source elevation (m)"], ["zMouth", "Mouth elevation (m)"], ["latM", "Mouth latitude (°)"], ["absLat", "Mouth |latitude| (°)"], ["netTheta", "Delta/fan mean angle θ (°)"], ["netOrders", "Delta/fan highest order"], ["netN", "Delta/fan channels"]];
 XR.rvStat = Object.assign({m: "sin", x: "L", y: "sin", g1: "", g2: "", feats: ["sin", "conc", "grad"]}, (() => { try { return JSON.parse(localStorage.getItem("efl.rvstat")) || {}; } catch(_){ return {}; } })());
 const RVCFG = {met: RVMET, st: XR.rvStat, px: "rs", title: "Statistics across the rivers", unitNote: "The river is the unit of analysis (one value per river). Give each river a group (e.g. climate zone, tectonic setting, delta type) in the list or in the table.", byOrder: false, refAngles: false};
 XR.rvBatch = (() => { try { const b = JSON.parse(localStorage.getItem("efl.rvbatch") || "null"); if (b && b.jobs) b.jobs.forEach(j => { if (j.status === "running") j.status = "waiting"; }); return b; } catch(_){ return null; } })();
-const rvSaveBatch = () => { try { localStorage.setItem("efl.rvbatch", JSON.stringify(XR.rvBatch)); } catch(_){} };
+function rvSaveBatch(){ try { localStorage.setItem("efl.rvbatch", JSON.stringify(XR.rvBatch)); } catch(_){} }
 
 /** one line per river: "name" or "name | group" or "name ; group"; commas stay in the name (they help the search: "Niger, Mali") */
 function rvParse(text){ const out = []; for (const raw of String(text || "").split(/\r?\n/)){ const t = raw.trim(); if (!t || /^#/.test(t) || /^name\s*[|;\t,]/i.test(t)) continue; const parts = t.split(/\s*[|;\t]\s*/); out.push({name: parts[0], group: parts[1] || "unknown", hint: parts[2] || "", status: "waiting"}); } return out; }
@@ -12141,23 +12172,32 @@ function rvRecord(R, group){
   const rec = {id: "r" + (R.osm || R.name).replace(/\W+/g, "_"), kind: "river", name: R.name, group: group || "unknown", region: R.region || "", osm: R.osm, apex: mouth, src: `OpenStreetMap ${R.osm}; elevation ${pr ? demLabel(pr) : "–"}`, made: new Date().toISOString(), method: METHOD_VERSION,
     m: {L: m.L, fall: m.fall, grad: m.grad, conc: m.conc, sin: m.sin, sinR: m.sinR, W: m.W, lw: m.lw, rcw: m.rcw, ksn: m.ksn, HI: m.HI, trib: m.trib, dams: m.dams, knick: m.knick, src: m.src, store: m.store, zSrc: pr ? pr.zc[0] : NaN, zMouth: pr ? pr.zc[pr.zc.length - 1] : NaN, latM: mouth[0], absLat: Math.abs(mouth[0]), nWidth: (R.reaches || []).filter(r => r.width && Number.isFinite(r.width.med)).length},
     dist: m.dist, byOrder: {}, segs: []};
+  const wdL = R.wd && R.wd.len, ratio = wdL ? R.L/wdL : NaN, nR = (R.reaches || []).length, nW = rec.m.nWidth, gp = pr && pr.gaps ? pr.gaps.length/pr.d.length : 0;
+  rec.ident = {osm: R.osm, wikidata: R.wikidata || "", source_point: R.main[0], mouth_point: mouth, vertices: R.main.length, geometry_hash: geomHash(R.main)};
+  rec.modules = {trace: "ok", profile: pr ? (gp > .05 ? "gaps" : "ok") : "missing", tributaries: R.partial ? "incomplete" : "ok", widths: !nW ? "skipped" : nW < nR ? `partial (${nW}/${nR} reaches)` : "ok", zones: nR && (R.reaches || []).every(r => r.zone) ? "ok" : "missing"};
+  rec.flags = []; if (Number.isFinite(ratio) && (ratio < .7 || ratio > 1.3)) rec.flags.push(`trace is ${nf(100*ratio, 0)} % of the Wikidata length (${km(wdL)})`); if (!wdL) rec.flags.push("no published length to check the trace against"); if (gp > .05) rec.flags.push(`${nf(100*gp, 0)} % of profile samples had no elevation data`); if (R.partial) rec.flags.push("tributaries did not finish loading");
+  rec.m.traceRatio = ratio; rec.review = "unreviewed";
   return rec;
 }
 async function rvRunBatch(){
-  const B = XR.rvBatch; if (!B || B.running) return; B.running = true; B.stop = false; rvRender();
+  const B = XR.rvBatch; if (!B || B.running) return; B.running = true; B.stop = false; if (!B.runId) B.runId = "run-" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "-" + Math.random().toString(36).slice(2, 6); B.settings = rvSettings(B); rvRender();
+  const keepAW = XR.src.autoW; XR.src.autoW = !!B.widths; // widths only when chosen for this batch
+  try {
   for (const job of B.jobs){ if (B.stop) break; if (job.status === "done") continue; job.status = "running"; job.note = ""; rvRender(); const t0 = Date.now();
     try {
-      const res = await searchRivers(job.hint ? job.name + ", " + job.hint : job.name, null, {}); const hit = res.find(r => r.water && r.osm_type === "relation") || res.find(r => r.water) || res[0]; if (!hit) throw new Error("not found by the search");
+      const res = await searchRivers(job.hint ? job.name + ", " + job.hint : job.name, null, {}); const hit = res.find(r => r.water && r.osm_type === "relation") || res.find(r => r.water) || res[0]; if (!hit) throw new Error("not found by the search"); job.cands = res.slice(0, 5).map(r => ({name: r.display_name || r.name || "", osm: `${r.osm_type || ""}/${r.osm_id || ""}`, water: !!r.water, picked: r === hit}));
       await loadRiver(hit); const R = XR.river; if (!R || !R.prof) throw new Error("could not be traced");
       for (let t = 0; t < 600 && R.partial; t++) await new Promise(r => setTimeout(r, 500)); // tributaries
       if (B.widths){ for (let t = 0; t < 600 && (R.reaches || []).some(r => !r.width) && XR.river === R; t++) await new Promise(r => setTimeout(r, 1000)); }
       const rec = rvRecord(R, job.group); let note = `${km(R.L)}, sinuosity ${nf(rec.m.sin, 2)}`;
-      const dup = B.jobs.find(o => o !== job && o.status === "done" && o.id === rec.id); if (dup) note = `⚠ found the same river as “${dup.name}” — add a country after a second bar to pick the right one. ` + note;
+      const dup = B.jobs.find(o => o !== job && o.status === "done" && o.id === rec.id); if (dup) throw new Error(`found the same river as “${dup.name}” (${R.osm}) — not stored again. Add a country after a second bar to pick the right one.`);
+      rec.query = job.hint ? job.name + " | " + job.hint : job.name; rec.cands = job.cands; rec.batch = B.runId || ""; const old = (await dnLibLoad()).find(x => x.id === rec.id); if (old && old.review && old.ident && old.ident.geometry_hash === rec.ident.geometry_hash) rec.review = old.review; if (rec.flags.length) note = "⚠ " + rec.flags.join("; ") + ". " + note;
       if (B.network){ XR.dn = null; try { await dnFromRiver(); const N = XR.dn; if (N && N.segs && N.bifs.length >= 1){ const nr = dnRecord(N, {id: "n_" + rec.id, name: R.name + " delta/fan", group: job.group}); nr.river = rec.id; await dnLibSave(nr); rec.m.netTheta = N.sum.theta.mean; rec.m.netOrders = N.sum.maxOrder; rec.m.netN = N.sum.n; rec.net = nr.id; note += `; delta/fan ${N.sum.n} channels, θ ${nf(N.sum.theta.mean, 1)}°`; } else note += "; no distributary network mapped"; } catch(e){ note += "; network: " + e.message; } }
       if (XR.tab !== "compare") try { showXTab("compare"); } catch(_){}
-      await dnLibSave(rec); job.status = "done"; job.note = `${note} (${Math.round((Date.now() - t0)/1000)} s)`; job.id = rec.id;
+      await dnLibSave(rec); job.status = "done"; job.secs = Math.round((Date.now() - t0)/1000); job.note = `${note} (${job.secs} s)`; job.id = rec.id;
     } catch(e){ job.status = "failed"; job.note = e.message; }
     const fin = B.jobs.filter(j => j.status === "done" || j.status === "failed").length; actSet("rvb", `Rivers: ${fin} of ${B.jobs.length}`, fin/B.jobs.length); rvSaveBatch(); rvRender(); }
+  } finally { XR.src.autoW = keepAW; }
   B.running = false; actEnd("rvb"); rvSaveBatch(); rvRender(); const ok = B.jobs.filter(j => j.status === "done").length; xstatus(`River batch finished: ${ok} of ${B.jobs.length} rivers analysed and stored${B.network ? ", with their deltas/fans where mapped" : ""}. See Compare → River library.`, "ok");
 }
 function rvContainer(){
@@ -12166,26 +12206,29 @@ function rvContainer(){
 }
 async function rvRender(){
   const c = rvContainer(); if (!c) return;
-  const L = (await dnLibLoad()).filter(r => r.kind === "river"), B = XR.rvBatch, G = groupsOf(L), st = XR.rvStat;
+  const LA = (await dnLibLoad()).filter(r => r.kind === "river"), B = XR.rvBatch, st = XR.rvStat, L = st.onlyOk ? LA.filter(r => r.review === "approved") : LA.filter(r => r.review !== "rejected"), G = groupsOf(L);
   if (G.length >= 2){ if (!G.includes(st.g1)) st.g1 = G[0]; if (!G.includes(st.g2) || st.g2 === st.g1) st.g2 = G.find(g => g !== st.g1); }
   const gsel = r => `<select class="rlg" data-id="${r.id}">${[...new Set(["unknown"].concat(G))].map(g => `<option${(r.group || "unknown") === g ? " selected" : ""}>${esc(g)}</option>`).join("")}<option value="__new">+ new group…</option></select>`;
   const done = B ? B.jobs.filter(j => j.status === "done").length : 0, fail = B ? B.jobs.filter(j => j.status === "failed").length : 0;
   c.innerHTML = `<div class="card"><h4>Analyse a list of rivers</h4><p class="note">One river per line — up to hundreds. Add a group after a bar to compare groups later: <code>Amazon | tropical</code>. A country after a second bar helps the search: <code>Niger | arid | Mali</code>. Each river is traced, measured and stored; optionally its delta or fan network is mapped too. Rivers are done one after another (about 20 s – 2 min each); the batch is saved and resumes after a reload.</p>
     <textarea id="rvText" rows="6" placeholder="Rhine | temperate&#10;Danube | temperate&#10;Niger | arid | Mali&#10;Mekong | tropical">${esc(XR.rvText || "")}</textarea>
-    <div class="btns"><label class="sm filebtn">⇪ List (CSV / TXT)<input type="file" id="rvFile" accept=".csv,.txt" hidden></label><label class="chk"><input type="checkbox" id="rvNet"${!B || B.network !== false ? " checked" : ""}> Also map each delta / fan network</label><label class="chk"><input type="checkbox" id="rvW"${B && B.widths ? " checked" : ""}> Wait for channel widths (slower)</label>
-      ${B && B.running ? `<button class="sm" id="rvStop">⏸ Pause</button>` : `<button class="sm pri" id="rvGo">▶ ${B && B.jobs.some(j => j.status !== "done") ? "Resume" : "Analyse rivers"}</button>`}${B && !B.running ? `<button class="sm" id="rvRetry">Retry failed</button><button class="sm" id="rvClr">Clear list</button>` : ""}</div>
-    ${B ? `<p class="note">${done} done · ${fail} failed · ${B.jobs.length - done - fail} to go</p><div class="scroll x10tab"><table class="grid x8t"><tr><th>River</th><th>Group</th><th>Status</th></tr>${B.jobs.map(j => `<tr><td>${esc(j.name)}</td><td>${esc(j.group)}</td><td class="${j.status === "failed" ? "warn" : ""}">${j.status}${j.note ? ` <small>${esc(j.note)}</small>` : ""}</td></tr>`).join("")}</table></div>` : ""}</div>
-    <div class="card"><h4>River library (${L.length})</h4>${L.length ? `<div class="btns"><button class="sm" id="rlCsv">⬇ River table (CSV)</button><button class="sm" id="rlCmp">Add the first 8 to the comparison</button></div>
-      <div class="scroll x10tab"><table class="grid x8t"><tr><th>River</th><th>Group</th><th>Length</th><th>Fall</th><th>Gradient</th><th>Concavity</th><th>Sinuosity</th><th>Width</th><th>Delta/fan θ</th><th></th></tr>${L.map(r => `<tr><td>${esc(r.name)}<small>${esc(r.region || "")}</small></td><td>${gsel(r)}</td><td>${km(r.m.L)}</td><td>${nf(r.m.fall)} m</td><td>${nf(r.m.grad, 3)}</td><td>${nf(r.m.conc, 2)}</td><td>${nf(r.m.sin, 2)}</td><td>${Number.isFinite(r.m.W) ? nf(r.m.W) + " m" : "–"}</td><td>${Number.isFinite(r.m.netTheta) ? nf(r.m.netTheta, 1) + "°" : "–"}</td><td><button class="sm" data-rld="${r.id}" title="Delete">✕</button></td></tr>`).join("")}</table></div>` : `<p class="note">Rivers you analyse in a batch are stored here (in this browser; the network library's JSON backup includes them).</p>`}</div>
+    <div class="btns"><label class="sm filebtn">⇪ List (CSV / TXT)<input type="file" id="rvFile" accept=".csv,.txt" hidden></label><label class="chk"><input type="checkbox" id="rvNet"${!B || B.network !== false ? " checked" : ""}> Also map each delta / fan network</label><label class="chk"><input type="checkbox" id="rvW"${B && B.widths ? " checked" : ""}> Measure channel widths too (much slower — off: widths are skipped for these rivers)</label><label class="chk"><input type="checkbox" id="rvBg"${!B || B.bgPref !== false ? " checked" : ""}> Run in the background (keep using the app)</label><label class="chk"><input type="checkbox" id="rvWake"${!B || B.wake !== false ? " checked" : ""}> Keep the screen on while it runs</label>
+      ${B && (B.running || B.bgRunning) ? `<button class="sm" id="rvStop">⏸ Pause</button>` : `<button class="sm pri" id="rvGo">▶ ${B && B.jobs.some(j => j.status !== "done") ? "Resume" : "Analyse rivers"}</button>`}${B && !B.running && !B.bgRunning ? `<button class="sm" id="rvRetry">Retry failed</button><button class="sm" id="rvClr">Clear list</button>` : ""}</div>
+    ${B ? `<p class="note">${B.bgRunning ? "<b>Running in the background</b> — you can search and analyse other rivers meanwhile. " : ""}${done} done · ${fail} failed · ${B.jobs.length - done - fail} to go${rvEta(B)}</p><div class="scroll x10tab"><table class="grid x8t"><tr><th>River</th><th>Group</th><th>Status</th></tr>${B.jobs.map(j => `<tr><td>${esc(j.name)}</td><td>${esc(j.group)}</td><td class="${j.status === "failed" ? "warn" : ""}">${j.status}${j.note ? ` <small>${esc(j.note)}</small>` : ""}</td></tr>`).join("")}</table></div>` : ""}</div>
+    <div class="card"><h4>River library (${LA.length}${L.length !== LA.length ? `, ${L.length} used in the statistics` : ""})</h4>${LA.length ? `<p class="note">Check each river before using it: open the ⚑ notes, and set <b>Review</b> to approved or rejected. Rejected rivers are left out of the statistics. Flags: ${LA.filter(r => r.flags && r.flags.length).length} rivers · unreviewed: ${LA.filter(r => !r.review || r.review === "unreviewed").length}.</p><div class="btns"><button class="sm" id="rlCsv">⬇ River table (CSV)</button><button class="sm" id="rlMan">⬇ Run manifest (JSON)</button><button class="sm" id="rlCmp">Add the first 8 to the comparison</button><label class="chk"><input type="checkbox" id="rlOnly"${st.onlyOk ? " checked" : ""}> Statistics from approved rivers only</label></div>
+      <div class="scroll x10tab"><table class="grid x8t"><tr><th>River</th><th>Group</th><th>Length</th><th>Fall</th><th>Gradient</th><th>Concavity</th><th>Sinuosity</th><th>Width</th><th>Delta/fan θ</th><th>Review</th><th></th></tr>${LA.map(r => `<tr><td>${esc(r.name)}<small>${esc(r.region || "")} ${esc(r.osm || "")}${r.flags && r.flags.length ? `<br>⚑ ${esc(r.flags.join("; "))}` : ""}${r.modules ? `<br>${Object.entries(r.modules).filter(([, v]) => v !== "ok").map(([k, v]) => esc(k + ": " + v)).join(" · ")}` : ""}${r.cands && r.cands.length > 1 ? `<br><details><summary>search hits</summary>${r.cands.map(c => `${c.picked ? "▶ " : ""}${esc(c.name)} <code>${esc(c.osm)}</code>`).join("<br>")}</details>` : ""}</small></td><td>${gsel(r)}</td><td>${km(r.m.L)}</td><td>${nf(r.m.fall)} m</td><td>${nf(r.m.grad, 3)}</td><td>${nf(r.m.conc, 2)}</td><td>${nf(r.m.sin, 2)}</td><td>${Number.isFinite(r.m.W) ? nf(r.m.W) + " m" : "–"}</td><td>${Number.isFinite(r.m.netTheta) ? nf(r.m.netTheta, 1) + "°" : "–"}</td><td><select class="rlrv" data-id="${r.id}">${["unreviewed", "approved", "rejected"].map(v => `<option${(r.review || "unreviewed") === v ? " selected" : ""}>${v}</option>`).join("")}</select></td><td><button class="sm" data-rld="${r.id}" title="Delete">✕</button></td></tr>`).join("")}</table></div>` : `<p class="note">Rivers you analyse in a batch are stored here (in this browser; the network library's JSON backup includes them).</p>`}</div>
     ${L.length >= 2 ? statsHTML(L, RVCFG) : ""}`;
   const q = id => c.querySelector("#" + id);
   q("rvText").oninput = e => { XR.rvText = e.target.value; };
   q("rvFile").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (f){ XR.rvText = (await f.text()).split(/\r?\n/).map(l => l.includes("|") || l.includes(";") || l.includes("\t") ? l : l.replace(/,\s*/g, " | ")).join("\n"); rvRender(); } };
-  if (q("rvGo")) q("rvGo").onclick = () => { const jobs = rvParse(XR.rvText); if (jobs.length && (!B || !B.jobs.some(j => j.status !== "done"))) XR.rvBatch = {jobs, network: q("rvNet").checked, widths: q("rvW").checked}; else if (!XR.rvBatch) return toast("Type or open a list of rivers, one per line", 4000); else { XR.rvBatch.network = q("rvNet").checked; XR.rvBatch.widths = q("rvW").checked; if (jobs.length){ const have = new Set(XR.rvBatch.jobs.map(j => j.name.toLowerCase())); jobs.filter(j => !have.has(j.name.toLowerCase())).forEach(j => XR.rvBatch.jobs.push(j)); } } rvSaveBatch(); rvRunBatch(); };
-  if (q("rvStop")) q("rvStop").onclick = () => { XR.rvBatch.stop = true; toast("Pausing after the current river"); };
-  if (q("rvRetry")) q("rvRetry").onclick = () => { XR.rvBatch.jobs.forEach(j => { if (j.status === "failed") j.status = "waiting"; }); rvSaveBatch(); rvRunBatch(); };
+  if (q("rvGo")) q("rvGo").onclick = () => { const bgOn = q("rvBg").checked, wake = q("rvWake").checked; const jobs = rvParse(XR.rvText); if (jobs.length && (!B || !B.jobs.some(j => j.status !== "done"))) XR.rvBatch = {jobs, network: q("rvNet").checked, widths: q("rvW").checked}; else if (!XR.rvBatch) return toast("Type or open a list of rivers, one per line", 4000); else { XR.rvBatch.network = q("rvNet").checked; XR.rvBatch.widths = q("rvW").checked; if (jobs.length){ const have = new Set(XR.rvBatch.jobs.map(j => j.name.toLowerCase())); jobs.filter(j => !have.has(j.name.toLowerCase())).forEach(j => XR.rvBatch.jobs.push(j)); } } XR.rvBatch.bgPref = bgOn; XR.rvBatch.wake = wake; rvSaveBatch(); if (bgOn) rvStartWorker(); else { if (wake) wakeOn(); rvRunBatch().finally(wakeOff); } };
+  if (q("rvStop")) q("rvStop").onclick = () => { if (XR.rvBatch.bgRunning) rvStopWorker(); else XR.rvBatch.stop = true; toast("Pausing after the current river"); };
+  if (q("rvRetry")) q("rvRetry").onclick = () => { XR.rvBatch.jobs.forEach(j => { if (j.status === "failed") j.status = "waiting"; }); rvSaveBatch(); if (XR.rvBatch.bgPref !== false) rvStartWorker(); else rvRunBatch(); };
   if (q("rvClr")) q("rvClr").onclick = () => { XR.rvBatch = null; rvSaveBatch(); rvRender(); };
-  if (q("rlCsv")) q("rlCsv").onclick = () => { const ks = RVMET.map(([k]) => k).concat(["nWidth"]); save("river_library.csv", [`# Earthform Lens river library, ${METHOD_VERSION}, ${new Date().toISOString()}`, ["id", "name", "group", "region", "osm", "mouth_lat", "mouth_lon", ...ks].join(","), ...L.map(r => [r.id, r.name, r.group, r.region, r.osm, r.apex[0], r.apex[1], ...ks.map(k => r.m[k])].map(v => v == null || (typeof v === "number" && !Number.isFinite(v)) ? "" : /[,"]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(","))].join("\n")); };
+  if (q("rlCsv")) q("rlCsv").onclick = () => { const ks = RVMET.map(([k]) => k).concat(["nWidth", "traceRatio"]); save("river_library.csv", [`# Earthform Lens river library, ${METHOD_VERSION}, ${new Date().toISOString()}`, ["id", "name", "group", "region", "osm", "query", "review", "geometry_hash", "source_lat", "source_lon", "mouth_lat", "mouth_lon", "flags", "modules", ...ks].join(","), ...LA.map(r => [r.id, r.name, r.group, r.region, r.osm, r.query || "", r.review || "unreviewed", r.ident ? r.ident.geometry_hash : "", r.ident ? r.ident.source_point[0] : "", r.ident ? r.ident.source_point[1] : "", r.apex[0], r.apex[1], (r.flags || []).join("; "), r.modules ? Object.entries(r.modules).map(([k, v]) => k + "=" + v).join("; ") : "", ...ks.map(k => r.m[k])].map(csvCell).join(","))].join("\n")); };
+  if (q("rlMan")) q("rlMan").onclick = () => save("earthform_run_manifest.json", JSON.stringify(rvManifest(LA, B), null, 1));
+  if (q("rlOnly")) q("rlOnly").onchange = e => { st.onlyOk = e.target.checked; try { localStorage.setItem("efl.rvstat", JSON.stringify(st)); } catch(_){} rvRender(); };
+  c.querySelectorAll(".rlrv").forEach(s => s.onchange = async () => { const r = DNLIB.find(x => x.id === s.dataset.id); r.review = s.value; r.reviewed = new Date().toISOString(); await dnLibSave(r); rvRender(); });
   if (q("rlCmp")) q("rlCmp").onclick = () => cmpAddNames(L.slice(0, CMPMAX).map(r => r.name).join("\n"));
   c.querySelectorAll(".rlg").forEach(s => s.onchange = async () => { let g = s.value; if (g === "__new"){ g = (prompt("Name of the new group (e.g. arid, tropical, tectonically active)") || "").trim(); if (!g) return rvRender(); } const r = DNLIB.find(x => x.id === s.dataset.id); r.group = g; await dnLibSave(r); rvRender(); });
   c.querySelectorAll("[data-rld]").forEach(b => b.onclick = async () => { await dnLibDel(b.dataset.rld); rvRender(); });
@@ -12193,10 +12236,103 @@ async function rvRender(){
 }
 { const _x8 = x8Render; x8Render = function(){ _x8(); try { rvRender(); } catch(e){ console.error(e); } }; }
 /* a "Many rivers" button next to the search */
-{ const tools = document.querySelector(".xtools"); if (tools && !$("rvBtn")){ const b = document.createElement("button"); b.id = "rvBtn"; b.className = "chipbtn"; b.textContent = "☰ Many rivers"; b.title = "Analyse a list of rivers (and their deltas / fans)"; b.onclick = () => { if (XR.river) showXTab("compare"); else { rvOpenStandalone(); } }; tools.appendChild(b); } }
+{ const tools = document.querySelector(".xtools"); if (tools && !$("rvBtn")){ const b = document.createElement("button"); b.id = "rvBtn"; b.className = "chipbtn"; b.textContent = "☰ Many rivers"; b.classList.add("x12hi"); b.title = "Analyse a list of rivers (and their deltas / fans)"; b.onclick = () => { if (XR.river){ showXTab("compare"); setTimeout(() => { const c = $("rvLib"); if (c) c.scrollIntoView({behavior: "smooth", block: "start"}); }, 200); } else { rvOpenStandalone(); } }; tools.insertBefore(b, tools.firstChild); } }
 /* without a loaded river the Compare tab is hidden: show the list in a box below the map */
 function rvOpenStandalone(){ let b = $("rvBox"); if (!b){ const e = $("xEmpty"); if (!e) return; b = document.createElement("div"); b.id = "rvBox"; e.parentElement.insertBefore(b, e); } rvRender(); b.scrollIntoView({behavior: "smooth", block: "start"}); }
 { const _rx2 = renderX; renderX = function(){ _rx2(); const b = $("rvBox"); if (XR.river && b){ b.remove(); } }; }
+
+/* ---- identity and reproducibility for batches (after the technical review) ---- */
+function geomHash(pts){ let h1 = 0x811c9dc5, h2 = 0x01000193; for (const p of pts) for (const v of p){ const t = Math.round(v*1e6); h1 = Math.imul(h1 ^ (t & 0xffff), 16777619) >>> 0; h2 = Math.imul(h2 ^ (t >>> 16 & 0xffff) ^ h1, 2246822519) >>> 0; } return (h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0")); }
+function rvSettings(B){ return {widths: !!B.widths, network: B.network !== false, elevation_source: (XR.src && XR.src.dem) || "auto", zone_rule: XR.zoneOpt, profile: XR.pp || "default", reach_split: XR.reachKm || "default"}; }
+function rvManifest(L, B){ return {app: "Earthform Lens", manifest: "efl-run-manifest-1", exported: new Date().toISOString(), run_id: B && B.runId || "", versions: {methods: METHOD_VERSION, rules: RULES_VERSION, width: WIDTH_VERSION, network: typeof DN_METHOD !== "undefined" ? DN_METHOD : "", zones: "efl-zones-2"}, settings: B && B.settings || (B ? rvSettings(B) : null),
+  sources: {rivers: "OpenStreetMap via Overpass (© OpenStreetMap contributors, ODbL)", search: "Photon / Nominatim", facts: "Wikidata", elevation: "AWS Terrain Tiles (terrarium) or Copernicus GLO-90 via Open-Meteo, or a user GeoTIFF"},
+  jobs: B ? B.jobs.map(j => ({query: j.hint ? j.name + " | " + j.hint : j.name, group: j.group, status: j.status, note: j.note || "", record: j.id || "", seconds: j.secs || null})) : [],
+  records: L.map(r => ({id: r.id, name: r.name, group: r.group, review: r.review || "unreviewed", query: r.query || "", made: r.made, method: r.method, identity: r.ident || {osm: r.osm}, modules: r.modules || null, flags: r.flags || [], candidates: r.cands || []}))}; }
+/* ===================== Earthform Lens — river batches that run in the background =====================
+   The batch runs in a hidden copy of the app (an invisible frame on the same page). It writes into the same libraries
+   (IndexedDB) and reports progress by message, so the visible app stays free for other work. */
+const EFL_WORKER = /[?&]efl-batch=1/.test(location.search);
+/* one background batch at a time across tabs: the worker beats a lock every 4 s; another tab will not start a second one */
+const RV_OWNER = (() => { try { let v = sessionStorage.getItem("efl.tab"); if (!v){ v = Math.random().toString(36).slice(2, 10); sessionStorage.setItem("efl.tab", v); } return (location.search.match(/[?&]owner=(\w+)/) || [])[1] || v; } catch(_){ return "x"; } })();
+function rvLock(){ try { return JSON.parse(localStorage.getItem("efl.rvlock") || "null"); } catch(_){ return null; } }
+const rvChan = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("efl-batch") : null;
+function rvEta(B){ const d = B.jobs.filter(j => j.status === "done" && j.secs), left = B.jobs.filter(j => j.status === "waiting" || j.status === "running").length; if (!d.length || !left) return ""; const s = d.reduce((a, j) => a + j.secs, 0)/d.length*left; return ` · about ${s > 5400 ? nf(s/3600, 1) + " h" : Math.max(1, Math.round(s/60)) + " min"} left`; }
+let rvWake = null;
+async function wakeOn(){ try { if (navigator.wakeLock && !rvWake){ rvWake = await navigator.wakeLock.request("screen"); rvWake.addEventListener("release", () => { rvWake = null; }); } } catch(_){} }
+function wakeOff(){ try { if (rvWake) rvWake.release(); } catch(_){} rvWake = null; }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && XR.rvBatch && XR.rvBatch.bgRunning && XR.rvBatch.wake !== false) wakeOn(); });
+
+if (EFL_WORKER){
+  /* ---- inside the hidden frame: run the saved list, report each step ---- */
+  const post = (type) => { try { rvChan && rvChan.postMessage({type, batch: XR.rvBatch}); } catch(_){} };
+  { const _s = rvSaveBatch; rvSaveBatch = function(){ _s(); post("progress"); }; }
+  { const _r = rvRender; rvRender = function(){ post("progress"); }; }
+  if (rvChan) rvChan.onmessage = e => { const d = e.data || {}; if (d.cmd === "stop" && XR.rvBatch) XR.rvBatch.stop = true; if (d.cmd === "ping") post("progress"); };
+  const beat = () => { try { localStorage.setItem("efl.rvlock", JSON.stringify({owner: RV_OWNER, t: Date.now()})); } catch(_){} }; beat(); const beatT = setInterval(beat, 4000);
+  window.addEventListener("pagehide", () => { try { const l = rvLock(); if (l && l.owner === RV_OWNER) localStorage.removeItem("efl.rvlock"); } catch(_){} });
+  setTimeout(async () => {
+    try { const w = document.querySelector('.seg button[data-ws=explore]'); if (w) w.click(); } catch(_){}
+    let b = null; try { b = JSON.parse(localStorage.getItem("efl.rvbatch") || "null"); } catch(_){}
+    if (!b || !b.jobs){ post("done"); return; } b.running = false; b.bgRunning = true; b.jobs.forEach(j => { if (j.status === "running") j.status = "waiting"; }); XR.rvBatch = b;
+    try { await rvRunBatch(); } catch(e){ console.error(e); } XR.rvBatch.bgRunning = false; XR.rvBatch.running = false; try { localStorage.setItem("efl.rvbatch", JSON.stringify(XR.rvBatch)); } catch(_){} clearInterval(beatT); try { localStorage.removeItem("efl.rvlock"); } catch(_){} post("done");
+  }, 900);
+} else {
+  /* ---- in the visible app: start / stop the frame and show its progress ---- */
+  let rvT = 0;
+  window.rvStartWorker = function(){
+    if ($("rvWorker")) return; const B = XR.rvBatch; if (!B) return; const lk = rvLock(); if (lk && lk.owner !== RV_OWNER && Date.now() - lk.t < 12000){ toast("A river batch is already running in another tab or window of this app — wait for it, or pause it there.", 6000); return false; } B.bgRunning = true; B.running = false; rvSaveBatch();
+    const f = document.createElement("iframe"); f.id = "rvWorker"; f.title = "background river batch"; f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+    f.src = location.href.split(/[?#]/)[0] + "?efl-batch=1&owner=" + RV_OWNER; f.style.cssText = "position:fixed;left:-13000px;top:0;width:1280px;height:900px;border:0;opacity:0;pointer-events:none";
+    document.body.appendChild(f); if (B.wake !== false) wakeOn(); rvRender(); xstatus("River batch running in the background — keep using the app; progress is in Compare → Analyse a list of rivers (☰ Many rivers).", "ok");
+  };
+  window.rvStopWorker = function(){ try { rvChan && rvChan.postMessage({cmd: "stop"}); } catch(_){} };
+  const finish = B => { const f = $("rvWorker"); if (f) f.remove(); if (XR.rvBatch) XR.rvBatch.bgRunning = false; wakeOff(); document.title = "Earthform Lens"; DNLIB = null; rvRender(); dnRender && XR.tab === "dnet" && dnRender();
+    const ok = B ? B.jobs.filter(j => j.status === "done").length : 0, left = B ? B.jobs.filter(j => j.status === "waiting").length : 0; xstatus(left ? `River batch paused: ${ok} done, ${left} to go. Press Resume to continue.` : `River batch finished: ${ok} of ${B ? B.jobs.length : 0} rivers analysed and stored.`, "ok"); if (!left) toast("River batch finished", 5000); };
+  if (rvChan) rvChan.onmessage = e => { const d = e.data || {}; if (!d.batch) return; if (d.type === "done"){ XR.rvBatch = Object.assign(d.batch, {bgRunning: false, running: false}); finish(XR.rvBatch); return; }
+    XR.rvBatch = Object.assign(d.batch, {bgRunning: true, running: false}); const B = XR.rvBatch, fin = B.jobs.filter(j => j.status === "done" || j.status === "failed").length; document.title = `(${fin}/${B.jobs.length}) Earthform Lens`; actSet("rvb", `Rivers in the background: ${fin} of ${B.jobs.length}`, fin/B.jobs.length);
+    DNLIB = null; clearTimeout(rvT); rvT = setTimeout(() => { rvRender(); if (XR.tab === "dnet") try { dnRender(); } catch(_){} }, 600); if (fin === B.jobs.length) actEnd("rvb"); };
+  // a batch that was running when the page closed carries on by itself
+  setTimeout(() => { const B = XR.rvBatch; if (B && B.bgPref !== false && (B.bgRunning || B.running) && B.jobs.some(j => j.status === "waiting" || j.status === "running")){ B.jobs.forEach(j => { if (j.status === "running") j.status = "waiting"; }); toast("Resuming the river batch in the background", 4000); rvStartWorker(); } }, 2500);
+}
+
+/* ---- the channel network you were working on comes back after a reload ---- */
+if (!EFL_WORKER){
+  let dnSaveT = 0;
+  const dnPersist = () => { clearTimeout(dnSaveT); dnSaveT = setTimeout(() => { try { const N = XR.dn; if (!N || !N.lines){ localStorage.removeItem("efl.lastNet"); return; } const v = N.lines.reduce((a, l) => a + l.pts.length, 0); if (v > 30000) return;
+    localStorage.setItem("efl.lastNet", JSON.stringify({name: N.name, src: N.src, lines: N.lines, directed: N.directed, osm: N.osm, apex: N.apex, apexGuess: N.apexGuess, manual: N.manual || null, widths: N.segs ? N.segs.filter(s => Number.isFinite(s.wmean)).map(s => [s.nodes[0] + ">" + s.nodes[s.nodes.length - 1], s.wi, s.wh, s.wf, s.wmean, s.wsrc]) : []})); } catch(_){} }, 1200); };
+  { const _b = dnBuild; dnBuild = function(){ const r = _b.apply(this, arguments); if (!XR._dnRestoring && XR.dn && XR.dn === XR.dnLive) dnPersist(); return r; }; }
+  { const _r = dnRender; dnRender = function(){ XR.dnLive = XR.dn; _r.apply(this, arguments); if (XR.dn && XR.dn.segs) dnPersist(); else if (!XR.dn) try { localStorage.removeItem("efl.lastNet"); } catch(_){} }; }
+  setTimeout(() => { if (XR.dn) return; let o = null; try { o = JSON.parse(localStorage.getItem("efl.lastNet") || "null"); } catch(_){} if (!o || !o.lines) return;
+    XR._dnRestoring = true; try { XR.dn = {name: o.name, src: o.src, lines: o.lines, directed: o.directed, osm: o.osm, apex: o.apex, apexGuess: o.apexGuess, manual: o.manual, segs: null, made: new Date().toISOString()}; dnBuild();
+      const W = new Map((o.widths || []).map(w => [w[0], w])); for (const s of XR.dn.segs){ const w = W.get(s.nodes[0] + ">" + s.nodes[s.nodes.length - 1]); if (w && !Number.isFinite(s.wmean)){ [, s.wi, s.wh, s.wf, s.wmean, s.wsrc] = w; } } dnAngles(); dnSummary(); XR.dnLive = XR.dn; xmap && xmap.req(); if (!XR.river){ XR.dnOpen = true; dnRender(); } }
+    catch(e){ console.warn("restore network", e); XR.dn = null; } finally { XR._dnRestoring = false; } }, 1800);
+}
+
+/* ---- sediment-routing labels: explicit rule settings, an unknown class, raw scores kept ---- */
+ZONE_CAT.push(["unknown", "Unknown (weak or missing evidence)", "#bdbdbd"]);
+XR.zoneOpt = Object.assign({slopeMode: "relative", hiAbs: 2, loAbs: .2, prior: true, unknownMargin: .5}, (() => { try { return JSON.parse(localStorage.getItem("efl.zoneopt")) || {}; } catch(_){ return {}; } })());
+/* rule settings, the circularity warning and the raw scores, in the sediment tab */
+{ const _rmz = renderModules4; renderModules4 = function(){ _rmz(); try { const R = XR.river, el = $("xSedStats"); if (!R || !el || !R.reaches || !R.reaches.some(r => r.zone) || el.querySelector(".x13z")) return; const ZO = XR.zoneOpt, unk = R.reaches.filter(r => r.zone === "unknown").reduce((a, r) => a + r.L, 0);
+    el.insertAdjacentHTML("afterbegin", `<div class="card x13z"><p class="warn"><b>These are hypotheses, not measurements.</b> Zones come from rules (slope classes, confinement, channel pattern, power change, dams, delta${ZO.prior !== false ? ", an upstream prior" : ""}). Testing “alternation” with these labels alone tests the rules: compare them with independent evidence (repeat surveys, dated deposits, sediment flux) before drawing conclusions.</p>
+      <p class="note">Rule ${esc(R.zoneRule ? R.zoneRule.version : "")}: slope classes by ${esc(R.zoneRule ? R.zoneRule.slopeClasses : "")}. Unknown: ${km(unk)} (${nf(100*unk/R.L, 0)} %) where the top two zones are within ${ZO.unknownMargin} points or no indicator is available.</p>
+      <div class="pgrid"><label>Slope classes<select id="zoMode"><option value="relative"${ZO.slopeMode !== "absolute" ? " selected" : ""}>Within this river (terciles)</option><option value="absolute"${ZO.slopeMode === "absolute" ? " selected" : ""}>Absolute thresholds (same for every river)</option></select></label><label>Steep ≥ (m/km)<input type="number" id="zoHi" step="0.1" value="${ZO.hiAbs}"></label><label>Gentle ≤ (m/km)<input type="number" id="zoLo" step="0.05" value="${ZO.loAbs}"></label><label>Unknown if margin <<input type="number" id="zoUm" step="0.25" value="${ZO.unknownMargin}"></label><label class="chk"><input type="checkbox" id="zoPr"${ZO.prior !== false ? " checked" : ""}> Upstream prior (first 20 % favours source)</label></div>
+      <div class="btns"><button class="sm" id="zoApply">Re-classify</button><button class="sm" id="zoCsv">⬇ Raw scores and predictors (CSV)</button></div></div>`);
+    const go = () => { ZO.slopeMode = $("zoMode").value; ZO.hiAbs = +$("zoHi").value; ZO.loAbs = +$("zoLo").value; ZO.unknownMargin = +$("zoUm").value; ZO.prior = $("zoPr").checked; try { localStorage.setItem("efl.zoneopt", JSON.stringify(ZO)); } catch(_){} classifyZones(R); renderX(); };
+    $("zoApply").onclick = go;
+    $("zoCsv").onclick = () => save(R.name.replace(/\W+/g, "_") + "_zone_scores.csv", xcsv(R.reaches.map(r => ({reach: r.i + 1, km_from: r.k0, km_to: r.k1, zone: r.zone, evidence: r.zoneConf, margin: r.zoneMargin, score_source: r.zoneScores && r.zoneScores.source, score_transfer: r.zoneScores && r.zoneScores.transfer, score_storage: r.zoneScores && r.zoneScores.storage, ...(r.zonePredictors || {}), why: r.zoneWhy, rule: R.zoneRule && R.zoneRule.version, slope_classes: R.zoneRule && R.zoneRule.slopeClasses}))));
+  } catch(e){ console.warn(e); } }; }
+
+/* self-tests for the statistics added after the technical review */
+{ const st0 = runSelfTest; runSelfTest = async function(){ const T = await st0();
+    const K = kruskal([[2.9, 3.0, 2.5, 2.6, 3.2], [3.8, 2.7, 4.0, 2.4], [2.8, 3.4, 3.7, 2.2, 2.0]]);
+    T.push({name: "Kruskal–Wallis H, Hollander & Wolfe example (SciPy: 0.7714)", got: K.H, exp: .7714, tol: .002, unit: "", pass: Math.abs(K.H - .7714) < .002, err: Math.abs(K.H - .7714), kind: "abs"});
+    T.push({name: "Kruskal–Wallis p (SciPy: 0.6800)", got: K.p, exp: .68, tol: .002, unit: "", pass: Math.abs(K.p - .68) < .002, err: Math.abs(K.p - .68), kind: "abs"});
+    // labels unrelated to the data: an honest cross-validated accuracy must sit near chance
+    let s = 7; const rnd = () => (s = (s*16807) % 2147483647)/2147483647, L = []; for (let i = 0; i < 80; i++) L.push({id: "t" + i, group: i % 2 ? "A" : "B", m: {a: rnd(), b: rnd(), c: rnd(), d: 5}});
+    const h = statsHTML(L, {met: [["a", "a"], ["b", "b"], ["c", "c"], ["d", "d"]], st: {m: "a", g1: "A", g2: "B", feats: ["a", "b", "c", "d"]}, px: "st"}), acc = +((h.match(/validated accuracy[^:]*: <b>([0-9]+)/) || [])[1]);
+    T.push({name: "Classifier on random labels: cross-validated accuracy near chance (no leakage)", got: acc, exp: 50, tol: null, unit: "%", pass: acc >= 30 && acc <= 68, err: Math.abs(acc - 50), kind: "30–68 %"});
+    T.push({name: "Constant feature left out of the classifier", got: /no variation/.test(h) ? 1 : 0, exp: 1, pass: /no variation/.test(h), err: 0, unit: "", kind: "flag"});
+    return T; }; window.__selfTest = runSelfTest; }
 
 window.__labAPI = {linkInfo, makeFigure, labChanged, pixelFeatures, seafloorChannels, analyzeBranches, isBathymetry, depthProxy, buildFindings: (...a) => buildFindings(...a), renderSlide: (...a) => renderSlide(...a), enhanceToStudio, atlasEnhance, geometry, sendToStudio, autoArt, runAuto, autoWater, autoChrome, waterModel, label, edtTo, notMask, thin, nbCount, transferModel, waterProb, refineProb, ensureLab, connectToMain, tapAt, setTool, runWater, analyzeChannel, analyzeNetwork, analyzeLakes, analyzePattern, analyzeCover, analyzeTerrain, runHydro, analyzeChange, finishShape, setMode, fitView, showTab, rebuildOverlay};
 })();

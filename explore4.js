@@ -12,7 +12,7 @@ function qOf(arr){ const v = arr.filter(Number.isFinite).sort((a, b) => a - b); 
 function resultSet(R, k0 = 0, k1 = R.L){
   const sid = studyId(R, k0, k1), whole = !(k0 > 0 || k1 < R.L), pr = R.prof, out = [], osm = /^(relation|way)\//.test(R.osm) ? "OpenStreetMap (ODbL)" : R.osm.startsWith("file:") ? "uploaded GeoJSON" : "hand-drawn line";
   const rs = (R.reaches || []).filter(r => r.k1 > k0 + 1e-9 && r.k0 < k1 - 1e-9); rs.forEach(r => { if (r.meanK == null) curvatureStats(R, r); geomExtras(R, r); });
-  const ex = whole ? null : reachStats(R, k0, k1, -1), dem = pr ? (pr.user ? "uploaded elevations" : `AWS Terrain Tiles z${pr.z}`) : null;
+  const ex = whole ? null : reachStats(R, k0, k1, -1), dem = pr ? demLabel(pr) : null;
   const add = (metric, label, value, unit, o = {}) => out.push({id: `${sid}#${metric}`, study: sid, metric, label, value: Number.isFinite(value) ? value : (typeof value === "string" ? value : null), unit, kind: o.kind || "measured", geometry: o.geom || {type: "chainage", k0, k1}, samples: o.samples || null, source: (Number.isFinite(value) || typeof value === "string") ? (o.source || osm) : (o.source || null), resolution: o.res || null, method: o.method || "", params: o.params || null, version: METHOD_VERSION, qc: o.qc || (Number.isFinite(value) || typeof value === "string" ? "ok" : "missing"), hint: o.hint || "", tab: o.tab || ""});
   const L = k1 - k0, a = pointAtKm(R, k0), b = pointAtKm(R, k1);
   add("length", "Channel length", L, "km", {method: "geodesic (haversine) length of the centreline", tab: "reaches"});
@@ -92,7 +92,7 @@ function interpret(R, k0 = 0, k1 = R.L){
   { const pr = R.prof; if (!pr) finding("Knickpoints", {status: "unknown", needs: [M.knickpoints]});
     else { const kn = pr.knick.filter(q => q.km >= k0 && q.km <= k1);
       const items = kn.map(q => { const dam = R.dams.find(d => Math.abs(d.km - q.km) < Math.max(2, 3*pr.step)), tr = R.tribs.find(t => !t.distributary && Math.abs(t.km - q.km) < Math.max(2, 3*pr.step));
-        return {km: q.km, z: q.z, why: dam ? `coincides with ${dam.name ? esc(dam.name) : "a mapped dam/weir"} (km ${nf(dam.km)}): most likely anthropogenic` : tr ? `near the ${esc(tr.name)} confluence: a confluence step or sediment input is possible` : "no dam or confluence nearby: lithological contact, a retreating knickpoint or a DEM artefact — check imagery and geology"}; });
+        return {km: q.km, z: q.z, conf: q.confidence, why: (q.confidence ? `[${q.confidence}] ` : "") + (dam ? `coincides with ${dam.name ? esc(dam.name) : "a mapped dam/weir"} (km ${nf(dam.km)}): most likely anthropogenic` : tr ? `near the ${esc(tr.name)} confluence: a confluence step or sediment input is possible` : "no dam or confluence nearby: lithological contact, a retreating knickpoint or a DEM artefact — check imagery and geology")}; });
       finding("Knickpoints", {status: "ok", observation: kn.length ? `${kn.length} abrupt steepening${kn.length > 1 ? "s" : ""} in the profile.` : "No abrupt steepening detected at the current sensitivity.", measurement: kn.length ? kn.slice(0, 6).map(q => `km ${nf(q.km)} (${nf(q.z)} m)`).join(", ") + (kn.length > 6 ? "…" : "") : `Threshold ${pr.params.kRatio}× surrounding slope, ${pr.params.kDrop} m drop.`,
         interpretation: kn.length ? "Each candidate is listed with the most likely explanation from nearby features; none is confirmed." : "The profile lacks prominent steps at this resolution.", items, evidence: ["knickpoints", "dams", "tributaries"], caveat: `Detection depends on the ${nf(pr.res)} m terrain and the parameters; short steps can be missed.` }); } }
   // catchment maturity
@@ -130,7 +130,7 @@ function renderInterp(){
 
 /* ---------- 3. persistent storage (IndexedDB): analogues + request cache ---------- */
 let idbP = null;
-function idb(){ if (idbP) return idbP; idbP = new Promise((ok, no) => { try { const rq = indexedDB.open("earthform-lens", 2); rq.onupgradeneeded = () => { const d = rq.result; if (!d.objectStoreNames.contains("analogues")) d.createObjectStore("analogues", {keyPath: "id"}); if (!d.objectStoreNames.contains("cache")) d.createObjectStore("cache"); }; rq.onsuccess = () => ok(rq.result); rq.onerror = () => no(rq.error); } catch(e){ no(e); } }); return idbP; }
+function idb(){ if (idbP) return idbP; idbP = new Promise((ok, no) => { try { const rq = indexedDB.open("earthform-lens", 3); rq.onupgradeneeded = () => { const d = rq.result; if (!d.objectStoreNames.contains("netlib")) d.createObjectStore("netlib", {keyPath: "id"}); if (!d.objectStoreNames.contains("analogues")) d.createObjectStore("analogues", {keyPath: "id"}); if (!d.objectStoreNames.contains("cache")) d.createObjectStore("cache"); }; rq.onsuccess = () => ok(rq.result); rq.onerror = () => no(rq.error); } catch(e){ no(e); } }); return idbP; }
 async function idbTx(store, mode, fn){ const d = await idb(); return new Promise((ok, no) => { const t = d.transaction(store, mode), s = t.objectStore(store), r = fn(s); t.oncomplete = () => ok(r && r.result); t.onerror = () => no(t.error); }); }
 const idbGet = (st, k) => idbTx(st, "readonly", s => s.get(k)), idbPut = (st, v, k) => idbTx(st, "readwrite", s => k === undefined ? s.put(v) : s.put(v, k)), idbAll = st => idbTx(st, "readonly", s => s.getAll()), idbDel = (st, k) => idbTx(st, "readwrite", s => s.delete(k));
 // cache Overpass answers for a week (versioned key); a repeat visit to a river is then instant
@@ -247,7 +247,7 @@ function planMap(Rs, x, y, w, h, o){ // vector map of one or more rivers in a sh
 }
 async function buildFigure(){
   const R = XR.river; if (!R || !R.prof) throw new Error("load a river with its elevation profile first"); const s = selRange(), k0 = s.k0, k1 = s.k1, pr = R.prof, kind = XR.fig.kind, cap = [], W = 1000;
-  const prov = `Centreline: ${/^(relation|way)/.test(R.osm) ? "OpenStreetMap contributors (ODbL), " + R.osm : R.osm}. Elevation: ${pr.user ? "uploaded" : `AWS Terrain Tiles z${pr.z} (≈${nf(pr.res)} m)`}, sampled every ${nf(pr.params.stepKm*1000)} m, smoothing ${nf(pr.params.smoothKm, 2)} km, conditioning ${pr.params.cond}. Generated ${new Date().toISOString().slice(0, 10)} with Earthform Lens (${METHOD_VERSION}).`;
+  const prov = `Centreline: ${/^(relation|way)/.test(R.osm) ? "OpenStreetMap contributors (ODbL), " + R.osm : R.osm}. Elevation: ${demLabel(pr, true)}, sampled every ${nf(pr.params.stepKm*1000)} m, smoothing ${nf(pr.params.smoothKm, 2)} km, conditioning ${pr.params.cond}. Generated ${new Date().toISOString().slice(0, 10)} with Earthform Lens (${METHOD_VERSION}).`;
   const i0 = Math.round(k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(k1/pr.step)), dd = pr.d.slice(i0, i1 + 1);
   if (kind === "panel4"){ let img = null, imgNote = ""; try { const c = await captureView(); img = c.canvas.toDataURL("image/jpeg", .85); imgNote = `${EX.base[XR.base].n}, ${c.mpp.toPrecision(3)} m/px at capture`; } catch(e){ imgNote = "imagery could not be embedded (" + e.message + ")"; }
     const H = 910, pw = 480, ph = 360;
@@ -346,7 +346,7 @@ async function showSelfTest(){
 }
 
 /* ---------- panel hooks ---------- */
-function renderModules4(){ try { if (XR.tab === "interp") renderInterp(); } catch(e){ console.error(e); } try { const fe = $("x4-figures"); if (XR.tab === "figures" && fe && (!$("x4Fout") || fe.dataset.r !== XR.river.osm)) renderFigures(); } catch(e){ console.error(e); }
+function renderModules4(){ try { if (XR.tab === "interp") renderInterp(); } catch(e){ console.error(e); } try { if (XR.tab === "width") renderWidthTab(); } catch(e){ console.error(e); } try { const fe = $("x4-figures"); if (XR.tab === "figures" && fe && (!$("x4Fout") || fe.dataset.r !== XR.river.osm)) renderFigures(); } catch(e){ console.error(e); }
   const d = $("x4-data"); if (d && !d.dataset.on){ d.dataset.on = 1; d.innerHTML = `<h4>Validation</h4><div class="btns"><button class="sm" id="x4SelfGo">Run synthetic self-test</button><button class="sm" id="x4Cache">Clear cached map data</button></div><div id="x4Self"></div>`; $("x4SelfGo").onclick = showSelfTest; $("x4Cache").onclick = clearCache; } }
 
 /** analysis presets: one action instead of visiting each module */
