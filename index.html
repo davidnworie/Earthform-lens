@@ -422,7 +422,7 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px
 #cvWrap .cvmain{position:relative}.cvz{right:12px;top:12px;transform:none;z-index:8}.cvz button{background:rgba(255,255,255,.95);color:#111;border-color:#ccd}
 .x7layp{position:absolute;right:56px;top:50%;transform:translateY(-50%);z-index:7;width:220px;max-height:80%;overflow:auto;padding:10px 12px;border-radius:12px;background:rgba(12,16,20,.9);color:#fff;font-size:13px}
 .x7layp .chk{display:flex;gap:8px;align-items:center;padding:4px 0}.x7lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.xmapbox.x7clean .xfloat,.xmapbox.x7clean .xmapctl,.xmapbox.x7clean .xsteps{display:none!important}
+.xmapbox.x7clean .xmapctl,.xmapbox.x7clean .xsteps{display:none!important}.xmapbox,#xNetBox,#rvBox{scroll-margin-top:140px}
 .x7eb{position:absolute;top:4px;right:4px;z-index:3;width:28px;height:28px;border-radius:8px;border:1px solid var(--line,#334);background:var(--card,rgba(20,24,30,.85));color:var(--ink,#fff);font-size:13px;padding:0;opacity:.75;cursor:pointer}
 .x7eb:hover{opacity:1}
 .x7tebar{position:absolute;left:8px;right:56px;bottom:26px;z-index:7;padding:8px 10px;border-radius:12px;background:rgba(12,16,20,.9);color:#fff;display:flex;flex-direction:column;gap:6px;max-height:60%;overflow:auto}
@@ -10793,7 +10793,8 @@ async function autoWidth(R, tok, force, bg){
 /* ---------- 3. map controls: zoom, rotate, layers, declutter ---------- */
 const LAY_KEY = "efl.lay";
 XR.lay = Object.assign({imagery: true, side: true, tribs: true, labels: true, reaches: true, dams: true, pos: true, legend: true, scale: true, controls: true, rotGesture: true}, (() => { try { return JSON.parse(localStorage.getItem(LAY_KEY)) || {}; } catch(_){ return {}; } })());
-const LAYDEF = [["imagery", "Satellite / base map"], ["side", "Side channels"], ["tribs", "Tributaries"], ["labels", "Names and labels"], ["reaches", "Reach boundaries"], ["dams", "Dams and weirs"], ["pos", "Position marker"], ["legend", "Colour legend"], ["scale", "Scale bar"], ["controls", "Search and map menus"], ["rotGesture", "Two-finger rotation"]];
+XR.lay.controls = true; XR.lay.imagery = XR.lay.imagery !== false;
+const LAYDEF = [["imagery", "Satellite / base map"], ["side", "Side channels"], ["tribs", "Tributaries"], ["labels", "Names and labels"], ["reaches", "Reach boundaries"], ["dams", "Dams and weirs"], ["pos", "Position marker"], ["legend", "Colour legend"], ["scale", "Scale bar"], ["controls", "Map menus (base map, overlay, colour by)"], ["rotGesture", "Two-finger rotation"]];
 function drawNorth(ctx, x, y, rot){ ctx.save(); ctx.translate(x, y); ctx.fillStyle = "rgba(255,255,255,.92)"; ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill(); ctx.rotate(rot || 0); ctx.fillStyle = "#d62728"; ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(6, 3); ctx.lineTo(0, 0); ctx.lineTo(-6, 3); ctx.closePath(); ctx.fill(); ctx.fillStyle = "#333"; ctx.beginPath(); ctx.moveTo(0, 13); ctx.lineTo(6, 3); ctx.lineTo(0, 0); ctx.lineTo(-6, 3); ctx.closePath(); ctx.fill(); ctx.fillStyle = "#111"; ctx.font = "700 9px Inter, sans-serif"; ctx.textAlign = "center"; ctx.fillText("N", 0, -15 + 0); ctx.restore(); }
 function laySave(){ try { localStorage.setItem(LAY_KEY, JSON.stringify(XR.lay)); } catch(_){} }
 function mapZoom(dz){ if (!xmap) return; xmap.z = clamp(xmap.z + dz, 2, 19); xmap.req(); }
@@ -10802,12 +10803,12 @@ function mapCtlSync(){ const c = $("x7Compass"); if (c) c.style.transform = `rot
 function initMapCtl(){
   const box = document.querySelector(".xmapbox"); if (!box || $("x7Ctl")) return;
   const d = document.createElement("div"); d.id = "x7Ctl"; d.className = "x7ctl";
-  d.innerHTML = `<button id="x7Zi" title="Zoom in" aria-label="Zoom in">＋</button><button id="x7Zo" title="Zoom out" aria-label="Zoom out">－</button><button id="x7Rl" title="Rotate left 15°" aria-label="Rotate left">⟲</button><button id="x7Rr" title="Rotate right 15°" aria-label="Rotate right">⟳</button><button id="x7N" title="North up (reset rotation)" aria-label="North up"><span id="x7Compass" class="x7compass"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10 1l4 9h-8z" fill="#ff4d4f"/><path d="M10 19l4-9h-8z" fill="#cfd6dd"/></svg></span></button><button id="x7Lay" title="Layers and map options (base map, overlay, colour by)" aria-label="Layers and map options">☰</button><button id="x7Exp" title="Export this map (PNG / PDF)" aria-label="Export map">⬇</button>`;
+  d.innerHTML = `<button id="x7Find" title="Search for a river" aria-label="Search for a river">🔍</button><button id="x7Zi" title="Zoom in" aria-label="Zoom in">＋</button><button id="x7Zo" title="Zoom out" aria-label="Zoom out">－</button><button id="x7Rl" title="Rotate left 15°" aria-label="Rotate left">⟲</button><button id="x7Rr" title="Rotate right 15°" aria-label="Rotate right">⟳</button><button id="x7N" title="North up (reset rotation)" aria-label="North up"><span id="x7Compass" class="x7compass"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10 1l4 9h-8z" fill="#ff4d4f"/><path d="M10 19l4-9h-8z" fill="#cfd6dd"/></svg></span></button><button id="x7Lay" title="Layers and map options (base map, overlay, colour by)" aria-label="Layers and map options">☰</button><button id="x7Exp" title="Export this map (PNG / PDF)" aria-label="Export map">⬇</button>`;
   box.appendChild(d);
   const p = document.createElement("div"); p.id = "x7LayP"; p.className = "x7layp glass"; p.style.display = "none"; p.innerHTML = `<div id="x7LayBody"></div><div id="x7MapSel" class="x7mapsel"></div>`; box.appendChild(p);
   const place = () => { const ctl = document.querySelector(".xmapctl"), slot = $("x7MapSel"); if (!ctl || !slot) return; const narrow = innerWidth <= 760; if (narrow && ctl.parentElement !== slot) slot.appendChild(ctl); else if (!narrow && ctl.parentElement === slot) box.appendChild(ctl); slot.style.display = narrow ? "" : "none"; };
   place(); addEventListener("resize", place);
-  $("x7Zi").onclick = () => mapZoom(1); $("x7Zo").onclick = () => mapZoom(-1); $("x7Rl").onclick = () => mapRotate(-Math.PI/12); $("x7Rr").onclick = () => mapRotate(Math.PI/12); $("x7N").onclick = () => mapRotate(null);
+  $("x7Find").onclick = () => { const q = $("xQ"); if (!q) return; XR.lay.controls = true; laySave(); mapCtlSync(); const mb = document.querySelector(".xmapbox"); if (mb) mb.scrollIntoView({behavior: "smooth", block: "start"}); setTimeout(() => q.focus(), 350); }; $("x7Zi").onclick = () => mapZoom(1); $("x7Zo").onclick = () => mapZoom(-1); $("x7Rl").onclick = () => mapRotate(-Math.PI/12); $("x7Rr").onclick = () => mapRotate(Math.PI/12); $("x7N").onclick = () => mapRotate(null);
   $("x7Lay").onclick = () => { const v = p.style.display === "none"; p.style.display = v ? "" : "none"; if (v) renderLayP(); };
   $("x7Exp").onclick = () => exportMapDialog();
   mapCtlSync();
@@ -10816,7 +10817,7 @@ function renderLayP(){ const p = $("x7LayBody"); if (!p) return;
   p.innerHTML = `<div class="x7lh"><b>Layers & map options</b><button class="sm" id="x7LayX">✕</button></div>${LAYDEF.map(([k, t]) => `<label class="chk"><input type="checkbox" data-lay="${k}"${XR.lay[k] !== false ? " checked" : ""}> ${t}</label>`).join("")}<div class="btns"><button class="sm" id="x7LayMin">Minimal</button><button class="sm" id="x7LayAll">Show all</button></div><p class="note">Hidden layers are also left out of map exports.</p>`;
   p.querySelectorAll("[data-lay]").forEach(c => c.onchange = () => { XR.lay[c.dataset.lay] = c.checked; laySave(); mapCtlSync(); xmap && xmap.req(); });
   $("x7LayX").onclick = () => { $("x7LayP").style.display = "none"; };
-  $("x7LayMin").onclick = () => { Object.assign(XR.lay, {side: false, tribs: false, labels: false, reaches: false, dams: false, controls: false}); laySave(); renderLayP(); mapCtlSync(); xmap.req(); };
+  $("x7LayMin").onclick = () => { Object.assign(XR.lay, {side: false, tribs: false, labels: false, reaches: false, dams: false}); laySave(); renderLayP(); mapCtlSync(); xmap.req(); };
   $("x7LayAll").onclick = () => { LAYDEF.forEach(([k]) => XR.lay[k] = true); laySave(); renderLayP(); mapCtlSync(); xmap.req(); };
 }
 
