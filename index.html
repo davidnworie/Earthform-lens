@@ -72,7 +72,7 @@ canvas.rose{width:100%;max-width:260px;aspect-ratio:1;height:auto;display:block;
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
 .warn{color:#ffc56b;font-size:12.5px}
 .swatch{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:middle;margin-right:6px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:400;padding:16px}
 .modal.on{display:flex}
 .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;max-width:420px;width:100%}
 textarea{width:100%;height:180px;background:var(--p2);color:var(--text);border:1px solid var(--line);border-radius:8px;font:11px "JetBrains Mono",monospace}
@@ -413,6 +413,35 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px
 .scroll{border-radius:12px;border:1px solid var(--line)}
 @media (max-width:720px){.xtabs{top:94px}.xwrap{padding:8px 8px 30px}.xmapbox{height:58vh;border-radius:18px}.xfloat{top:8px;left:8px;right:8px}.xsearch button{padding:9px 12px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* v7: map controls, layers, exports, trace editor, data sources */
+.x7ctl{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:6}
+.x7ctl button{width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(12,16,20,.78);color:#fff;font-size:17px;line-height:1;padding:0;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3);backdrop-filter:blur(6px)}
+.x7ctl button:active{transform:scale(.94)}
+.x7compass{display:inline-grid;place-items:center;transition:transform .15s}
+#cvWrap .cvmain{position:relative}.cvz{right:12px;top:12px;transform:none;z-index:8}.cvz button{background:rgba(255,255,255,.95);color:#111;border-color:#ccd}
+.x7layp{position:absolute;right:56px;top:50%;transform:translateY(-50%);z-index:7;width:220px;max-height:80%;overflow:auto;padding:10px 12px;border-radius:12px;background:rgba(12,16,20,.9);color:#fff;font-size:13px}
+.x7layp .chk{display:flex;gap:8px;align-items:center;padding:4px 0}.x7lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.xmapbox.x7clean .xfloat,.xmapbox.x7clean .xmapctl,.xmapbox.x7clean .xsteps{display:none!important}
+.x7eb{position:absolute;top:4px;right:4px;z-index:3;width:28px;height:28px;border-radius:8px;border:1px solid var(--line,#334);background:var(--card,rgba(20,24,30,.85));color:var(--ink,#fff);font-size:13px;padding:0;opacity:.75;cursor:pointer}
+.x7eb:hover{opacity:1}
+.x7tebar{position:absolute;left:8px;right:56px;bottom:26px;z-index:7;padding:8px 10px;border-radius:12px;background:rgba(12,16,20,.9);color:#fff;display:flex;flex-direction:column;gap:6px;max-height:60%;overflow:auto}
+.x7teh{display:flex;justify-content:space-between;gap:8px;font-size:13px}.x7teh span{opacity:.75}
+.x7terow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.x7terow .note{flex:1;color:#ddd}
+.x7opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;margin:6px 0;border:1px solid var(--line,#334);border-radius:10px;cursor:pointer}
+.x7opt.on{border-color:var(--acc,#4cc3ff);background:rgba(76,195,255,.07)}.x7opt input{margin-top:3px}
+.x7opt b{display:block;font-size:13.5px}.x7opt small{display:block;font-size:12px;opacity:.85;margin-top:2px}.x7opt .pro{color:#5fbf77}.x7opt .con{color:#d9822b}
+.x7rec{font-size:10.5px;font-weight:700;background:#2e7d32;color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.x7why{margin-top:2px}.x7alt{margin-top:10px}
+#modalBox{max-height:calc(100vh - 32px);overflow:auto;-webkit-overflow-scrolling:touch}#modalBox:has(.x7opt){max-width:560px}#modalBox:has(.fcprev){max-width:960px}.fcprev{margin:10px 0;border:1px solid var(--line);border-radius:8px;background:#fff;max-height:55vh;overflow:auto}.fcprev .note{color:#555;padding:8px}#modal .fl input[type=text]{padding:8px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:inherit}#modal .chips{display:flex;flex-wrap:wrap;gap:6px}
+#modal .fl{display:flex;flex-direction:column;gap:4px;margin:8px 0;font-size:13px}#modal .fl select{padding:8px;border-radius:8px}
+.x7mapsel .xmapctl{position:static!important;display:flex;flex-direction:column;align-items:stretch;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)}.x7mapsel .xmapctl select,.x7mapsel .xmapctl button{width:100%}
+@media (max-width:760px){#x7Rl,#x7Rr{display:none}.x7layp{display:flex;flex-direction:column}.x7layp #x7MapSel{order:-1;margin-bottom:8px}.x7mapsel .xmapctl{margin-top:0;padding-top:0;border-top:0}.x7ctl{top:auto;bottom:34px;transform:none;right:8px}.x7ctl button{width:36px;height:36px;font-size:16px}.x7layp{top:8px;bottom:8px;right:52px;transform:none;max-height:none;width:auto;left:8px}.x7tebar{right:52px;bottom:12px}
+.xtools{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.xtools::-webkit-scrollbar{display:none}.xtools>*{flex:0 0 auto}}
+.x8diff{background:rgba(255,138,76,.22);color:#ffb38a;font-weight:600}.x8ok{color:#5fbf77}
+.x8t td small{display:block;font-size:11px;opacity:.8}.x8t .x8d.big{color:#ff9a6a;opacity:1}.x8t .x8r{opacity:.6}.x8k{display:block;font-size:10.5px;opacity:.6}
+.x8row{display:flex;gap:8px}.x8row input{flex:1;min-width:0;padding:9px 10px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:inherit;font-size:15px}
+.x8plan{display:flex;flex-wrap:wrap;gap:8px}.x8plan svg{border:1px solid var(--line);border-radius:6px}.x8plan .note{flex-basis:100%}
 </style>
 </head>
 <body>
@@ -7919,7 +7948,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const km = v => !Number.isFinite(v) ? "–" : v >= 100 ? v.toFixed(0) + " km" : v >= 10 ? v.toFixed(1) + " km" : v >= 1 ? v.toFixed(2) + " km" : (v*1000).toFixed(0) + " m";
 const nf = (v, d = 0) => !Number.isFinite(v) ? "–" : v.toLocaleString("en", {maximumFractionDigits: d, minimumFractionDigits: d});
 /* ---------- loading stepper ---------- */
-const XSTEPS = [["find", "Find the river"], ["course", "Trace source → mouth"], ["tribs", "Tributaries & dams"], ["elev", "Elevation profile"], ["facts", "River facts"]];
+const XSTEPS = [["find", "Find the river"], ["course", "Trace source → mouth"], ["tribs", "Tributaries & dams"], ["elev", "Elevation profile"], ["facts", "River facts"], ["width", "Channel width"]];
 let XST = null, xstT = 0;
 function stepReset(){ XST = Object.fromEntries(XSTEPS.map(([k]) => [k, {s: "wait", note: ""}])); clearTimeout(xstT); renderSteps(); }
 function stepStart(k, note){ if (!XST) stepReset(); XST[k] = {s: "run", note: note || ""}; renderSteps(); }
@@ -8007,7 +8036,7 @@ async function demTile(z, x, y){
 /* ---------- the map ---------- */
 let xmap = null;
 function makeMap(cv){
-  const M = {lat: 47, lon: 15, z: 5, cv, ctx: cv.getContext("2d"), pending: false, ptrs: new Map(), dpr: Math.min(2, window.devicePixelRatio || 1)};
+  const M = {lat: 47, lon: 15, z: 5, rot: 0, cv, ctx: cv.getContext("2d"), pending: false, ptrs: new Map(), dpr: Math.min(2, window.devicePixelRatio || 1)};
   M.req = () => { if (!M.pending){ M.pending = true; requestAnimationFrame(() => { M.pending = false; M.draw(); }); } };
   M.size = () => { const r = cv.getBoundingClientRect(); const w = Math.max(200, r.width), h = Math.max(200, r.height); if (cv.width !== Math.round(w*M.dpr)){ cv.width = Math.round(w*M.dpr); cv.height = Math.round(h*M.dpr); } return [w, h]; };
   M.toScr = (lat, lon) => { const [w, h] = M.size(), zi = Math.floor(M.z), s = 2**(M.z - zi); return [(lon2x(lon, zi) - lon2x(M.lon, zi))*s + w/2, (lat2y(lat, zi) - lat2y(M.lat, zi))*s + h/2]; };
@@ -8016,7 +8045,7 @@ function makeMap(cv){
   M.fit = (pts, pad = 30) => { if (!pts || !pts.length) return; let a = 90, b = -90, c = 180, d = -180; for (const p of pts){ a = Math.min(a, p[0]); b = Math.max(b, p[0]); c = Math.min(c, p[1]); d = Math.max(d, p[1]); }
     const [w, h] = M.size(); M.lat = (a + b)/2; M.lon = (c + d)/2; for (let z = 18; z >= 1; z -= .25){ const dx = lon2x(d, z) - lon2x(c, z), dy = lat2y(a, z) - lat2y(b, z); if (dx < w - 2*pad && dy < h - 2*pad){ M.z = z; break; } } M.req(); };
   M.drawTiles = (ctx, w, h, lat, lon, z, base) => {
-    const zi = Math.max(0, Math.min(base.max, Math.round(z))), s = 2**(z - zi), cx = lon2x(lon, zi), cy = lat2y(lat, zi), n = 2**zi;
+    const zi = Math.max(0, Math.min(base.max, Math.round(z + (M.tileBias || 0)))), s = 2**(z - zi), cx = lon2x(lon, zi), cy = lat2y(lat, zi), n = 2**zi;
     const x0 = Math.floor((cx - w/2/s)/256), x1 = Math.floor((cx + w/2/s)/256), y0 = Math.max(0, Math.floor((cy - h/2/s)/256)), y1 = Math.min(n - 1, Math.floor((cy + h/2/s)/256));
     let missing = 0;
     for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++){
@@ -8029,26 +8058,37 @@ function makeMap(cv){
   };
   M.draw = () => {
     const [w, h] = M.size(), ctx = M.ctx; ctx.setTransform(M.dpr, 0, 0, M.dpr, 0, 0); ctx.fillStyle = "#0d1418"; ctx.fillRect(0, 0, w, h);
-    const miss = EX.base[XR.base].plain ? (ctx.fillStyle = "#ffffff", ctx.fillRect(0, 0, w, h), 0) : M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, EX.base[XR.base]); { const tl = document.getElementById("xTiles"); if (tl){ tl.classList.toggle("on", miss > 0); tl.textContent = miss > 0 ? `Loading imagery… ${miss} tile${miss > 1 ? "s" : ""}` : ""; } }
+    const LY = XR.lay || {}, plainB = EX.base[XR.base].plain || LY.imagery === false, rot = M.rot || 0, Dg = Math.ceil(Math.hypot(w, h));
+    let miss = 0; if (plainB){ ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); } else { ctx.save(); if (rot){ ctx.translate(w/2, h/2); ctx.rotate(rot); ctx.translate(-Dg/2, -Dg/2); miss = M.drawTiles(ctx, Dg, Dg, M.lat, M.lon, M.z, EX.base[XR.base]); } else miss = M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, EX.base[XR.base]); ctx.restore(); }
+    M.miss = miss; { const tl = document.getElementById("xTiles"); if (tl){ tl.classList.toggle("on", miss > 0); tl.textContent = miss > 0 ? `Loading imagery… ${miss} tile${miss > 1 ? "s" : ""}` : ""; } }
+    ctx.save(); if (rot){ ctx.translate(w/2, h/2); ctx.rotate(rot); ctx.translate(-w/2, -h/2); } XR._inRot = true;
     try { drawLayerExtras(ctx, M, w, h); } catch(e){ console.warn(e); }
     drawBasinOnMap(ctx, M, w, h);
     drawRiverLayers(ctx, M, w, h); drawSelOnMap(ctx, M);
     try { drawMapExtras(ctx, M, w, h); } catch(e){ console.warn(e); }
+    try { typeof drawTraceEdit === "function" && drawTraceEdit(ctx, M, w, h); } catch(e){ console.warn(e); }
+    XR._inRot = false; ctx.restore();
+    if (XR.river && LY.legend !== false) try { drawMapLegend(ctx, w, h); } catch(e){ console.warn(e); }
+    if (M.exporting) drawNorth(ctx, w - 30, 34, rot);
     ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.font = "11px Space Grotesk, sans-serif"; const at = EX.base[XR.base].attr + (XR.overlay && EX.over[XR.overlay] ? " · " + EX.over[XR.overlay].attr : "") + (XR.swipe && EX.base[XR.swipe.b] ? " | right: " + EX.base[XR.swipe.b].n : "") + " · rivers © OpenStreetMap contributors", tw = ctx.measureText(at).width; ctx.fillRect(w - tw - 10, h - 17, tw + 10, 17); ctx.fillStyle = "#ddd"; ctx.fillText(at, w - tw - 5, h - 5);
     // scale bar
+    if (LY.scale === false && !M.exporting) return;
     const mpp = M.mpp(), target = 100*mpp, p10 = 10**Math.floor(Math.log10(target)), nice = [1, 2, 5].map(k => k*p10).filter(v => v <= target).pop() || p10, bw = nice/mpp;
     ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.fillRect(8, h - 30, bw + 16, 22); ctx.fillStyle = "#fff"; ctx.fillRect(16, h - 14, bw, 3); ctx.font = "11px Space Grotesk, sans-serif"; ctx.fillText(nice >= 1000 ? nice/1000 + " km" : nice + " m", 16, h - 18);
   };
   // interaction: drag to pan, wheel / pinch to zoom, tap to pick
   let down = null, moved = 0, pinch = null;
-  cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); M.ptrs.set(e.pointerId, [e.offsetX, e.offsetY]); if (M.ptrs.size === 1){ down = [e.offsetX, e.offsetY, M.lat, M.lon]; moved = 0; } else if (M.ptrs.size === 2){ const [a, b] = [...M.ptrs.values()]; pinch = {d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: M.z}; } });
+  const fr = (x, y) => { const r = M.rot || 0; if (!r) return [x, y]; const [w, h] = M.size(), dx = x - w/2, dy = y - h/2, c = Math.cos(-r), n = Math.sin(-r); return [w/2 + dx*c - dy*n, h/2 + dx*n + dy*c]; }; M.fr = fr;
+  cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); M.ptrs.set(e.pointerId, [e.offsetX, e.offsetY]); if (M.ptrs.size === 1){ const f = fr(e.offsetX, e.offsetY); down = [f[0], f[1], M.lat, M.lon]; moved = 0; } else if (M.ptrs.size === 2){ const [a, b] = [...M.ptrs.values()]; pinch = {d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: M.z, a: Math.atan2(b[1] - a[1], b[0] - a[0]), rot: M.rot || 0, rotOn: false}; } });
   cv.addEventListener("pointermove", e => { if (!M.ptrs.has(e.pointerId)) return; M.ptrs.set(e.pointerId, [e.offsetX, e.offsetY]);
-    if (M.ptrs.size === 2 && pinch){ const [a, b] = [...M.ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); M.z = clamp(pinch.z + Math.log2(d/pinch.d), 2, 19); moved = 99; M.req(); return; }
-    if (!down) return; const dx = e.offsetX - down[0], dy = e.offsetY - down[1]; moved = Math.max(moved, Math.hypot(dx, dy)); const zi = Math.floor(M.z), s = 2**(M.z - zi);
+    if (M.ptrs.size === 2 && pinch){ const [a, b] = [...M.ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), an = Math.atan2(b[1] - a[1], b[0] - a[0]); M.z = clamp(pinch.z + Math.log2(d/pinch.d), 2, 19);
+      if ((XR.lay || {}).rotGesture !== false){ let da = an - pinch.a; da = Math.atan2(Math.sin(da), Math.cos(da)); if (!pinch.rotOn && Math.abs(da) > .22){ pinch.rotOn = true; pinch.a = an; pinch.rot = M.rot || 0; da = 0; } if (pinch.rotOn){ M.rot = pinch.rot + da; typeof mapCtlSync === "function" && mapCtlSync(); } }
+      moved = 99; M.req(); return; }
+    if (!down) return; const f = fr(e.offsetX, e.offsetY), dx = f[0] - down[0], dy = f[1] - down[1]; moved = Math.max(moved, Math.hypot(dx, dy)); const zi = Math.floor(M.z), s = 2**(M.z - zi);
     M.lon = x2lon(lon2x(down[3], zi) - dx/s, zi); M.lat = clamp(y2lat(lat2y(down[2], zi) - dy/s, zi), -85, 85); M.req(); });
-  const up = e => { const was = M.ptrs.size; M.ptrs.delete(e.pointerId); if (was === 1 && down && moved < 6) mapTap(e.offsetX, e.offsetY); if (M.ptrs.size < 2) pinch = null; if (!M.ptrs.size) down = null; };
+  const up = e => { const was = M.ptrs.size; M.ptrs.delete(e.pointerId); if (was === 1 && down && moved < 6) mapTap(...fr(e.offsetX, e.offsetY)); if (M.ptrs.size < 2) pinch = null; if (!M.ptrs.size) down = null; };
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-  cv.addEventListener("wheel", e => { e.preventDefault(); const g = M.toGeo(e.offsetX, e.offsetY); M.z = clamp(M.z - e.deltaY*.0025, 2, 19); const s2 = M.toScr(g[0], g[1]); const zi = Math.floor(M.z), s = 2**(M.z - zi); M.lon = x2lon(lon2x(M.lon, zi) + (s2[0] - e.offsetX)/s, zi); M.lat = y2lat(lat2y(M.lat, zi) + (s2[1] - e.offsetY)/s, zi); M.req(); }, {passive: false});
+  cv.addEventListener("wheel", e => { e.preventDefault(); const [ox, oy] = fr(e.offsetX, e.offsetY), g = M.toGeo(ox, oy); M.z = clamp(M.z - e.deltaY*.0025, 2, 19); const s2 = M.toScr(g[0], g[1]); const zi = Math.floor(M.z), s = 2**(M.z - zi); M.lon = x2lon(lon2x(M.lon, zi) + (s2[0] - ox)/s, zi); M.lat = y2lat(lat2y(M.lat, zi) + (s2[1] - oy)/s, zi); M.req(); }, {passive: false});
   new ResizeObserver(() => M.req()).observe(cv);
   return M;
 }
@@ -8075,9 +8115,10 @@ function drawRiverLayers(ctx, M, w, h){
     XR.legend = {key: XR.metric, met, lo, hi, n: vals.length, inv: XR.metric === "elevation", clipLo: vals.some(v => v < lo - 1e-9), clipHi: vals.some(v => v > hi + 1e-9)};
     // side channels
     ctx.lineCap = "round"; ctx.lineJoin = "round";
-    for (const s of R.side){ ctx.strokeStyle = "rgba(120,220,255,.85)"; ctx.lineWidth = 1.6; ctx.beginPath(); s.forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); }
+    const LY = XR.lay || {};
+    if (LY.side !== false) for (const s of R.side){ ctx.strokeStyle = "rgba(120,220,255,.85)"; ctx.lineWidth = 1.6; ctx.beginPath(); s.forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); }
     // tributary mouths (last stretch)
-    for (const t of R.tribs){ if (!t.stub) continue; ctx.strokeStyle = t === XR.sel ? "#fff" : "rgba(90,200,255,.9)"; ctx.lineWidth = t === XR.sel ? 3 : 1.8; ctx.beginPath(); t.stub.forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); }
+    if (LY.tribs !== false) for (const t of R.tribs){ if (!t.stub) continue; ctx.strokeStyle = t === XR.sel ? "#fff" : "rgba(90,200,255,.9)"; ctx.lineWidth = t === XR.sel ? 3 : 1.8; ctx.beginPath(); t.stub.forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); }
     // main stem coloured by metric
     ctx.lineWidth = 6; ctx.strokeStyle = "rgba(0,0,0,.45)"; ctx.beginPath(); for (let i = 0; i < R.main.length; i += step){ const q = M.toScr(R.main[i][0], R.main[i][1]); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); } ctx.stroke();
     ctx.lineWidth = 3.4;
@@ -8086,21 +8127,20 @@ function drawRiverLayers(ctx, M, w, h){
       const v = met.get(R, i), u = Number.isFinite(v) ? ((met.log ? Math.log10(Math.max(v, 1e-3)) : v) - lo)/((hi - lo) || 1) : NaN;
       ctx.strokeStyle = Number.isFinite(u) ? xcol(XR.metric === "elevation" ? 1 - u : u) : "#ff8a4c"; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
     // reach boundaries
-    if (R.reaches) for (const r of R.reaches){ const p = pointAtKm(R, r.k0), q = M.toScr(p[0], p[1]); ctx.fillStyle = "#fff"; ctx.fillRect(q[0] - 1.5, q[1] - 5, 3, 10); }
+    if (R.reaches && LY.reaches !== false) for (const r of R.reaches){ const p = pointAtKm(R, r.k0), q = M.toScr(p[0], p[1]); ctx.fillStyle = "#fff"; ctx.fillRect(q[0] - 1.5, q[1] - 5, 3, 10); }
     // dams
-    for (const d of R.dams){ const q = M.toScr(d.lat, d.lon); ctx.fillStyle = "#111"; ctx.fillRect(q[0] - 5, q[1] - 5, 10, 10); ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 2; ctx.strokeRect(q[0] - 5, q[1] - 5, 10, 10); }
+    if (LY.dams !== false) for (const d of R.dams){ const q = M.toScr(d.lat, d.lon); ctx.fillStyle = "#111"; ctx.fillRect(q[0] - 5, q[1] - 5, 10, 10); ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 2; ctx.strokeRect(q[0] - 5, q[1] - 5, 10, 10); }
     // confluence dots, labelled when zoomed or large
     ctx.font = "600 11px Space Grotesk, sans-serif";
     const big = R.tribs.filter(t => t.area).sort((a, b) => b.area - a.area).slice(0, 12);
-    for (const t of R.tribs){ const q = M.toScr(t.lat, t.lon); if (q[0] < -20 || q[0] > w + 20 || q[1] < -20 || q[1] > h + 20) continue; const r = t === XR.sel ? 7 : 4.5;
+    if (LY.tribs !== false) for (const t of R.tribs){ const q = M.toScr(t.lat, t.lon); if (q[0] < -20 || q[0] > w + 20 || q[1] < -20 || q[1] > h + 20) continue; const r = t === XR.sel ? 7 : 4.5;
       ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fillStyle = t.side === "left" ? "#5ad1ff" : "#b4f05a"; ctx.fill(); ctx.strokeStyle = "#000"; ctx.lineWidth = 1.4; ctx.stroke();
-      if (t === XR.sel || big.includes(t) || M.z > 9){ const tx = t.name, tw = ctx.measureText(tx).width; ctx.fillStyle = "rgba(0,0,0,.7)"; ctx.fillRect(q[0] + 8, q[1] - 9, tw + 8, 16); ctx.fillStyle = "#fff"; ctx.fillText(tx, q[0] + 12, q[1] + 3); } }
+      if (LY.labels !== false && (t === XR.sel || big.includes(t) || M.z > 9)){ const tx = t.name, tw = ctx.measureText(tx).width; ctx.fillStyle = "rgba(0,0,0,.7)"; ctx.fillRect(q[0] + 8, q[1] - 9, tw + 8, 16); ctx.fillStyle = "#fff"; ctx.fillText(tx, q[0] + 12, q[1] + 3); } }
     // source / mouth
     const s0 = M.toScr(R.main[0][0], R.main[0][1]), s1 = M.toScr(R.main[R.main.length-1][0], R.main[R.main.length-1][1]);
-    for (const [q, t, c] of [[s0, "Source", "#4cd17a"], [s1, "Mouth", "#ff4d5e"]]){ ctx.beginPath(); ctx.arc(q[0], q[1], 7, 0, 7); ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = "rgba(0,0,0,.7)"; const tw = ctx.measureText(t).width; ctx.fillRect(q[0] + 9, q[1] - 9, tw + 8, 16); ctx.fillStyle = "#fff"; ctx.fillText(t, q[0] + 13, q[1] + 3); }
+    for (const [q, t, c] of [[s0, "Source", "#4cd17a"], [s1, "Mouth", "#ff4d5e"]]){ ctx.beginPath(); ctx.arc(q[0], q[1], 7, 0, 7); ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke(); if (LY.labels === false) continue; ctx.fillStyle = "rgba(0,0,0,.7)"; const tw = ctx.measureText(t).width; ctx.fillRect(q[0] + 9, q[1] - 9, tw + 8, 16); ctx.fillStyle = "#fff"; ctx.fillText(t, q[0] + 13, q[1] + 3); }
     // position marker
-    const p = pointAtKm(R, XR.pos), q = M.toScr(p[0], p[1]); ctx.beginPath(); ctx.arc(q[0], q[1], 9, 0, 7); ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.stroke(); ctx.beginPath(); ctx.arc(q[0], q[1], 3, 0, 7); ctx.fillStyle = "#fff"; ctx.fill();
-    try { drawMapLegend(ctx, w, h); } catch(e){ console.warn(e); }
+    const p = pointAtKm(R, XR.pos), q = M.toScr(p[0], p[1]); if (LY.pos !== false){ ctx.beginPath(); ctx.arc(q[0], q[1], 9, 0, 7); ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.stroke(); ctx.beginPath(); ctx.arc(q[0], q[1], 3, 0, 7); ctx.fillStyle = "#fff"; ctx.fill(); }
   }
   // a line being drawn by hand
   if (XR.draw && XR.draw.pts.length){ ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 3; ctx.setLineDash([8, 5]); ctx.beginPath(); XR.draw.pts.forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); ctx.setLineDash([]);
@@ -8243,15 +8283,18 @@ async function loadRiverInner(sel0, tok){
   const ways = memberWays.map(w => ({id: w.id, role: roles.has(w.id) ? roles.get(w.id) : "", nodes: w.nodes && w.nodes.length === w.geometry.length ? w.nodes : w.geometry.map(g => g.lat.toFixed(7) + "," + g.lon.toFixed(7)), geom: w.geometry.map(g => [g.lat, g.lon])}));
   const A = assembleMain(ways);
   XR.preview = A.pts; xmap.fit(A.pts); xmap.req(); // show the course straight away
+  const name = (relTag && relTag.tags && (relTag.tags["name:en"] || relTag.tags.name)) || sel.name || sel.display_name.split(",")[0];
+  const R = {name, osm: isRel ? "relation/" + sel.osm_id : sel0.osm_type + "/" + sel0.osm_id, wikidata: relTag && relTag.tags && relTag.tags.wikidata, main: A.pts, cum: withCum(A.pts), side: [], tribs: [], dams: [], prof: null, reaches: null, wd: null, nodeIdx: A.nodeIdx};
+  R.L = R.cum[R.cum.length - 1]; R.mainNodes = A.nodes;
+  // speed: read the elevation profile at the same time as the tributary request (it only needs the course)
+  stepStart("elev", km(R.L)); const profP = loadProfile(R, null, true).then(p => { stepDone("elev", `${nf(p.drop)} m fall`); return p; }, e => { console.warn("profile", e); return Promise.reject(e); }); profP.catch(() => {});
   // tributaries, distributaries and dams: a second, separate request so a slow answer can't lose the river itself
   xstatus(`Course loaded (${memberWays.length} pieces). Finding tributaries and dams…`, "busy"); stepDone("course", `${memberWays.length} pieces`); stepStart("tribs");
   let around = {elements: []};
   try { around = await overpass(aroundQuery(isRel ? `${relSet(sel.osm_id)}way(r.rr)->.w;` : `way(id:${memberWays.map(w => w.id).join(",")})->.w;`)); } catch(e){ console.warn(e); xstatus("Tributaries could not be loaded (" + esc(e.message) + "); showing the river alone.", "err"); }
   chk(); const tribWays = (around.elements || []).filter(e => e.type === "way" && e.geometry && e.nodes && !roles.has(e.id) && !(e.tags && /dam|weir/.test(e.tags.waterway || "")));
   const aroundEls = around.elements || [];
-  const name = (relTag && relTag.tags && (relTag.tags["name:en"] || relTag.tags.name)) || sel.name || sel.display_name.split(",")[0];
-  const R = {name, osm: isRel ? "relation/" + sel.osm_id : sel0.osm_type + "/" + sel0.osm_id, wikidata: relTag && relTag.tags && relTag.tags.wikidata, main: A.pts, cum: withCum(A.pts), side: [], tribs: [], dams: [], prof: null, reaches: null, wd: null, nodeIdx: A.nodeIdx};
-  R.L = R.cum[R.cum.length - 1]; R.mainNodes = A.nodes; R.region = sel0.desc || sel0.where || (sel0.display_name || "").split(",").slice(1).map(x => x.trim()).filter(Boolean).slice(-2).join(", ");
+  R.region = sel0.desc || sel0.where || (sel0.display_name || "").split(",").slice(1).map(x => x.trim()).filter(Boolean).slice(-2).join(", ");
   // full directed graph of every mapped channel (main, side streams, ways touching the river) for delta analysis
   { const out = new Map(), coord = new Map(), add = (ns, gs) => { for (let i = 0; i < ns.length; i++) coord.set(ns[i], gs[i]); for (let i = 0; i + 1 < ns.length; i++){ if (ns[i] === ns[i+1]) continue; const o = out.get(ns[i]) || out.set(ns[i], []).get(ns[i]); if (!o.includes(ns[i+1])) o.push(ns[i+1]); } };
     for (const w of ways) add(w.nodes, w.geom);
@@ -8285,15 +8328,16 @@ async function loadRiverInner(sel0, tok){
   R.dams.sort((a, b) => a.km - b.km);
   XR.river = R; XR.preview = null; XR.pos = 0; XR.sel = null; XR.reachKm = 0;
   buildReaches(R); xmap.fit(R.main); renderX();
-  xstatus(`<b>${esc(R.name)}</b>: ${km(R.L)} traced from source to mouth, ${R.tribs.length} tributaries, ${R.dams.length} dams and weirs. Now reading elevation…`, "busy");
-  stepDone("tribs", `${R.tribs.length} tributaries, ${R.dams.length} dams`); stepStart("elev", km(R.L));
-  await loadProfile(R); chk(); buildReaches(R); renderX(); stepDone("elev", `${nf(R.prof.drop)} m fall`); stepStart("facts");
+  stepDone("tribs", `${R.tribs.length} tributaries, ${R.dams.length} dams`);
+  if (!R.prof) xstatus(`<b>${esc(R.name)}</b>: ${km(R.L)} traced from source to mouth, ${R.tribs.length} tributaries, ${R.dams.length} dams and weirs. Finishing the elevation profile…`, "busy");
+  await profP; chk(); buildReaches(R); renderX(); stepStart("facts");
   actSet("wd", "Loading river facts from Wikidata…"); loadWikidata(R).finally(() => actEnd("wd")).then(() => { stepDone("facts", R.wd ? "Wikidata" : "none listed"); renderX(); }).catch(e => { console.warn("wikidata", e); XST && (XST.facts = {s: "skip", note: "unavailable"}); stepDone("facts", "unavailable"); });
   xstatus(`<b>${esc(R.name)}</b>: ${km(R.L)} from source to mouth, falling ${nf(R.prof ? R.prof.drop : NaN)} m. Tap the map or a chart to move along it.`, "ok");
+  if (typeof autoWidth === "function") autoWidth(R, tok);
 }
 
 /* ---------- 2. long profile ---------- */
-async function loadProfile(R, zoom){
+async function loadProfile(R, zoom, quiet){
   const PP = XR.pp || {}, z = zoom || (R.L > 1500 ? 9 : R.L > 400 ? 10 : R.L > 80 ? 11 : 12), step = PP.step > 0 ? Math.max(.02, PP.step, R.L/20000) : Math.max(.1, R.L/2500), n = Math.floor(R.L/step) + 1;
   const d = new Float64Array(n), zr = new Float64Array(n); let done = 0;
   const pts = []; for (let i = 0; i < n; i++){ d[i] = Math.min(R.L, i*step); pts.push(pointAtKm(R, d[i])); }
@@ -8302,12 +8346,7 @@ async function loadProfile(R, zoom){
   if (R.zUser){ // elevations supplied with the line (GeoJSON third coordinate): interpolate, no download
     let j = 0; for (let i = 0; i < n; i++){ while (j + 1 < R.cum.length - 1 && R.cum[j + 1] < d[i]) j++; const t = (d[i] - R.cum[j])/Math.max(1e-9, R.cum[j + 1] - R.cum[j]); zr[i] = R.zUser[j] + (R.zUser[j + 1] - R.zUser[j])*clamp(t, 0, 1); }
   } else {
-  const keys = [...need.keys()];
-  for (let b = 0; b < keys.length; b += 8){
-    await Promise.all(keys.slice(b, b + 8).map(async k => { const [tx, ty] = k.split("/").map(Number), e = await demTile(z, tx, ty); done++;
-      for (const [i, X, Y] of need.get(k)){ if (!e){ zr[i] = NaN; failed++; continue; } const px = Math.floor(X - tx*256), py = Math.floor(Y - ty*256); let m = Infinity; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const xx = clamp(px + dx, 0, 255), yy = clamp(py + dy, 0, 255); m = Math.min(m, e[yy*256 + xx]); } zr[i] = m; } }));
-    xstatus(`Reading elevation along the river: ${Math.round(done/keys.length*100)}%`, "busy");
-  }
+  failed = await sampleElev(R, pts, z, need, zr);
   }
   // 1. remove spikes: raw samples far below (DEM voids, water-surface artefacts) or above (bridges, embankments) the local median
   const hw = Math.max(5, Math.round((PP.smoothKm > 0 ? PP.smoothKm : 3)/step)), zs = Float64Array.from(zr), spike = new Uint8Array(n), kS = PP.spikeK ?? 4;
@@ -8623,7 +8662,7 @@ function exportX(kind){
   $("xToFig") && ($("xToFig").onclick = () => sendViewToLab(true));
   $("xFit") && ($("xFit").onclick = () => XR.river && xmap.fit(XR.river.main));
   $("xSrc") && ($("xSrc").onclick = () => flyTo(0, 12)); $("xMouth") && ($("xMouth").onclick = () => flyTo(XR.river.L, 12));
-  $("xReachLen") && ($("xReachLen").onchange = e => { XR.reachKm = Math.max(0, +e.target.value || 0); if (XR.river){ buildReaches(XR.river); renderX(); } });
+  $("xReachLen") && ($("xReachLen").onchange = e => { XR.reachKm = Math.max(0, +e.target.value || 0); if (XR.river){ XR.river.reachKm = 0; buildReaches(XR.river); renderX(); } });
   $("xWidthAll") && ($("xWidthAll").onclick = () => XR.river && runWidth(XR.river.reaches.filter(r => !r.width)));
   $("xRefine") && ($("xRefine").onclick = async () => { const R = XR.river; if (!R || !R.prof) return; try { xstatus("Reading finer elevation…", "busy"); await loadProfile(R, Math.min(13, R.prof.z + 2)); buildReaches(R); renderX(); xstatus("Profile refined.", "ok"); } catch(e){ xstatus(esc(e.message), "err"); } });
   $("xDraw") && ($("xDraw").onclick = () => { XR.draw = XR.draw ? null : {pts: []}; renderDrawBar(); xmap.req(); });
@@ -8919,7 +8958,7 @@ function rangeStats(R, k0, k1){
     basin: R.basin && !(k0 > 0 || k1 < R.L) ? R.basin : null, net: R.net2 && !(k0 > 0 || k1 < R.L) ? R.net2 : null, wd: R.wd};
 }
 const CMPC = ["#ff8a4c", "#43d9e8", "#c9a7ff", "#7ee081"];
-function addCompare(){ const s = selRange(); if (!s) return; if (XR.cmp.length >= 4) XR.cmp.shift(); XR.cmp.push({R: s.R, k0: s.k0, k1: s.k1, label: s.whole ? s.R.name : `${s.R.name} km ${nf(s.k0)}–${nf(s.k1)}`}); toast(`Added to comparison (${XR.cmp.length} of up to 4)`); renderX(); }
+function addCompare(){ const s = selRange(); if (!s) return; if (XR.cmp.length >= CMPMAX) XR.cmp.shift(); XR.cmp.push({R: s.R, k0: s.k0, k1: s.k1, label: s.whole ? s.R.name : `${s.R.name} km ${nf(s.k0)}–${nf(s.k1)}`}); toast(`Added to comparison (${XR.cmp.length} of up to 4)`); renderX(); }
 
 /* ---------- rendering of the module panels ---------- */
 const kv = rows => `<div class="xstats">${rows.filter(Boolean).map(([a, b]) => `<div${String(b).replace(/<[^>]+>/g, "").length > 22 ? ' class="long"' : ""}><span>${a}</span><b>${b}</b></div>`).join("")}</div>`;
@@ -8973,7 +9012,7 @@ function moduleCharts(){
 }
 function renderCompare(){
   const el = $("xCmpBody"); if (!el) return; const C = XR.cmp;
-  if (!C.length){ el.innerHTML = `<p class="note">Select a river or a stretch (Start here / End here), then press <b>＋ Compare</b>. Load another river and add it too, or add a GeoJSON study area: up to four side by side.</p>`; return; }
+  if (!C.length){ el.innerHTML = `<p class="note">Select a river or a stretch (Start here / End here), then press <b>＋ Compare</b>. Load another river and add it too, or add a GeoJSON study area: up to eight side by side.</p>`; return; }
   const S = C.map(c => rangeStats(c.R, c.k0, c.k1));
   const rows = [["Length", s => km(s.L)], ["Fall", s => nf(s.fall) + " m"], ["Mean gradient", s => nf(s.grad, 3) + " m/km"], ["Concavity (Langbein)", s => nf(s.conc, 2)], ["Sinuosity", s => nf(s.sin, 2)], ["Mean curvature", s => Number.isFinite(s.meanK) ? nf(s.meanK, 3) + " rad/km" : "–"], ["Bends", s => String(s.bends)], ["Meander wavelength", s => km(s.lambda)], ["Median width", s => Number.isFinite(s.width) ? nf(s.width) + " m" : "–"], ["Floodplain width", s => Number.isFinite(s.fp) ? nf(s.fp) + " m" : "–"], ["Median ksn", s => Number.isFinite(s.ksn) ? tfmt(s.ksn) : "–"], ["Tributaries joining", s => String(s.tribs)], ["Dams & weirs", s => String(s.dams)],
     ["Catchment area", s => s.basin ? nf(s.basin.area) + " km²" : (s.whole && s.wd && s.wd.area ? nf(s.wd.area) + " km² (Wikidata)" : "–")], ["Hypsometric integral", s => s.basin ? nf(s.basin.HI, 2) : "–"], ["Strahler order", s => s.net ? String(s.net.maxO) : "–"], ["Drainage density", s => s.net ? nf(s.net.Dd, 3) + " km/km²" : "–"], ["Bifurcation ratio", s => s.net ? nf(s.net.Rb, 2) : "–"],
@@ -9077,7 +9116,7 @@ async function importGeoJSON(file, toCompare){
     R.L = R.cum[R.cum.length - 1]; if (!(R.L > 0)) throw new Error("the main line has zero length");
     xstatus(`${esc(file.name)}: ${km(R.L)} main channel, ${U.features} features. ${z ? "Using the elevations in the file…" : "No elevations in the file: reading terrain…"}`, "busy");
     buildReaches(R); await loadProfile(R); buildReaches(R);
-    if (toCompare){ if (XR.cmp.length >= 4) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: nm}); if (!XR.river){ XR.river = R; XR.pos = 0; xmap.fit(R.main); } showXTab("compare"); }
+    if (toCompare){ if (XR.cmp.length >= CMPMAX) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: nm}); if (!XR.river){ XR.river = R; XR.pos = 0; xmap.fit(R.main); } showXTab("compare"); }
     else { if (XR.river){ XR.stack = XR.stack || []; XR.stack.push(XR.river); } XR.river = R; XR.pos = 0; XR.range = null; xmap.fit(R.main); renderX(); }
     xstatus(`<b>${esc(nm)}</b> loaded from ${esc(file.name)}: ${km(R.L)}, fall ${nf(R.prof.drop)} m${z ? " (elevations from the file)" : " (terrain tiles)"}.${toCompare ? " Added to the comparison." : ""}`, "ok");
   } catch(e){ console.error(e); xstatus("GeoJSON: " + esc(e.message), "err"); }
@@ -9348,7 +9387,7 @@ function drawCx(){
 /* ---------- method & provenance notes ---------- */
 function provHTML(k, R){
   const pr = R.prof, rows = {
-    profile: [["Data", pr ? (pr.user ? "Elevations supplied in your GeoJSON" : `AWS Terrain Tiles (Mapzen terrarium; SRTM / GMTED / ETOPO and others), zoom ${pr.z}, ≈${nf(pr.res)} m cells`) : "–"], ["Centreline", R.osm.startsWith("relation") || R.osm.startsWith("way") ? "OpenStreetMap waterway ways (ODbL), longest directed path source → mouth" : R.osm], ["Sampling", pr ? `every ${nf(pr.params.stepKm*1000)} m; minimum of 3×3 cells; median smoothing over ${nf(pr.params.smoothKm, 2)} km; spikes removed: ${pr.spikes ? pr.spikes.length : 0}; conditioning: ${pr.params.cond}${pr.cond && pr.params.cond !== "none" ? ` (max lowering ${nf(pr.cond.max, 1)} m, ${km(pr.cond.km)} changed > 2 m)` : ""}; raw samples kept and exported` : "–"], ["Gradient", pr ? `elevation difference over a ${nf(pr.params.slopeKm, 2)} km window` : "–"], ["Knickpoints", pr ? `local slope > ${pr.params.kRatio}× surrounding slope and > ${pr.params.kDrop} m drop` : "–"], ["Concavity", "Langbein index 2A/(H·L); slope–area θ from S = ks·A^−θ (needs Catchment); ksn with θref = 0.45, A in m²"], ["Quality", "terrain cells of tens to hundreds of metres smooth out short steps; tall bridges, dams and dense forest can bias the surface"]],
+    profile: [["Data", pr ? demLabel(pr, true, true) : "–"], ["Centreline", R.osm.startsWith("relation") || R.osm.startsWith("way") ? "OpenStreetMap waterway ways (ODbL), longest directed path source → mouth" : R.osm], ["Sampling", pr ? `every ${nf(pr.params.stepKm*1000)} m; minimum of 3×3 cells; median smoothing over ${nf(pr.params.smoothKm, 2)} km; spikes removed: ${pr.spikes ? pr.spikes.length : 0}; conditioning: ${pr.params.cond}${pr.cond && pr.params.cond !== "none" ? ` (max lowering ${nf(pr.cond.max, 1)} m, ${km(pr.cond.km)} changed > 2 m)` : ""}; raw samples kept and exported` : "–"], ["Gradient", pr ? `elevation difference over a ${nf(pr.params.slopeKm, 2)} km window` : "–"], ["Knickpoints", pr ? `local slope > ${pr.params.kRatio}× surrounding slope and > ${pr.params.kDrop} m drop` : "–"], ["Concavity", "Langbein index 2A/(H·L); slope–area θ from S = ks·A^−θ (needs Catchment); ksn with θref = 0.45, A in m²"], ["Quality", "terrain cells of tens to hundreds of metres smooth out short steps; tall bridges, dams and dense forest can bias the surface"]],
     reaches: [["Data", "OpenStreetMap water areas (natural=water, waterway=riverbank) rasterised; centreline from OSM"], ["Width", `perpendicular transects every ${XR.trSp ? XR.trSp + " m" : "L/400"}; bank-to-bank distance inside the water areas; you can exclude bad transects on the map`], ["Sinuosity", "channel length ÷ straight distance (reach) and ÷ valley-axis length (axis = centreline smoothed over ~1 wavelength)"], ["Curvature", "turning angle per km on a Gaussian-smoothed centreline; bend radius = 1/peak |curvature|"], ["Wavelength / amplitude", "2 × median half-bend length; amplitude = 2 × median peak offset from the valley axis"], ["Braiding index", "separate water bodies crossed by each transect (OSM water areas)"], ["Quality", "OSM water areas may be missing or outdated; reaches drawn only as lines get no width"]],
     network: [["Data", "AWS Terrain Tiles resampled to ≤2.2 million cells over the basin window"], ["Method", "priority-flood depression filling (+ε), D8 steepest descent, accumulated area; channels = cells above the area threshold; Strahler ordering on that network; Rb and Rl as geometric means"], ["Junction angles", "between tributary flow (last ~2 km of the OSM tributary) and the main-stem flow direction"], ["Pattern", "interpretation from junction-angle statistics; not a mapped classification"], ["Quality", "dynamic delineation, not precomputed HydroBASINS; flat deltas, karst and endorheic areas route poorly"]],
     catchment: [["Data", "terrain as for the network; land cover ESA WorldCover 2021 (10 m, sampled at ≤600 points from map tiles); lithology Macrostrat map units at a few dozen points"], ["Method", "upstream contributing area of the outlet cell; perimeter from the raster boundary × π/4; circularity 4πA/P²; elongation 2√(A/π)/basin length; hypsometry from cell elevations"], ["Type", "dynamically delineated here (not a precomputed boundary)"], ["Quality", "basins touching the terrain window are flagged; coarse cells for very large basins"]],
@@ -9479,7 +9518,7 @@ function exportMapPNG(){ try { $("xMap").toBlob(b => save(((XR.river && XR.river
 function resultsJSON(R){
   const pr = R.prof, B = R.basin, strip = b => b && {label: b.label, outlet: b.outletLL, area_km2: b.area, perimeter_km: b.perim, relief_m: b.relief, zmin_m: b.zmin, zmax_m: b.zmax, zmean_m: b.zmean, hypsometric_integral: b.HI, hypsometric_curve: b.curve, elongation_ratio: b.Re, circularity_ratio: b.Rc, relief_ratio: b.reliefRatio, mean_slope_deg: b.slopeMean, edge_clipped: b.clipped, cell_m: b.cellKm*1000, terrain_zoom: b.g.z, network: b.net && {threshold_km2: b.net.At, max_order: b.net.maxO, counts: b.net.counts, lengths_km: b.net.lens, Rb: b.net.Rb, Rl: b.net.Rl, drainage_density: b.net.Dd, stream_frequency: b.net.freq}, land_cover: b.lc, lithology: b.lith, made: b.made};
   return {app: "Earthform Lens", exported: new Date().toISOString(), river: {name: R.name, region: R.region, source: R.osm, wikidata: R.wikidata, length_km: R.L, source_point: R.main[0], mouth_point: R.main[R.main.length - 1]},
-    provenance: {centreline: "OpenStreetMap contributors (ODbL)", elevation: pr && pr.user ? "uploaded GeoJSON" : "AWS Terrain Tiles (terrarium)", facts: "Wikidata (CC0)", imagery: "Esri World Imagery / Wayback, EOX Sentinel-2 cloudless", water_history: "JRC Global Surface Water", land_cover: "ESA WorldCover 2021", lithology: "Macrostrat"},
+    provenance: {centreline: "OpenStreetMap contributors (ODbL)", elevation: pr ? demLabel(pr) : null, facts: "Wikidata (CC0)", imagery: "Esri World Imagery / Wayback, EOX Sentinel-2 cloudless", water_history: "JRC Global Surface Water", land_cover: "ESA WorldCover 2021", lithology: "Macrostrat"},
     longitudinal_profile: pr && {params: pr.params, terrain_zoom: pr.z, cell_m: pr.res, source_elevation_m: pr.zSrc, mouth_elevation_m: pr.zMouth, fall_m: pr.drop, mean_gradient_m_per_km: pr.grad, langbein_concavity: pr.conc, slope_area_theta: pr.theta, ks: pr.ks, knickpoints: pr.knick, samples: pr.d.map((d, i) => [d, pr.zr[i], pr.zc[i], pr.s[i], pr.A ? pr.A[i] : null])},
     reaches: (R.reaches || []).map(r => ({i: r.i + 1, km: [r.k0, r.k1], length_km: r.L, sinuosity: r.sin, valley_sinuosity: r.valleySin, bends: r.bends, wavelength_km: r.lambda, amplitude_km: r.amp, bend_radius_km: r.Rc, mean_curvature_rad_km: r.meanK, azimuth_deg: r.az, gradient_m_km: r.slope, fall_m: r.drop, multichannel_index: r.multi, width_m: r.width && {median: r.width.med, p10: r.width.p10, p90: r.width.p90, cover: r.width.cover, braiding_index: r.width.braid, transects: (r.width.tr || []).length, excluded: r.width.edited || 0}, drainage_area_km2: r.A, ksn: r.ksn, floodplain_width_m: r.fpW, valley_width_m: r.valleyW, confinement_fp_over_channel: r.confine, confinement_class: r.confClass, sediment_zone: r.zone, zone_reasons: r.zoneWhy})),
     tributaries: R.tribs.map(t => ({name: t.name, km: t.km, bank: t.side, distributary: t.distributary, junction_angle_deg: t.jAng, length_km: t.len, basin_km2: t.area, discharge_m3s: t.q, osm_relation: t.rel, wikidata: t.wikidata, point: [t.lat, t.lon]})), drainage_pattern: drainagePattern(R),
@@ -9588,7 +9627,7 @@ function qOf(arr){ const v = arr.filter(Number.isFinite).sort((a, b) => a - b); 
 function resultSet(R, k0 = 0, k1 = R.L){
   const sid = studyId(R, k0, k1), whole = !(k0 > 0 || k1 < R.L), pr = R.prof, out = [], osm = /^(relation|way)\//.test(R.osm) ? "OpenStreetMap (ODbL)" : R.osm.startsWith("file:") ? "uploaded GeoJSON" : "hand-drawn line";
   const rs = (R.reaches || []).filter(r => r.k1 > k0 + 1e-9 && r.k0 < k1 - 1e-9); rs.forEach(r => { if (r.meanK == null) curvatureStats(R, r); geomExtras(R, r); });
-  const ex = whole ? null : reachStats(R, k0, k1, -1), dem = pr ? (pr.user ? "uploaded elevations" : `AWS Terrain Tiles z${pr.z}`) : null;
+  const ex = whole ? null : reachStats(R, k0, k1, -1), dem = pr ? demLabel(pr) : null;
   const add = (metric, label, value, unit, o = {}) => out.push({id: `${sid}#${metric}`, study: sid, metric, label, value: Number.isFinite(value) ? value : (typeof value === "string" ? value : null), unit, kind: o.kind || "measured", geometry: o.geom || {type: "chainage", k0, k1}, samples: o.samples || null, source: (Number.isFinite(value) || typeof value === "string") ? (o.source || osm) : (o.source || null), resolution: o.res || null, method: o.method || "", params: o.params || null, version: METHOD_VERSION, qc: o.qc || (Number.isFinite(value) || typeof value === "string" ? "ok" : "missing"), hint: o.hint || "", tab: o.tab || ""});
   const L = k1 - k0, a = pointAtKm(R, k0), b = pointAtKm(R, k1);
   add("length", "Channel length", L, "km", {method: "geodesic (haversine) length of the centreline", tab: "reaches"});
@@ -9823,7 +9862,7 @@ function planMap(Rs, x, y, w, h, o){ // vector map of one or more rivers in a sh
 }
 async function buildFigure(){
   const R = XR.river; if (!R || !R.prof) throw new Error("load a river with its elevation profile first"); const s = selRange(), k0 = s.k0, k1 = s.k1, pr = R.prof, kind = XR.fig.kind, cap = [], W = 1000;
-  const prov = `Centreline: ${/^(relation|way)/.test(R.osm) ? "OpenStreetMap contributors (ODbL), " + R.osm : R.osm}. Elevation: ${pr.user ? "uploaded" : `AWS Terrain Tiles z${pr.z} (≈${nf(pr.res)} m)`}, sampled every ${nf(pr.params.stepKm*1000)} m, smoothing ${nf(pr.params.smoothKm, 2)} km, conditioning ${pr.params.cond}. Generated ${new Date().toISOString().slice(0, 10)} with Earthform Lens (${METHOD_VERSION}).`;
+  const prov = `Centreline: ${/^(relation|way)/.test(R.osm) ? "OpenStreetMap contributors (ODbL), " + R.osm : R.osm}. Elevation: ${demLabel(pr, true)}, sampled every ${nf(pr.params.stepKm*1000)} m, smoothing ${nf(pr.params.smoothKm, 2)} km, conditioning ${pr.params.cond}. Generated ${new Date().toISOString().slice(0, 10)} with Earthform Lens (${METHOD_VERSION}).`;
   const i0 = Math.round(k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(k1/pr.step)), dd = pr.d.slice(i0, i1 + 1);
   if (kind === "panel4"){ let img = null, imgNote = ""; try { const c = await captureView(); img = c.canvas.toDataURL("image/jpeg", .85); imgNote = `${EX.base[XR.base].n}, ${c.mpp.toPrecision(3)} m/px at capture`; } catch(e){ imgNote = "imagery could not be embedded (" + e.message + ")"; }
     const H = 910, pw = 480, ph = 360;
@@ -9948,7 +9987,7 @@ const ZONE_CAT = [["source", "Potential source", "#e8452c"], ["transfer", "Trans
 
 /* ---------- legend on the main map for the “Colour by” setting ---------- */
 function drawMapLegend(ctx, w, h){
-  const L = XR.legend; if (!L || L.key === "plain") return; if (XR.tab === "width" && L.key !== "width_st" && (XR.river && stationsIn(XR.river, 0, XR.river.L, true).length)) return; const met = L.met, plainBg = EX.base[XR.base].plain;
+  const L = XR.legend; if (XR._inRot || !L || L.key === "plain") return; if (XR.tab === "width" && L.key !== "width_st" && (XR.river && stationsIn(XR.river, 0, XR.river.L, true).length)) return; const met = L.met, plainBg = EX.base[XR.base].plain;
   const ctl = document.querySelector(".xmapctl"), ch = ctl ? ctl.offsetHeight : 40, bw = Math.min(200, w*.5), x = 10, y = h - ch - 26 - 60, pad = 8;
   ctx.save(); ctx.font = "600 11px Inter, sans-serif";
   const bg = plainBg ? "rgba(255,255,255,.92)" : "rgba(10,14,19,.78)", fg = plainBg ? "#111" : "#fff", mu = plainBg ? "#555" : "rgba(255,255,255,.7)";
@@ -9972,7 +10011,7 @@ function roundRect(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); c
 const CV = {metric: "elevation", layout: "single", attrs: ["elevation", "sinuosity", "zone"],
   show: {tribs: true, side: true, dams: true, knick: true, reaches: true, values: false, transects: false, km: true, labels: true, zones: false, sel: true, sinu: false, valley: false, knickx: false},
   ui: {legend: true, scale: true, north: true, key: true, inset: true}, pos: {legend: [.97, .97], scale: [.02, .97], north: [.97, .03], key: [.015, .12], inset: [.97, .18]}, arrange: false,
-  plots: ["elevation", "sinuosity"], plotMode: "stack", prof: {raw: true, spikes: true, smooth: false, cond: true, unc: true}, vb: null, geo: null};
+  plots: ["elevation", "sinuosity"], plotMode: "stack", prof: {alt: true, raw: true, spikes: true, smooth: false, cond: true, unc: true}, vb: null, geo: null};
 const cvCol = u => vir(u);
 const CVM = () => Object.entries(XMETRIC).filter(([k]) => k !== "plain");
 function cvMetricOpts(sel){ return CVM().map(([k, m]) => `<option value="${k}"${k === sel ? " selected" : ""}>${m.n}</option>`).join(""); }
@@ -10018,7 +10057,7 @@ const PLOTS = () => [["elevation", "Elevation profile"], ...CVM().filter(([k]) =
 function cvPBar(){
   const b = $("cvPBar"); b.innerHTML = `<span class="cvl">Plots</span>${PLOTS().map(([k, n]) => `<button class="chip${CV.plots.includes(k) ? " on" : ""}" data-pl="${k}">${n}</button>`).join("")}
     <select id="cvPM"><option value="stack"${CV.plotMode === "stack" ? " selected" : ""}>Stacked (one panel each)</option><option value="overlay"${CV.plotMode === "overlay" ? " selected" : ""}>Overlaid (each scaled 0–1)</option></select>
-    ${CV.plots.includes("elevation") ? `<span class="cvl">Profile</span>${[["raw", "Raw samples"], ["spikes", "Removed spikes"], ["smooth", "Smoothed"], ["cond", "Conditioned"], ["unc", "Uncertainty band"]].map(([k, t]) => `<button class="chip${CV.prof[k] ? " on" : ""}" data-pp="${k}">${t}</button>`).join("")}` : ""}`;
+    ${CV.plots.includes("elevation") ? `<span class="cvl">Profile</span>${[["raw", "Raw samples"], ["spikes", "Removed spikes"], ["smooth", "Smoothed"], ["cond", "Conditioned"], ["unc", "Uncertainty band"], ...(XR.river.prof && XR.river.prof.alt ? [["alt", "Second source"]] : [])].map(([k, t]) => `<button class="chip${CV.prof[k] ? " on" : ""}" data-pp="${k}">${t}</button>`).join("")}` : ""}`;
   b.querySelectorAll("[data-pl]").forEach(x => x.onclick = () => { const k = x.dataset.pl; CV.plots = CV.plots.includes(k) ? CV.plots.filter(p => p !== k) : [...CV.plots, k]; cvPBar(); cvPlots(); });
   b.querySelectorAll("[data-pp]").forEach(x => x.onclick = () => { CV.prof[x.dataset.pp] = !CV.prof[x.dataset.pp]; cvPBar(); cvPlots(); });
   $("cvPM").onchange = e => { CV.plotMode = e.target.value; cvPlots(); };
@@ -10046,7 +10085,7 @@ function cvColorFn(V){ return i => { const x = V.v[i]; if (V.metric === "zone") 
 function labeler(){ const boxes = []; return (x, y, w, h) => { for (const b of boxes) if (x < b[0] + b[2] && x + w > b[0] && y < b[1] + b[3] && y + h > b[1]) return false; boxes.push([x, y, w, h]); return true; }; }
 /** one map panel */
 function cvPanel(metric, ox, Wp, H, V){
-  const R = XR.river, G = CV.geo, vb = CV.vb, X = p => (p[0] - vb.cx)/vb.s + Wp/2 + ox, Y = p => (p[1] - vb.cy)/vb.s + H/2, S = CV.show, colOf = cvColorFn(V), place = labeler();
+  const R = XR.river, G = CV.geo, vb = CV.vb, qc = Math.cos(CV.rot || 0), qs = Math.sin(CV.rot || 0), X = p => ((p[0] - vb.cx)*qc - (p[1] - vb.cy)*qs)/vb.s + Wp/2 + ox, Y = p => ((p[0] - vb.cx)*qs + (p[1] - vb.cy)*qc)/vb.s + H/2, S = CV.show, colOf = cvColorFn(V), place = labeler();
   const pl = arr => arr.map(p => X(p).toFixed(1) + "," + Y(p).toFixed(1)).join(" ");
   const txt = (x, y, t, o = {}) => { const fs = o.fs || 10.5, w = t.length*fs*.58 + (o.box ? 8 : 2), h = fs + (o.box ? 6 : 2), bx = o.anchor === "end" ? x - w : x, by = y - fs; if (!place(bx - 2, by - 2, w + 4, h + 4)) return ""; return (o.box ? `<rect x="${bx - 3}" y="${by - 3}" width="${w}" height="${h}" rx="3" fill="#fff" stroke="${o.stroke || "#bbb"}" stroke-width=".6"/>` : "") + `<text x="${x}" y="${y}" font-size="${fs}" fill="${o.fill || "#222"}" font-weight="${o.bold ? 600 : 400}"${o.anchor === "end" ? ' text-anchor="end"' : ""}>${esc(t)}</text>`; };
   let s = `<g clip-path="url(#cvClip${ox})"><rect x="${ox}" width="${Wp}" height="${H}" fill="#ffffff"/>`;
@@ -10100,7 +10139,7 @@ function cvOverlay(W, H, P, Wp){
   const grp = (key, w, h, body, ox, ww) => { const [x, y] = at(key, w, h, ox, ww); items.push(`<g data-drag="${key}" data-ox="${ox || 0}" data-ww="${ww || W}" data-w="${w}" data-h="${h}" transform="translate(${x},${y})" style="cursor:${CV.arrange ? "move" : "default"}">${CV.arrange ? `<rect x="-4" y="-4" width="${w + 8}" height="${h + 8}" rx="8" fill="none" stroke="#2b8cbe" stroke-dasharray="4 3"/>` : ""}${body}</g>`); };
   if (CV.ui.scale){ const t = Wp*.2*vb.s, p = 10**Math.floor(Math.log10(t)), len = [1, 2, 5, 10].map(k => k*p).filter(v => v <= t).pop() || p, px = len/vb.s;
     grp("scale", px + 26, 36, `<rect width="${px + 26}" height="36" rx="6" fill="#fff" fill-opacity=".9"/><rect x="8" y="22" width="${px}" height="5" fill="#111"/><rect x="${8 + px/2}" y="22" width="${px/2}" height="5" fill="#fff" stroke="#111" stroke-width=".8"/><text x="8" y="17" font-size="11" fill="#111">0</text><text x="${8 + px}" y="17" font-size="11" fill="#111" text-anchor="middle">${len >= 1 ? tfmt(len) + " km" : tfmt(len*1000) + " m"}</text>`); }
-  if (CV.ui.north) grp("north", 36, 46, `<circle cx="18" cy="26" r="17" fill="#fff" fill-opacity=".9"/><path d="M18 13l7 18-7-5-7 5z" fill="#111"/><text x="18" y="9" font-size="10" text-anchor="middle" fill="#111">N</text>`);
+  if (CV.ui.north) grp("north", 36, 46, `<circle cx="18" cy="26" r="17" fill="#fff" fill-opacity=".9"/><g transform="rotate(${((CV.rot || 0)*180/Math.PI).toFixed(1)} 18 26)"><path d="M18 13l7 18-7-5-7 5z" fill="#111"/><text x="18" y="9" font-size="10" text-anchor="middle" fill="#111">N</text></g>`);
   if (CV.ui.legend) P.forEach((m, i) => { const L = cvLegendSVG(CV.panelV[i]); grp(P.length > 1 ? "legend" : "legend", L.w, L.h, L.s, i*Wp, Wp); });
   const R = XR.river, hasTr = (R.reaches || []).some(r => r.width && r.width.tr && r.width.tr.length), kn = R.prof ? R.prof.knick : [];
   const keys = [CV.show.tribs && R.tribs.length && ["circle", "#2b8cbe", "Tributary junction"], CV.show.dams && R.dams.length && ["dia", "#111", "Dam / weir"], CV.show.knick && kn.some(k => !k.artefact) && ["tri", "#ff7f0e", "Knickpoint"], CV.show.knick && kn.some(k => k.artefact) && ["trio", "#ff7f0e", "Knickpoint, possible artefact"], CV.show.transects && hasTr && ["line", "#d62728", "Width transect"], CV.show.reaches && R.reaches && R.reaches.length > 1 && ["tick", "#111", "Reach boundary"], CV.show.sinu && ["dash", "#d62728", "Straight line between reach ends"], CV.show.valley && ["dash", "#6a51a3", "Valley axis"], CV.show.knickx && ["band", "#ff7f0e", "Knickpoint: local / context window"], CV.show.sel && XR.range && ["band", "#ffcf33", "Selected stretch"]].filter(Boolean);
@@ -10148,6 +10187,7 @@ function cvPlots(){
     if (CV.prof.unc && pr.unc && !norm){ let up = "", dn = ""; pr.d.forEach((x, i) => { const u = pr.unc[i], z = pr.zc[i]; if (!Number.isFinite(u) || !Number.isFinite(z)) return; up += (up ? "L" : "M") + X(x).toFixed(1) + " " + Y(z + u).toFixed(1); }); for (let i = pr.d.length - 1; i >= 0; i--){ const u = pr.unc[i], z = pr.zc[i]; if (!Number.isFinite(u) || !Number.isFinite(z)) continue; dn += "L" + X(pr.d[i]).toFixed(1) + " " + Y(z - u).toFixed(1); } if (up) g += `<path d="${up}${dn}Z" fill="#1f77b4" fill-opacity=".14" stroke="none"/>`; }
     const path = (arr, c, w, dash) => { let d = ""; pr.d.forEach((x, i) => { const v = arr[i]; if (Number.isFinite(v)) d += (d ? "L" : "M") + X(x).toFixed(1) + " " + Y(v).toFixed(1); }); return `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`; };
     if (CV.prof.raw) g += path(pr.zs || pr.zr, "#9aa5b1", .9);
+    if (pr.alt && pr.alt.z && CV.prof.alt !== false) g += path(pr.alt.z, "#e8890c", 1.3, "5 3");
     if (CV.prof.spikes && pr.spikes && !norm) for (const i of pr.spikes){ const v = pr.zr[i]; if (!Number.isFinite(v)) continue; const yy = v < z0 ? y + h - 2 : v > z1 ? y + 2 : Y(v); g += `<circle cx="${X(pr.d[i])}" cy="${yy}" r="1.8" fill="#e45756"/>${v < z0 || v > z1 ? `<path d="M${X(pr.d[i]) - 3} ${yy + (v < z0 ? -4 : 4)}l3 ${v < z0 ? 4 : -4}l3 ${v < z0 ? -4 : 4}" fill="none" stroke="#e45756" stroke-width=".8"/>` : ""}`; }
     if (CV.prof.smooth && pr.zm) g += path(pr.zm, "#7f7f7f", 1.2, "4 2");
     if (CV.prof.cond){ const V = CV.vals, G = CV.geo, step = Math.max(1, Math.floor(pr.d.length/1200)); if (!norm && V){ for (let i = step; i < pr.d.length; i += step){ const k = pr.d[i], gi = Math.min(G.main.length - 1, Math.round(k/G.st)), c = cvColorFn(V)(gi); g += `<line x1="${X(pr.d[i - step])}" y1="${Y(pr.zc[i - step])}" x2="${X(k)}" y2="${Y(pr.zc[i])}" stroke="${c}" stroke-width="3"/>`; } } else g += path(pr.zc, colFor("elevation"), 2); }
@@ -10155,7 +10195,7 @@ function cvPlots(){
     if (CV.show.dams) for (const dm of R.dams){ const z = pr.zc[Math.min(pr.zc.length - 1, Math.round(dm.km/pr.step))]; g += `<rect x="${X(dm.km) - 4}" y="${Y(z) - 4}" width="8" height="8" fill="#111" transform="rotate(45 ${X(dm.km)} ${Y(z)})"/>`; }
     if (CV.show.tribs) for (const t of R.tribs.filter(t => !t.distributary)){ const z = pr.zc[Math.min(pr.zc.length - 1, Math.round(t.km/pr.step))]; g += `<circle cx="${X(t.km)}" cy="${Y(z)}" r="2.4" fill="${t.side === "left" ? "#2b8cbe" : "#41ab5d"}"/>`; }
     // in-panel legend of the profile lines
-    if (!norm){ const L = [CV.prof.raw && ["#9aa5b1", "raw samples", ""], CV.prof.spikes && pr.spikes && pr.spikes.length && ["#e45756", `removed spikes (${pr.spikes.length})`, "dot"], CV.prof.smooth && ["#7f7f7f", "smoothed", "4 2"], CV.prof.cond && ["#1f77b4", "conditioned (colour = map attribute)", ""], CV.prof.unc && pr.unc && ["#1f77b4", "±1 robust SD of samples about the profile", "band"], CV.show.knickx && ["#ff7f0e", "local slope window / context slope", ""]].filter(Boolean);
+    if (!norm){ const L = [CV.prof.raw && ["#9aa5b1", "raw samples", ""], pr.alt && CV.prof.alt && ["#e8890c", "second source: " + pr.alt.label, "5 3"], CV.prof.spikes && pr.spikes && pr.spikes.length && ["#e45756", `removed spikes (${pr.spikes.length})`, "dot"], CV.prof.smooth && ["#7f7f7f", "smoothed", "4 2"], CV.prof.cond && ["#1f77b4", "conditioned (colour = map attribute)", ""], CV.prof.unc && pr.unc && ["#1f77b4", "±1 robust SD of samples about the profile", "band"], CV.show.knickx && ["#ff7f0e", "local slope window / context slope", ""]].filter(Boolean);
       g += L.map(([c, t, d], i) => `<g transform="translate(${m.l + pw - 230},${y + 10 + i*13})">${d === "dot" ? `<circle cx="7" cy="-3" r="2.2" fill="${c}"/>` : d === "band" ? `<rect x="0" y="-7" width="14" height="8" fill="${c}" fill-opacity=".2"/>` : `<line x1="0" x2="14" y1="-3" y2="-3" stroke="${c}" stroke-width="2"${d ? ` stroke-dasharray="${d}"` : ""}/>`}<text x="19" y="0" font-size="9.5" fill="#333">${t}</text></g>`).join(""); }
     return g; };
   if (CV.plotMode === "overlay"){ const h = ph, y = yTop, leg = [];
@@ -10174,29 +10214,30 @@ function cvPlots(){
       else { const T = v => S2.met.log ? Math.log10(v) : v, lo = Math.min(...f.map(T)), hi = Math.max(...f.map(T)), Y = v => y + h - (T(v) - lo)/((hi - lo) || 1)*(h - 16) - 2;
         for (const t of niceTicks(lo, hi, 2)) s += `<line x1="${m.l}" x2="${m.l + pw}" y1="${Y(S2.met.log ? 10**t : t)}" y2="${Y(S2.met.log ? 10**t : t)}" stroke="#f0f0f0"/><text x="${m.l - 6}" y="${Y(S2.met.log ? 10**t : t) + 3.5}" font-size="9.5" text-anchor="end" fill="#444">${tfmt(S2.met.log ? 10**t : t)}</text>`;
         let d = "", pen = false; S2.x.forEach((x, i) => { const v = S2.y[i]; if (!Number.isFinite(v) || (S2.met.log && v <= 0)){ pen = false; return; } d += (pen ? "L" : "M") + X(x).toFixed(1) + " " + Y(v).toFixed(1); pen = true; }); s += `<path d="${d}" fill="none" stroke="${colFor(k)}" stroke-width="1.8"/>`;
-        if (k === "sinuosity") s += `<line x1="${m.l}" x2="${m.l + pw}" y1="${Y(1.5)}" y2="${Y(1.5)}" stroke="#999" stroke-dasharray="3 3"/><text x="${m.l + pw - 4}" y="${Y(1.5) - 3}" font-size="9" text-anchor="end" fill="#777">1.5 = meandering threshold</text>`; } }
+        if (k === "sinuosity" && 1.5 >= lo && 1.5 <= hi) s += `<line x1="${m.l}" x2="${m.l + pw}" y1="${Y(1.5)}" y2="${Y(1.5)}" stroke="#999" stroke-dasharray="3 3"/><text x="${m.l + pw - 4}" y="${Y(1.5) - 3}" font-size="9" text-anchor="end" fill="#777">1.5 = meandering threshold</text>`; } }
     s += frame(y, h) + cursor(y, h); });
   if (CV.plotMode !== "overlay") s += axisX(yTop - 8);
   s += `<text x="${m.l + pw/2}" y="${H - 3}" font-size="10.5" text-anchor="middle" fill="#222">Distance from source (km)</text>`;
   el.innerHTML = s; el.onclick = e => { const r = el.getBoundingClientRect(), k = clamp((e.clientX - r.left - m.l*(r.width/W))/(pw*(r.width/W)), 0, 1)*R.L; setPos(k); cvDraw(); };
 }
 function cvNote(){ const R = XR.river, n = $("cvNote"), pr = R.prof, sr = selRange(); if (!n) return;
-  n.textContent = `${km(R.L)} traced · whole-river sinuosity ${nf(R.L/Math.max(1e-6, hav(R.main[0], R.main[R.main.length - 1])), 2)}${pr ? ` · fall ${nf(pr.drop)} m · mean gradient ${nf(pr.grad, 3)} m/km · ${pr.spikes ? pr.spikes.length : 0} elevation spikes removed · conditioning: ${pr.params.cond}` : ""}${sr.whole ? "" : ` · selected km ${nf(sr.k0)}–${nf(sr.k1)}`} · centreline © OpenStreetMap contributors${pr && !pr.user ? `; elevation AWS Terrain Tiles z${pr.z}` : ""}. Local equirectangular projection centred on ${CV.geo.lat0.toFixed(2)}°, ${CV.geo.lon0.toFixed(2)}°.`; }
+  n.textContent = `${km(R.L)} traced · whole-river sinuosity ${nf(R.L/Math.max(1e-6, hav(R.main[0], R.main[R.main.length - 1])), 2)}${pr ? ` · fall ${nf(pr.drop)} m · mean gradient ${nf(pr.grad, 3)} m/km · ${pr.spikes ? pr.spikes.length : 0} elevation spikes removed · conditioning: ${pr.params.cond}` : ""}${sr.whole ? "" : ` · selected km ${nf(sr.k0)}–${nf(sr.k1)}`} · centreline © OpenStreetMap contributors${pr && !pr.user ? `; elevation ${demLabel(pr, true)}` : ""}. Local equirectangular projection centred on ${CV.geo.lat0.toFixed(2)}°, ${CV.geo.lon0.toFixed(2)}°.`; }
 function cvWire(){
   const plan = $("cvPlan"), box = plan.parentElement; let drag = null, pinch = null; const pts = new Map();
   const panelOf = cx => { const r = plan.getBoundingClientRect(), Wp = r.width/cvPanels().length; return Math.floor(clamp((cx - r.left)/Wp, 0, cvPanels().length - .001)); };
-  const toKm = (cx, cy) => { const r = plan.getBoundingClientRect(), [W, H] = cvSize(), Wp = W/cvPanels().length, i = panelOf(cx); return [(cx - r.left - i*Wp - Wp/2)*CV.vb.s + CV.vb.cx, (cy - r.top - H/2)*CV.vb.s + CV.vb.cy]; };
+  const toKm = (cx, cy) => { const r = plan.getBoundingClientRect(), [W, H] = cvSize(), Wp = W/cvPanels().length, i = panelOf(cx); return cvUnrot((cx - r.left - i*Wp - Wp/2)*CV.vb.s, (cy - r.top - H/2)*CV.vb.s, CV.vb.cx, CV.vb.cy); };
   box.onwheel = e => { e.preventDefault(); const a = toKm(e.clientX, e.clientY); CV.vb.s *= Math.exp(e.deltaY*.0015); const b = toKm(e.clientX, e.clientY); CV.vb.cx += a[0] - b[0]; CV.vb.cy += a[1] - b[1]; cvDraw(); };
   box.onpointerdown = e => { if (CV.arrange && e.target.closest("[data-drag]")) return; pts.set(e.pointerId, [e.clientX, e.clientY]); box.setPointerCapture(e.pointerId); if (pts.size === 1) drag = {x: e.clientX, y: e.clientY, cx: CV.vb.cx, cy: CV.vb.cy, moved: false}; if (pts.size === 2){ const [p, q] = [...pts.values()]; pinch = {d: Math.hypot(p[0] - q[0], p[1] - q[1]), s: CV.vb.s}; drag = null; } };
   box.onpointermove = e => { if (pts.has(e.pointerId)) pts.set(e.pointerId, [e.clientX, e.clientY]);
     if (pinch && pts.size === 2){ const [p, q] = [...pts.values()], d = Math.hypot(p[0] - q[0], p[1] - q[1]), c = [(p[0] + q[0])/2, (p[1] + q[1])/2], a = toKm(...c); CV.vb.s = pinch.s*pinch.d/Math.max(10, d); const b = toKm(...c); CV.vb.cx += a[0] - b[0]; CV.vb.cy += a[1] - b[1]; cvDraw(); return; }
-    if (drag){ const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true; if (drag.moved){ CV.vb.cx = drag.cx - dx*CV.vb.s; CV.vb.cy = drag.cy - dy*CV.vb.s; cvDraw(); } return; }
+    if (drag){ const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true; if (drag.moved){ const u = cvUnrot(-dx*CV.vb.s, -dy*CV.vb.s, drag.cx, drag.cy); CV.vb.cx = u[0]; CV.vb.cy = u[1]; cvDraw(); } return; }
     cvHover(e); };
   box.onpointerup = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (drag && !drag.moved){ const h = cvNearest(e.clientX, e.clientY); if (h){ setPos(h.k); cvDraw(); } } drag = null; };
   box.onpointerleave = () => { const t = $("cvTip"); if (t) t.style.display = "none"; };
 }
+function cvUnrot(dx, dy, cx, cy){ const r = -(CV.rot || 0), c = Math.cos(r), n = Math.sin(r); return [dx*c - dy*n + cx, dx*n + dy*c + cy]; }
 function cvNearest(cx, cy){ const r = $("cvPlan").getBoundingClientRect(), [W, H] = cvSize(), P = cvPanels(), Wp = W/P.length, i0 = Math.floor(clamp((cx - r.left)/Wp, 0, P.length - .001)), G = CV.geo, vb = CV.vb; let best = -1, bd = 14;
-  for (let i = 0; i < G.main.length; i++){ const p = G.main[i], x = (p[0] - vb.cx)/vb.s + Wp/2 + i0*Wp + r.left, y = (p[1] - vb.cy)/vb.s + H/2 + r.top, d = Math.hypot(x - cx, y - cy); if (d < bd){ bd = d; best = i; } } return best < 0 ? null : {i: best, k: G.km[best]}; }
+  for (let i = 0; i < G.main.length; i++){ const p = G.main[i], rc = Math.cos(CV.rot || 0), rs = Math.sin(CV.rot || 0), x = ((p[0] - vb.cx)*rc - (p[1] - vb.cy)*rs)/vb.s + Wp/2 + i0*Wp + r.left, y = ((p[0] - vb.cx)*rs + (p[1] - vb.cy)*rc)/vb.s + H/2 + r.top, d = Math.hypot(x - cx, y - cy); if (d < bd){ bd = d; best = i; } } return best < 0 ? null : {i: best, k: G.km[best]}; }
 function cvHover(e){ const t = $("cvTip"), h = cvNearest(e.clientX, e.clientY); if (!t) return; if (!h){ t.style.display = "none"; return; }
   const R = XR.river, k = h.k, i = idxAtKm(R, k), r = reachAt(R, k), pr = R.prof, box = $("cvPlan").getBoundingClientRect();
   const rows = [["km from source", nf(k, 1)], pr && ["Elevation", nf(XMETRIC.elevation.get(R, i)) + " m"], pr && ["Slope", nf(XMETRIC.slope.get(R, i), 3) + " m/km"], r && ["Reach sinuosity", `${nf(r.sin, 2)} (${tfmt(r.L)} ÷ ${tfmt(r.straight)} km)`], r && r.width && Number.isFinite(r.width.med) && ["Width", nf(r.width.med) + " m"], r && Number.isFinite(r.lambda) && ["Wavelength", km(r.lambda)], r && r.zone && ["Zone (interp.)", r.zone]].filter(Boolean);
@@ -10539,6 +10580,726 @@ function wireWidth(R, sr, S, all){
       T.push({name: `Profile with 3 deep, multi-sample dips (DEM voids): max error with spike removal + isotonic conditioning (running minimum without removal: ${nf(errMin)} m)`, got: err, exp: 0, tol: null, unit: "m", pass: err < 3, err, kind: "abs < 3 m"});
       T.push({name: "Dip samples detected and removed (20 inserted)", got: pr.spikes.length, exp: 20, pass: pr.spikes.length >= 18 && pr.spikes.length <= 26, err: Math.abs(pr.spikes.length - 20), unit: "samples", kind: "count"}); }
     return T; }; window.__selfTest = runSelfTest; }
+
+/* ===================== Earthform Lens — map controls, journal-quality export, trace editor, data sources ===================== */
+
+/* ---------- 1. data sources: choice, recommendations, sampling ---------- */
+EX.openmeteo = "https://api.open-meteo.com/v1/elevation";
+const SRC_KEY = "efl.src";
+XR.src = Object.assign({dem: "auto", water: "osm", autoW: true}, (() => { try { return JSON.parse(localStorage.getItem(SRC_KEY)) || {}; } catch(_){ return {}; } })());
+if (XR.src.dem === "user") XR.src.dem = "auto"; // a user DEM is not kept between visits
+function srcSave(){ try { localStorage.setItem(SRC_KEY, JSON.stringify(XR.src)); } catch(_){} }
+const DEMSRC = {
+  auto: {n: "AWS Terrain Tiles — automatic detail", res: "≈ 40–300 m sampling (zoom 9–12, chosen from the river's length)", cover: "Global land and sea floor", date: "Mosaic: SRTM (2000), GMTED, ETOPO1, national DEMs (e.g. USGS 3DEP)",
+    pro: "Fast, global, no limits; same source as catchment and floodplain analysis", con: "Mixed sources and dates; SRTM is a radar surface model (tree canopy and buildings raise it); voids cause spikes"},
+  hi: {n: "AWS Terrain Tiles — high detail", res: "4× finer sampling than automatic (up to zoom 14)", cover: "Global", date: "As above",
+    pro: "Resolves short, steep steps on small rivers; finer where national lidar is in the mosaic (USA, parts of Europe)", con: "Up to 16× more tiles, so slower; outside lidar areas the underlying data is still ≈30 m, so detail gains are small"},
+  glo90: {n: "Copernicus DEM GLO-90 (via Open-Meteo)", res: "90 m grid, read at every profile sample", cover: "Global land", date: "TanDEM-X, 2011–2015; one consistent product",
+    pro: "One consistent DEM everywhere (no mosaic seams); good for comparing rivers on different continents; a strong second opinion", con: "Digital surface model (canopy, buildings); daily request limits on the free service; not used for catchment routing"},
+  user: {n: "Your own DEM (GeoTIFF)", res: "Native resolution of your file", cover: "Your file's extent", date: "Your file",
+    pro: "Best accuracy where you have lidar or a national DEM; stays in your browser", con: "Must be lat/lon (EPSG:4326) or WGS 84 UTM; parts of the river outside the file fall back to terrain tiles"},
+};
+const WATSRC = {
+  osm: {n: "OpenStreetMap water areas", res: "Mapped boundaries, rasterised at 4–50 m", date: "Undated, mixed origin", pro: "Global, fast, includes bars and islands where mapped", con: "Coverage varies; narrow rivers are often mapped only as lines, so no width there"},
+  user: {n: "Your water polygons (GeoJSON)", res: "As digitised", date: "Your date", pro: "Dated, checked boundaries for publication or change through time", con: "You need to digitise or export them (e.g. from QGIS or Google Earth Engine)"},
+};
+const BASENOTE = {imagery: ["Esri World Imagery", "≈0.3–1 m in most places; mixed dates (use Changes over time for dated Wayback captures)"], topo: ["Esri Topographic", "Cartographic context"], osm: ["OpenStreetMap", "Mapped features; shows what the trace is built from"], plain: ["Plain white", "Cleanest for figures"], s2: ["Sentinel-2 cloudless (EOX)", "10 m, one cloud-free mosaic per year 2016–2023: consistent colours, good for comparisons"]};
+function demRecommend(R){
+  if (XR.userDem && R && demCoverage(XR.userDem, R) > .5) return ["user", "your DEM covers most of this river and is likely the most accurate"];
+  if (R && R.L < 120) return ["hi", `short river (${km(R.L)}): finer sampling resolves channel-scale steps`];
+  if (R && R.L > 1500) return ["auto", "long river: automatic detail keeps loading fast; cross-check with Copernicus GLO-90 for a consistent second profile"];
+  return ["auto", "fast and global; cross-check with Copernicus GLO-90 before publishing slopes or knickpoints"];
+}
+function demLabel(pr, withRes, long){
+  if (!pr) return "–"; if (pr.user) return long ? "Elevations supplied in your GeoJSON" : "elevations supplied with the line";
+  const s = pr.src || {};
+  if (s.key === "glo90") return "Copernicus DEM GLO-90 via Open-Meteo" + (withRes ? " (90 m)" : "");
+  if (s.key === "user") return `your DEM “${s.n}”` + (withRes ? ` (≈${nf(s.res)} m)` : "") + (s.part ? `, terrain tiles where it has no data (${nf(100*s.part, 0)} % of samples)` : "");
+  return (long ? "AWS Terrain Tiles (Mapzen terrarium; SRTM / GMTED / ETOPO and others), zoom " : "AWS Terrain Tiles z") + pr.z + (s.key === "hi" ? " (high detail)" : "") + (withRes && pr.res ? ` (≈${nf(pr.res)} m)` : "");
+}
+/** fill zr (raw elevation per sample) from the chosen source; returns the number of samples without data */
+async function sampleElev(R, pts, z, need, zr){
+  const n = pts.length, src0 = XR.srcOverride || XR.src.dem, src = src0 === "user" && !XR.userDem ? "auto" : src0; R.demSrc = {key: src};
+  const prog = (t, f) => actSet("elev", t, f);
+  try {
+    let todo = null;
+    if (src === "user" && XR.userDem){ const D = XR.userDem; todo = []; for (let i = 0; i < n; i++){ const v = demAtUser(D, pts[i]); zr[i] = v; if (!Number.isFinite(v)) todo.push(i); } R.demSrc = {key: "user", n: D.name, res: D.res, part: todo.length/n}; if (!todo.length) return 0; }
+    if (src === "glo90"){ try { await sampleOpenMeteo(pts, zr, prog); R.demSrc = {key: "glo90"}; return Array.from(zr).filter(v => !Number.isFinite(v)).length; } catch(e){ console.warn(e); toast("Copernicus GLO-90 unavailable (" + e.message + "): using terrain tiles", 4000); R.demSrc = {key: "auto", fallback: "glo90"}; } }
+    const zz = src === "hi" ? Math.min(14, z + 2) : z; if (zz !== z) R.demSrc.z = zz;
+    const idx = todo || Array.from({length: n}, (_, i) => i), nd = new Map();
+    for (const i of idx){ const p = pts[i], X = lon2x(p[1], zz), Y = lat2y(p[0], zz), k = Math.floor(X/256) + "/" + Math.floor(Y/256); (nd.get(k) || nd.set(k, []).get(k)).push([i, X, Y]); }
+    const keys = [...nd.keys()]; let done = 0, failed = 0, at = 0;
+    const worker = async () => { while (at < keys.length){ const k = keys[at++], [tx, ty] = k.split("/").map(Number), e = await demTile(zz, tx, ty); done++;
+      for (const [i, X, Y] of nd.get(k)){ if (!e){ zr[i] = NaN; failed++; continue; } const px = Math.floor(X - tx*256), py = Math.floor(Y - ty*256); let m = Infinity; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const xx = clamp(px + dx, 0, 255), yy = clamp(py + dy, 0, 255); m = Math.min(m, e[yy*256 + xx]); } zr[i] = m; }
+      if (done % 4 === 0 || done === keys.length) prog(`Reading elevation (${zz === z ? "terrain tiles" : "high detail"}): ${Math.round(done/keys.length*100)}%`, done/keys.length); } };
+    await Promise.all(Array.from({length: Math.min(16, keys.length)}, worker));
+    return failed;
+  } finally { actEnd("elev"); }
+}
+async function sampleOpenMeteo(pts, zr, prog){
+  const B = 100, batches = []; for (let i = 0; i < pts.length; i += B) batches.push(i); let done = 0, at = 0;
+  const worker = async () => { while (at < batches.length){ const i0 = batches[at++], P = pts.slice(i0, i0 + B);
+    const url = `${EX.openmeteo}?latitude=${P.map(p => p[0].toFixed(5)).join(",")}&longitude=${P.map(p => p[1].toFixed(5)).join(",")}`;
+    const j = await xfetchJSON(url, {}, 3, 20000); if (!j || !Array.isArray(j.elevation)) throw new Error(j && j.reason ? j.reason : "no elevation in the answer");
+    j.elevation.forEach((v, k) => { zr[i0 + k] = Number.isFinite(v) && v > -1000 ? v : NaN; }); done++; prog(`Reading Copernicus GLO-90: ${Math.round(done/batches.length*100)}%`, done/batches.length); } };
+  await Promise.all([worker(), worker(), worker()]);
+}
+{ const _lp = loadProfile; loadProfile = async function(R, zoom, quiet){ const p = await _lp(R, zoom, quiet); if (p && R.demSrc && !R.zUser){ p.src = R.demSrc; if (R.demSrc.z) p.z = R.demSrc.z; } return p; }; }
+
+/* your own DEM: GeoTIFF in lat/lon or WGS 84 UTM */
+function utmFwd(lat, lon, zone){
+  const a = 6378137, f = 1/298.257223563, k0 = .9996, e2 = f*(2 - f), ep2 = e2/(1 - e2), l0 = ((zone - 1)*6 - 180 + 3)*D2R, p = lat*D2R, l = lon*D2R;
+  const N = a/Math.sqrt(1 - e2*Math.sin(p)**2), T = Math.tan(p)**2, C = ep2*Math.cos(p)**2, A = Math.cos(p)*(l - l0);
+  const M = a*((1 - e2/4 - 3*e2*e2/64 - 5*e2**3/256)*p - (3*e2/8 + 3*e2*e2/32 + 45*e2**3/1024)*Math.sin(2*p) + (15*e2*e2/256 + 45*e2**3/1024)*Math.sin(4*p) - (35*e2**3/3072)*Math.sin(6*p));
+  const x = k0*N*(A + (1 - T + C)*A**3/6 + (5 - 18*T + T*T + 72*C - 58*ep2)*A**5/120) + 500000;
+  let y = k0*(M + N*Math.tan(p)*(A*A/2 + (5 - T + 9*C + 4*C*C)*A**4/24 + (61 - 58*T + T*T + 600*C - 330*ep2)*A**6/720)); if (lat < 0) y += 1e7; return [x, y];
+}
+async function loadUserDem(file){
+  const T = await readTIFF(await file.arrayBuffer()), g = T.geo || {};
+  if (T.spp !== 1) throw new Error("this GeoTIFF has several bands; an elevation model has one");
+  if (!g.scale || !g.tie) throw new Error("no georeferencing (tie point and pixel size) in the file");
+  const epsg = +g.epsg || 0, utm = epsg >= 32601 && epsg <= 32660 ? {zone: epsg - 32600, south: false} : epsg >= 32701 && epsg <= 32760 ? {zone: epsg - 32700, south: true} : null;
+  if (!g.geographic && !utm) throw new Error(`coordinate system EPSG:${epsg || "unknown"} is not supported: reproject to lat/lon (EPSG:4326) or WGS 84 UTM first (QGIS: Raster → Projections → Warp)`);
+  const D = {name: file.name, W: T.width, H: T.height, z: T.bands[0], x0: g.tie[3], y0: g.tie[4], sx: g.scale[0], sy: g.scale[1], geo: !!g.geographic, utm};
+  D.res = D.geo ? D.sx*111320*Math.cos(((D.y0 - D.sy*D.H/2))*D2R) : D.sx; XR.userDem = D; return D;
+}
+function demAtUser(D, p){
+  let X, Y; if (D.geo){ X = (p[1] - D.x0)/D.sx; Y = (D.y0 - p[0])/D.sy; } else { const [e, nn] = utmFwd(p[0], p[1], D.utm.zone); X = (e - D.x0)/D.sx; Y = (D.y0 - (D.utm.south ? nn : nn - (p[0] < 0 ? 1e7 : 0)))/D.sy; }
+  const px = Math.floor(X), py = Math.floor(Y); if (px < 0 || py < 0 || px >= D.W || py >= D.H) return NaN;
+  let m = Infinity; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const xx = clamp(px + dx, 0, D.W - 1), yy = clamp(py + dy, 0, D.H - 1), v = D.z[yy*D.W + xx]; if (Number.isFinite(v)) m = Math.min(m, v); }
+  return Number.isFinite(m) ? m : NaN;
+}
+function demCoverage(D, R){ const st = Math.max(1, Math.floor(R.main.length/300)); let a = 0, b = 0; for (let i = 0; i < R.main.length; i += st){ b++; if (Number.isFinite(demAtUser(D, R.main[i]))) a++; } return b ? a/b : 0; }
+
+/** a second elevation source along the same samples: bias, spread and differences in fall and gradient */
+async function crossCheckDem(R, key){
+  const pr = R.prof; if (!pr) throw new Error("load the profile first");
+  const pts = Array.from(pr.d, k => pointAtKm(R, k)), zr = new Float64Array(pts.length).fill(NaN), z = pr.z, save = R.demSrc;
+  XR.srcOverride = key; try { await sampleElev(R, pts, key === "hi" ? z : Math.min(z, 12), null, zr); } finally { XR.srcOverride = null; R.demSrc = save; }
+  const dz = [], a = pr.zs || pr.zr; for (let i = 0; i < zr.length; i++) if (Number.isFinite(zr[i]) && Number.isFinite(a[i])) dz.push(zr[i] - a[i]);
+  if (dz.length < 10) throw new Error("the second source returned too few values");
+  const med = median(dz), mad = 1.4826*median(dz.map(v => Math.abs(v - med))), rms = Math.sqrt(dz.reduce((s, v) => s + v*v, 0)/dz.length);
+  const first = Array.from(zr).find(Number.isFinite), last = [...zr].reverse().find(Number.isFinite), fall = first - last;
+  pr.alt = {key, label: DEMSRC[key].n, z: Array.from(zr), n: dz.length, bias: med, sd: mad, rms, fall, fallMain: pr.drop, grad: fall/R.L, made: new Date().toISOString()};
+  return pr.alt;
+}
+function altHTML(pr){ const a = pr && pr.alt; if (!a) return ""; const dF = a.fall - a.fallMain;
+  return `<div class="card x7alt"><b>Cross-check: ${esc(a.label)}</b><div class="kv"><div><span>Samples compared</span><b>${a.n}</b></div><div><span>Median difference (second − first)</span><b>${nf(a.bias, 1)} m</b></div><div><span>Robust spread of differences</span><b>${nf(a.sd, 1)} m</b></div><div><span>RMS difference</span><b>${nf(a.rms, 1)} m</b></div><div><span>Total fall: first / second</span><b>${nf(a.fallMain)} / ${nf(a.fall)} m (${dF >= 0 ? "+" : ""}${nf(dF)} m)</b></div></div>
+  <p class="note">${Math.abs(dF) > .1*Math.max(1, a.fallMain) ? "The two sources disagree on the total fall by more than 10 %: treat slopes and knickpoints as uncertain and check against a third source or field data." : "The two sources agree on the total fall within 10 %."} A constant offset is expected (different vertical datums and surface models); the spread is what matters for slopes. The second profile is drawn dashed in the clean view.</p></div>`; }
+
+function openSources(){
+  const R = XR.river, [rk, why] = demRecommend(R), cur = XR.src.dem, bases = Object.keys(EX.base);
+  const opt = (k, o, sel, name, rec) => `<label class="x7opt${sel ? " on" : ""}"><input type="radio" name="${name}" value="${k}"${sel ? " checked" : ""}${k === "user" && name === "dem" && !XR.userDem ? " disabled" : ""}><div><b>${esc(o.n)}${rec ? ` <span class="x7rec">Recommended</span>` : ""}</b><small>${esc(o.res)} · ${esc(o.date)}</small><small class="pro">＋ ${esc(o.pro)}</small><small class="con">− ${esc(o.con)}</small></div></label>`;
+  modal(`<h3>Data sources</h3><p class="note">Every result records which source it came from. Pick a source for each kind of data; the recommendation depends on the river you have loaded${R ? ` (<b>${esc(R.name)}</b>, ${km(R.L)})` : ""}.</p>
+    <h4>Elevation</h4>${Object.entries(DEMSRC).map(([k, o]) => opt(k, o, cur === k, "dem", rk === k)).join("")}
+    <p class="note x7why">Why: ${esc(why)}.</p>
+    <div class="btns"><label class="sm filebtn">⇪ Load your DEM (GeoTIFF)<input type="file" id="x7Dem" accept=".tif,.tiff,image/tiff" hidden></label>${R && R.prof ? `<button class="sm" id="x7Cross">Cross-check with a second source</button>` : ""}</div><div id="x7DemMsg">${XR.userDem ? `<p class="note">Loaded: ${esc(XR.userDem.name)}, ${XR.userDem.W}×${XR.userDem.H} cells, ≈${nf(XR.userDem.res)} m${R ? `, covers ${nf(100*demCoverage(XR.userDem, R), 0)} % of this river` : ""}.</p>` : ""}</div>
+    <h4>Water boundaries (channel width)</h4>${Object.entries(WATSRC).map(([k, o]) => opt(k, o, XR.src.water === k, "wat", k === (XR.userWater ? "user" : "osm"))).join("")}
+    <div class="btns"><label class="sm filebtn">⇪ Load water polygons (GeoJSON)<input type="file" id="x7Wat" accept=".json,.geojson" hidden></label></div><div id="x7WatMsg">${XR.userWater ? `<p class="note">Loaded ${XR.userWater.length} polygons.</p>` : ""}</div>
+    <p class="note">JRC Global Surface Water is available as a map overlay only: its public tiles are coloured pictures, not measurements, so widths are not measured from them.</p>
+    <label class="chk"><input type="checkbox" id="x7AutoW"${XR.src.autoW ? " checked" : ""}> Measure channel width automatically after each river loads</label>
+    <h4>River centreline</h4><p class="note">OpenStreetMap (search) by default. You can also open your own line (GeoJSON, KML or GPX), draw one, or correct the traced line with <b>Edit trace</b> when parts are missing or wrong.</p>
+    <div class="btns"><label class="sm filebtn">⇪ Open KML / GPX line<input type="file" id="x7Line" accept=".kml,.gpx,.xml" hidden></label></div>
+    <h4>Satellite and base maps</h4><div class="x7bases">${bases.map(k => { const b = BASENOTE[k] || [EX.base[k].n, ""]; return `<label class="x7opt${XR.base === k ? " on" : ""}"><input type="radio" name="base" value="${k}"${XR.base === k ? " checked" : ""}><div><b>${esc(EX.base[k].n || b[0])}</b><small>${esc(b[1])}</small></div></label>`; }).join("")}</div>
+    <div class="btns"><button class="pri" id="x7Apply">Apply${R ? " and re-read elevation" : ""}</button><button id="x7Close">Close</button></div>`);
+  $("x7Close").onclick = closeModal;
+  $("x7Dem").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; const m = $("x7DemMsg"); m.innerHTML = `<p class="note shimmer">Reading ${esc(f.name)}…</p>`; try { const D = await loadUserDem(f); m.innerHTML = `<p class="note">Loaded ${esc(f.name)}: ${D.W}×${D.H} cells, ≈${nf(D.res)} m${R ? `, covers ${nf(100*demCoverage(D, R), 0)} % of this river` : ""}. Choose “Your own DEM” and press Apply.</p>`; const r = document.querySelector('input[name="dem"][value="user"]'); if (r){ r.disabled = false; r.checked = true; } } catch(err){ m.innerHTML = `<p class="warn">${esc(err.message)}</p>`; } };
+  $("x7Wat").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; try { const j = JSON.parse(await f.text()), P = []; for (const ft of (j.features || [j])){ const g = ft.geometry || ft; const polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : []; for (const pg of polys) P.push({bar: !!(ft.properties && /bar|sand|shoal/i.test(JSON.stringify(ft.properties))), rings: pg.map(r => r.map(c => [c[1], c[0]]))}); }
+      if (!P.length) throw new Error("no polygons in the file"); XR.userWater = P; $("x7WatMsg").innerHTML = `<p class="note">Loaded ${P.length} polygons from ${esc(f.name)}.</p>`; const r = document.querySelector('input[name="wat"][value="user"]'); if (r) r.checked = true; } catch(err){ $("x7WatMsg").innerHTML = `<p class="warn">${esc(err.message)}</p>`; } };
+  $("x7Line").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f){ closeModal(); importLineFile(f); } };
+  if ($("x7Cross")) $("x7Cross").onclick = async () => { const k = XR.src.dem === "glo90" ? "auto" : "glo90"; const b = $("x7Cross"); b.disabled = true; b.textContent = "Reading the second source…"; try { await crossCheckDem(R, k); closeModal(); renderX(); showXTab("profile"); xstatus(`Cross-check with ${DEMSRC[k].n}: median difference ${nf(R.prof.alt.bias, 1)} m, spread ${nf(R.prof.alt.sd, 1)} m. See the Profile tab.`, "ok"); } catch(err){ b.disabled = false; b.textContent = "Cross-check with a second source"; toast(err.message, 4000); } };
+  $("x7Apply").onclick = async () => { const v = n => (document.querySelector(`input[name="${n}"]:checked`) || {}).value; const dem = v("dem"), wat = v("wat"), base = v("base"), changed = dem !== XR.src.dem, wChanged = wat !== XR.src.water;
+    XR.src.dem = dem || "auto"; XR.src.water = wat || "osm"; XR.src.autoW = $("x7AutoW").checked; srcSave(); if (base && base !== XR.base){ XR.base = base; const sb = $("xBase"); if (sb) sb.value = base; xmap && xmap.req(); } closeModal();
+    if (R && (changed || !R.prof)){ xstatus(`Re-reading elevation from ${DEMSRC[XR.src.dem].n}…`, "busy"); try { await loadProfile(R); buildReaches(R); renderX(); xstatus(`Elevation now from ${demLabel(R.prof, true)}: fall ${nf(R.prof.drop)} m.`, "ok"); } catch(err){ xstatus("Elevation: " + esc(err.message), "err"); } }
+    if (R && wChanged){ for (const r of R.reaches || []) r.width = null; autoWidth(R, XR.loadTok, true); } };
+}
+/* KML and GPX lines become a GeoJSON-style river */
+async function importLineFile(f){
+  try { const t = await f.text(), doc = new DOMParser().parseFromString(t, "application/xml"); let pts = [];
+    if (/\.gpx$/i.test(f.name) || doc.querySelector("gpx")){ pts = [...doc.querySelectorAll("trkpt, rtept")].map(e => [+e.getAttribute("lat"), +e.getAttribute("lon"), e.querySelector("ele") ? +e.querySelector("ele").textContent : NaN]); }
+    else { const cs = [...doc.getElementsByTagName("coordinates")].map(c => c.textContent.trim().split(/\s+/).map(q => q.split(",").map(Number))).sort((a, b) => b.length - a.length)[0] || []; pts = cs.map(c => [c[1], c[0], c[2]]); }
+    pts = pts.filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1])); if (pts.length < 2) throw new Error("no line found in the file");
+    const hasZ = pts.filter(p => Number.isFinite(p[2]) && p[2] !== 0).length > pts.length*.8, gj = {type: "Feature", properties: {name: f.name.replace(/\.(kml|gpx|xml)$/i, "")}, geometry: {type: "LineString", coordinates: pts.map(p => hasZ ? [p[1], p[0], p[2]] : [p[1], p[0]])}};
+    await importGeoJSON(new File([JSON.stringify(gj)], f.name.replace(/\.(kml|gpx|xml)$/i, "") + ".geojson"), false);
+  } catch(e){ xstatus("Line file: " + esc(e.message), "err"); }
+}
+/* width can use your own polygons */
+{ const _wr = waterRaster; waterRaster = function(R, k0, k1, extra){ if (!extra && XR.src.water === "user" && XR.userWater) return _wr(R, k0, k1, {polys: XR.userWater}); return _wr(R, k0, k1, extra); }; }
+
+/* ---------- 2. channel width runs with the other analyses ---------- */
+function stepSkip(k, note){ if (!XST) return; XST[k] = {s: "skip", note}; renderSteps(); if (XSTEPS.every(([q]) => XST[q].s === "done" || XST[q].s === "skip")){ clearTimeout(xstT); xstT = setTimeout(() => { XST = null; renderSteps(); }, 2600); } }
+async function autoWidth(R, tok, force, bg){
+  const st = bg ? () => {} : null, sStart = bg ? st : stepStart, sDone = bg ? st : stepDone, sSkip = bg ? st : stepSkip;
+  if ((!XR.src.autoW && !force) || !R || !R.reaches || !R.reaches.length){ sSkip("width", XR.src.autoW ? "no reaches" : "off (see Data sources)"); return; }
+  const list = R.reaches.filter(r => !r.width), total = list.length; if (!total){ sDone("width", "already measured"); return; }
+  let i = 0, ok = 0, at = 0; sStart("width", `0 of ${total} reaches`);
+  const worker = async () => { while (at < list.length){ if (tok !== XR.loadTok || (!bg && XR.river !== R)) return; const r = list[at++];
+    try { await measureWidth(R, r); if (r.width && Number.isFinite(r.width.med)) ok++; } catch(e){ console.warn("width", e); }
+    i++; if (!bg && XST && XST.width) { XST.width.note = `${i} of ${total} reaches`; renderSteps(); } actSet("aw", `Measuring channel width: reach ${i} of ${total}`, i/total); if (i % 3 === 0 || i === total) renderX(); } };
+  try { await Promise.all([worker(), worker()]); } finally { actEnd("aw"); }
+  if (tok !== XR.loadTok || (!bg && XR.river !== R)) return;
+  sDone("width", ok ? `${ok} of ${total} reaches have mapped water` : "river mapped only as a line"); renderX();
+  if (!ok && !bg) xstatus(`Channel width: no mapped water areas along ${esc(R.name)} (it is drawn only as a line in OpenStreetMap). Load your own water polygons under Data sources.`, "ok");
+}
+
+/* ---------- 3. map controls: zoom, rotate, layers, declutter ---------- */
+const LAY_KEY = "efl.lay";
+XR.lay = Object.assign({imagery: true, side: true, tribs: true, labels: true, reaches: true, dams: true, pos: true, legend: true, scale: true, controls: true, rotGesture: true}, (() => { try { return JSON.parse(localStorage.getItem(LAY_KEY)) || {}; } catch(_){ return {}; } })());
+const LAYDEF = [["imagery", "Satellite / base map"], ["side", "Side channels"], ["tribs", "Tributaries"], ["labels", "Names and labels"], ["reaches", "Reach boundaries"], ["dams", "Dams and weirs"], ["pos", "Position marker"], ["legend", "Colour legend"], ["scale", "Scale bar"], ["controls", "Search and map menus"], ["rotGesture", "Two-finger rotation"]];
+function drawNorth(ctx, x, y, rot){ ctx.save(); ctx.translate(x, y); ctx.fillStyle = "rgba(255,255,255,.92)"; ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill(); ctx.rotate(rot || 0); ctx.fillStyle = "#d62728"; ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(6, 3); ctx.lineTo(0, 0); ctx.lineTo(-6, 3); ctx.closePath(); ctx.fill(); ctx.fillStyle = "#333"; ctx.beginPath(); ctx.moveTo(0, 13); ctx.lineTo(6, 3); ctx.lineTo(0, 0); ctx.lineTo(-6, 3); ctx.closePath(); ctx.fill(); ctx.fillStyle = "#111"; ctx.font = "700 9px Inter, sans-serif"; ctx.textAlign = "center"; ctx.fillText("N", 0, -15 + 0); ctx.restore(); }
+function laySave(){ try { localStorage.setItem(LAY_KEY, JSON.stringify(XR.lay)); } catch(_){} }
+function mapZoom(dz){ if (!xmap) return; xmap.z = clamp(xmap.z + dz, 2, 19); xmap.req(); }
+function mapRotate(da){ if (!xmap) return; xmap.rot = da === null ? 0 : (xmap.rot || 0) + da; mapCtlSync(); xmap.req(); }
+function mapCtlSync(){ const c = $("x7Compass"); if (c) c.style.transform = `rotate(${((xmap && xmap.rot) || 0)*180/Math.PI}deg)`; const box = document.querySelector(".xmapbox"); if (box) box.classList.toggle("x7clean", !XR.lay.controls); }
+function initMapCtl(){
+  const box = document.querySelector(".xmapbox"); if (!box || $("x7Ctl")) return;
+  const d = document.createElement("div"); d.id = "x7Ctl"; d.className = "x7ctl";
+  d.innerHTML = `<button id="x7Zi" title="Zoom in" aria-label="Zoom in">＋</button><button id="x7Zo" title="Zoom out" aria-label="Zoom out">－</button><button id="x7Rl" title="Rotate left 15°" aria-label="Rotate left">⟲</button><button id="x7Rr" title="Rotate right 15°" aria-label="Rotate right">⟳</button><button id="x7N" title="North up (reset rotation)" aria-label="North up"><span id="x7Compass" class="x7compass"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10 1l4 9h-8z" fill="#ff4d4f"/><path d="M10 19l4-9h-8z" fill="#cfd6dd"/></svg></span></button><button id="x7Lay" title="Layers and map options (base map, overlay, colour by)" aria-label="Layers and map options">☰</button><button id="x7Exp" title="Export this map (PNG / PDF)" aria-label="Export map">⬇</button>`;
+  box.appendChild(d);
+  const p = document.createElement("div"); p.id = "x7LayP"; p.className = "x7layp glass"; p.style.display = "none"; p.innerHTML = `<div id="x7LayBody"></div><div id="x7MapSel" class="x7mapsel"></div>`; box.appendChild(p);
+  const place = () => { const ctl = document.querySelector(".xmapctl"), slot = $("x7MapSel"); if (!ctl || !slot) return; const narrow = innerWidth <= 760; if (narrow && ctl.parentElement !== slot) slot.appendChild(ctl); else if (!narrow && ctl.parentElement === slot) box.appendChild(ctl); slot.style.display = narrow ? "" : "none"; };
+  place(); addEventListener("resize", place);
+  $("x7Zi").onclick = () => mapZoom(1); $("x7Zo").onclick = () => mapZoom(-1); $("x7Rl").onclick = () => mapRotate(-Math.PI/12); $("x7Rr").onclick = () => mapRotate(Math.PI/12); $("x7N").onclick = () => mapRotate(null);
+  $("x7Lay").onclick = () => { const v = p.style.display === "none"; p.style.display = v ? "" : "none"; if (v) renderLayP(); };
+  $("x7Exp").onclick = () => exportMapDialog();
+  mapCtlSync();
+}
+function renderLayP(){ const p = $("x7LayBody"); if (!p) return;
+  p.innerHTML = `<div class="x7lh"><b>Layers & map options</b><button class="sm" id="x7LayX">✕</button></div>${LAYDEF.map(([k, t]) => `<label class="chk"><input type="checkbox" data-lay="${k}"${XR.lay[k] !== false ? " checked" : ""}> ${t}</label>`).join("")}<div class="btns"><button class="sm" id="x7LayMin">Minimal</button><button class="sm" id="x7LayAll">Show all</button></div><p class="note">Hidden layers are also left out of map exports.</p>`;
+  p.querySelectorAll("[data-lay]").forEach(c => c.onchange = () => { XR.lay[c.dataset.lay] = c.checked; laySave(); mapCtlSync(); xmap && xmap.req(); });
+  $("x7LayX").onclick = () => { $("x7LayP").style.display = "none"; };
+  $("x7LayMin").onclick = () => { Object.assign(XR.lay, {side: false, tribs: false, labels: false, reaches: false, dams: false, controls: false}); laySave(); renderLayP(); mapCtlSync(); xmap.req(); };
+  $("x7LayAll").onclick = () => { LAYDEF.forEach(([k]) => XR.lay[k] = true); laySave(); renderLayP(); mapCtlSync(); xmap.req(); };
+}
+
+/* ---------- 4. journal-quality export of every map and plot ---------- */
+const EXPW = [["85", "Single column (85 mm)"], ["120", "1.5 column (120 mm)"], ["180", "Double column (180 mm)"], ["0", "As on screen"]];
+const EXPOPT = Object.assign({fmt: "png", w: "180", dpi: 300, journal: true}, (() => { try { return JSON.parse(localStorage.getItem("efl.exp")) || {}; } catch(_){ return {}; } })());
+const STYLEPROPS = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-opacity", "fill-opacity", "opacity", "font-size", "font-family", "font-weight", "text-anchor", "dominant-baseline", "stroke-linecap", "stroke-linejoin", "display", "visibility"];
+const parseRGB = c => { const m = /rgba?\(([^)]+)\)/.exec(c || ""); if (!m) return null; const v = m[1].split(",").map(s => parseFloat(s)); return {r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1}; };
+/** a standalone SVG string from a live chart: computed styles inlined; optionally restyled for print (dark text on white) */
+function inlineSvg(svg, journal){
+  const cl = svg.cloneNode(true), src = [svg, ...svg.querySelectorAll("*")], dst = [cl, ...cl.querySelectorAll("*")];
+  src.forEach((el, i) => { const o = dst[i]; if (!o || !o.setAttribute) return; const cs = getComputedStyle(el); let st = "";
+    for (const k of STYLEPROPS){ let v = cs.getPropertyValue(k); if (!v) continue;
+      if (journal && (k === "fill" || k === "stroke")){ const c = parseRGB(v); if (c){ const lum = (.2126*c.r + .7152*c.g + .0722*c.b)/255, sat = Math.max(c.r, c.g, c.b) - Math.min(c.r, c.g, c.b);
+          if (el.tagName === "text" && k === "fill" && sat < 60) v = lum > .5 ? "#1a1a1a" : v;
+          else if (sat < 40 && k === "stroke" && lum > .55) v = el.classList && el.classList.contains("gl") ? "#e3e3e3" : "#555";
+          else if (sat < 40 && k === "fill" && lum < .3 && /rect|path|circle/.test(el.tagName) && c.a > .5) v = "#ffffff"; } }
+      st += `${k}:${v};`; }
+    o.setAttribute("style", st); if (o.classList && o.classList.contains("hit")) o.remove(); });
+  cl.querySelectorAll(".x7eb").forEach(b => b.remove());
+  const vb = (svg.getAttribute("viewBox") || `0 0 ${svg.clientWidth} ${svg.clientHeight}`).split(/[\s,]+/).map(Number);
+  cl.setAttribute("xmlns", "http://www.w3.org/2000/svg"); cl.setAttribute("viewBox", vb.join(" ")); cl.setAttribute("width", vb[2]); cl.setAttribute("height", vb[3]);
+  const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect"); bg.setAttribute("x", vb[0]); bg.setAttribute("y", vb[1]); bg.setAttribute("width", vb[2]); bg.setAttribute("height", vb[3]); bg.setAttribute("fill", "#ffffff"); cl.insertBefore(bg, cl.firstChild);
+  return new XMLSerializer().serializeToString(cl);
+}
+async function svgToCanvas(svg, pxW){
+  const m = /viewBox="([^"]+)"/.exec(svg), vb = m ? m[1].split(/[\s,]+/).map(Number) : [0, 0, 800, 600], k = pxW ? pxW/vb[2] : 2;
+  const img = new Image(), url = URL.createObjectURL(new Blob([svg], {type: "image/svg+xml"})); await new Promise((ok, no) => { img.onload = ok; img.onerror = () => no(new Error("could not render the figure")); img.src = url; });
+  const c = document.createElement("canvas"); c.width = Math.round(vb[2]*k); c.height = Math.round(vb[3]*k); const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); return c;
+}
+/** PNG with its print resolution recorded (pHYs chunk), so it opens at the right size in Word, Illustrator and journal systems */
+async function pngWithDpi(canvas, dpi){
+  const b = await new Promise(r => canvas.toBlob(r, "image/png")); if (!b) throw new Error("the browser could not encode the image (too large?)");
+  const u = new Uint8Array(await b.arrayBuffer()), ppm = Math.round(dpi/.0254), ch = new Uint8Array(21), dv = new DataView(ch.buffer);
+  dv.setUint32(0, 9); ch.set([112, 72, 89, 115], 4); dv.setUint32(8, ppm); dv.setUint32(12, ppm); ch[16] = 1; dv.setUint32(17, crc32(ch.subarray(4, 17)));
+  const at = 33, out = new Uint8Array(u.length + 21); out.set(u.subarray(0, at)); out.set(ch, at); out.set(u.subarray(at), at + 21); return new Blob([out], {type: "image/png"});
+}
+/** a real PDF file (not a print dialog): the figure as a lossless image at the chosen size and resolution */
+async function canvasToPdf(canvas, wMm, title){
+  const W = canvas.width, H = canvas.height, pw = wMm/25.4*72, ph = pw*H/W, g = canvas.getContext("2d"), px = g.getImageData(0, 0, W, H).data, rgb = new Uint8Array(W*H*3);
+  for (let i = 0, j = 0; i < px.length; i += 4){ const a = px[i + 3]/255; rgb[j++] = px[i]*a + 255*(1 - a); rgb[j++] = px[i + 1]*a + 255*(1 - a); rgb[j++] = px[i + 2]*a + 255*(1 - a); }
+  let data, filter;
+  if (typeof CompressionStream !== "undefined"){ data = new Uint8Array(await new Response(new Blob([rgb]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer()); filter = "/FlateDecode"; }
+  else { data = new Uint8Array(await (await new Promise(r => canvas.toBlob(r, "image/jpeg", .97))).arrayBuffer()); filter = "/DCTDecode"; }
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0; const push = x => { const b = typeof x === "string" ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, body) => { offs[n] = len; push(`${n} 0 obj\n`); if (typeof body === "string") push(body + "\nendobj\n"); else { push(body[0]); push(body[1]); push(body[2] + "\nendobj\n"); } };
+  const content = `q ${pw.toFixed(2)} 0 0 ${ph.toFixed(2)} 0 0 cm /Im0 Do Q`, safe = s => String(s || "").replace(/[()\\]/g, "").replace(/[^\x20-\x7e]/g, "");
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>"); obj(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw.toFixed(2)} ${ph.toFixed(2)}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+  obj(4, [`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter ${filter} /Length ${data.length} >>\nstream\n`, data, "\nendstream"]);
+  obj(5, `<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+  obj(6, `<< /Title (${safe(title)}) /Producer (Earthform Lens) /CreationDate (D:${new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14)}) >>`);
+  const xref = len; push(`xref\n0 7\n0000000000 65535 f \n${[1, 2, 3, 4, 5, 6].map(n => String(offs[n]).padStart(10, "0") + " 00000 n \n").join("")}trailer\n<< /Size 7 /Root 1 0 R /Info 6 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(parts, {type: "application/pdf"});
+}
+const MAXPX = 16.7e6;
+/** target pixel width for a physical width and resolution, kept under the browser's canvas limit */
+function expPixels(wMm, dpi, aspect, screenW){ let px = wMm > 0 ? Math.round(wMm/25.4*dpi) : Math.round(screenW*Math.max(2, dpi/150)); let note = ""; if (px*px*aspect > MAXPX){ const k = Math.sqrt(MAXPX/(px*px*aspect)); px = Math.floor(px*k); note = `Reduced to ${px} px wide (≈${Math.round(px/((wMm || screenW/96*25.4)/25.4))} dpi) to stay within this browser's image size limit.`; } return {px, note}; }
+/**
+ * o.name   file name stem
+ * o.title  shown in the dialog and PDF metadata
+ * o.svg    () => SVG string (vector source) — or
+ * o.canvas async (pxW) => canvas (raster source, e.g. the live map)
+ * o.parts  optional [[key, label, () => svg]] to export part of a figure
+ */
+function exportDialog(o){
+  const hasSvg = !!(o.svg || o.parts), fmts = [["png", "PNG"], ["pdf", "PDF"], ...(hasSvg ? [["svg", "SVG (vector, editable)"]] : [])];
+  if (!hasSvg && EXPOPT.fmt === "svg") EXPOPT.fmt = "png";
+  modal(`<h3>Export ${esc(o.title || "figure")}</h3>
+    ${o.parts ? `<label class="fl">Part<select id="x7Part">${o.parts.map(([k, t]) => `<option value="${k}">${esc(t)}</option>`).join("")}</select></label>` : ""}
+    <label class="fl">Format<select id="x7Fmt">${fmts.map(([k, t]) => `<option value="${k}"${EXPOPT.fmt === k ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+    <label class="fl">Printed width<select id="x7W">${EXPW.map(([k, t]) => `<option value="${k}"${EXPOPT.w === k ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+    <label class="fl">Resolution<select id="x7Dpi">${[[300, "300 dpi (photos, colour figures)"], [600, "600 dpi (line art with colour)"], [1000, "1000 dpi (fine line art)"]].map(([k, t]) => `<option value="${k}"${+EXPOPT.dpi === k ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+    ${o.svg && o.journalOpt !== false ? `<label class="chk"><input type="checkbox" id="x7Jr"${EXPOPT.journal ? " checked" : ""}> Print style: white background, dark text and axes</label>` : ""}
+    <p class="note" id="x7ExpInfo"></p>${o.note ? `<p class="note">${o.note}</p>` : ""}
+    <div class="btns"><button class="pri" id="x7Go">⬇ Export</button><button id="x7Cancel">Cancel</button></div>`);
+  const info = () => { const f = $("x7Fmt").value, w = +$("x7W").value, dpi = +$("x7Dpi").value; $("x7Dpi").disabled = f === "svg"; $("x7W").disabled = f === "svg";
+    $("x7ExpInfo").textContent = f === "svg" ? "Vector file: scales to any size; fonts and lines stay editable in Illustrator or Inkscape. Check fonts are embedded or outlined before submission." : w ? `${w} mm at ${dpi} dpi = ${Math.round(w/25.4*dpi)} pixels wide. Most journals ask for 300 dpi for colour and 600–1000 dpi for line art.` : `Screen size at ${Math.max(2, dpi/150)}× pixel density.`; };
+  ["x7Fmt", "x7W", "x7Dpi"].forEach(i => $(i).onchange = info); info();
+  $("x7Cancel").onclick = closeModal;
+  $("x7Go").onclick = async () => { const f = $("x7Fmt").value, w = +$("x7W").value, dpi = +$("x7Dpi").value, jr = $("x7Jr") ? $("x7Jr").checked : true, part = $("x7Part") ? $("x7Part").value : null;
+    Object.assign(EXPOPT, {fmt: f, w: String(w), dpi, journal: jr}); try { localStorage.setItem("efl.exp", JSON.stringify(EXPOPT)); } catch(_){}
+    const btn = $("x7Go"); btn.disabled = true; btn.textContent = "Preparing…"; actSet("exp", "Preparing the figure…");
+    try {
+      const stem = (o.name || "figure").replace(/[^\w.-]+/g, "_") + (part && part !== "whole" ? "_" + part : "");
+      const svgFn = part ? o.parts.find(p => p[0] === part)[2] : o.svg, svg = svgFn ? svgFn(jr) : null;
+      if (f === "svg"){ await save(stem + ".svg", svg); closeModal(); return; }
+      let cv, note = "";
+      if (svg){ const m = /viewBox="([^"]+)"/.exec(svg), vb = m ? m[1].split(/[\s,]+/).map(Number) : [0, 0, 800, 600], E = expPixels(w, dpi, vb[3]/vb[2], vb[2]); note = E.note; cv = await svgToCanvas(svg, E.px); }
+      else { const sw = (o.screenW && o.screenW()) || 800, E = expPixels(w, dpi, (o.aspect && o.aspect()) || .7, sw); note = E.note; cv = await o.canvas(E.px); }
+      const blob = f === "pdf" ? await canvasToPdf(cv, w || cv.width/(dpi/25.4), o.title) : await pngWithDpi(cv, w ? cv.width/(w/25.4) : dpi);
+      await save(stem + "." + f, blob); closeModal(); if (note) toast(note, 5000);
+    } catch(e){ console.error(e); btn.disabled = false; btn.textContent = "⬇ Export"; toast(/tainted|insecure|SecurityError/i.test(e.message + e.name) ? "This base map does not allow image export: switch the base map to Plain or Sentinel-2, or use the Clean view" : "Export failed: " + e.message, 5000); }
+    finally { actEnd("exp"); } };
+}
+/* the live map, redrawn off screen at print resolution (sharper tiles are fetched for it) */
+function exportMapDialog(){
+  if (!xmap) return; const cv0 = xmap.cv, r0 = cv0.getBoundingClientRect();
+  exportDialog({name: ((XR.river && XR.river.name) || "map") + "_map", title: "the map", screenW: () => r0.width, aspect: () => r0.height/r0.width,
+    note: "Raster export of the map as you see it, with the layers that are switched on. For vector figures use the Clean view. Imagery licences (Esri, EOX) apply to published figures; the attribution line is kept.",
+    canvas: async pxW => { const M = xmap, k = clamp(pxW/r0.width, 1, 8), od = M.dpr, ob = M.tileBias || 0; M.dpr = k; M.tileBias = Math.min(2, Math.round(Math.log2(k))); M.exporting = true;
+      try { for (let t = 0; t < 40; t++){ M.draw(); if (!M.miss) break; await new Promise(r => setTimeout(r, 350)); } M.draw(); const c = document.createElement("canvas"); c.width = cv0.width; c.height = cv0.height; const g = c.getContext("2d"); g.drawImage(cv0, 0, 0); g.getImageData(0, 0, 1, 1); return c; }
+      finally { M.dpr = od; M.tileBias = ob; M.exporting = false; M.req(); } }});
+}
+/* an export button on every chart in the app */
+function decorateExports(){
+  document.querySelectorAll("svg:not([data-x7])").forEach(s => { s.setAttribute("data-x7", "1");
+    if (s.closest("#cvWrap, .x7ctl, button, .chip, .rcard, .xsearch, .nav, nav, header, .x7eb, #modal")) return;
+    const r = s.getBoundingClientRect(), vb = (s.getAttribute("viewBox") || "").split(/[\s,]+/).map(Number), w = r.width || vb[2] || 0, h = r.height || vb[3] || 0; if (w < 150 || h < 80) return;
+    const par = s.parentElement; if (!par || par.querySelector(":scope > .x7eb")) return; if (getComputedStyle(par).position === "static") par.style.position = "relative";
+    const b = document.createElement("button"); b.className = "x7eb"; b.type = "button"; b.title = "Export this plot (PNG, PDF, SVG)"; b.textContent = "⬇"; par.appendChild(b);
+    b.onclick = e => { e.stopPropagation(); let t = ""; for (let n = par, up = 0; n && up < 4 && !t; n = n.parentElement, up++){ for (let p = n.previousElementSibling; p && !t; p = p.previousElementSibling){ if (/^H[2-5]$/.test(p.tagName)) t = p.textContent.trim(); } } t = (t || "plot").slice(0, 60);
+      exportDialog({name: ((XR.river && XR.river.name) || "earthform") + "_" + t.toLowerCase().replace(/[^\w]+/g, "_").slice(0, 40), title: t, svg: jr => inlineSvg(s, jr)}); }; });
+}
+let x7obsT = 0; new MutationObserver(() => { clearTimeout(x7obsT); x7obsT = setTimeout(decorateExports, 300); }).observe(document.body, {childList: true, subtree: true});
+
+/* clean view: map, plots or whole figure, at print size */
+function cvPartSVG(part){
+  const plan = $("cvPlan"), over = $("cvOver"), prof = $("cvProf"), [W, H] = cvSize(), ph = +prof.getAttribute("height") || 170;
+  const ov = over.innerHTML.replace(/<rect x="-4" y="-4"[^>]*stroke-dasharray="4 3"\/>/g, "");
+  if (part === "map") return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#fff"/><g>${plan.innerHTML}</g><g>${ov}</g></svg>`;
+  if (part === "plots"){ const pw = +prof.getAttribute("width") || W; return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${pw} ${ph}" width="${pw}" height="${ph}" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#fff"/>${prof.innerHTML}</svg>`; }
+  return cvExportSVG();
+}
+function cvExport(fmt){ const R = XR.river; EXPOPT.fmt = fmt; exportDialog({name: R.name + "_clean_view", title: "the clean view", journalOpt: false, parts: [["whole", "Whole figure (maps, plots, caption)", () => cvPartSVG("whole")], ["map", "Map(s) only", () => cvPartSVG("map")], ["plots", "Plots only", () => cvPartSVG("plots")]]}); }
+function cvZoomBtns(){ const m = document.querySelector("#cvWrap .cvmain"); if (!m || $("cvZ")) return; const d = document.createElement("div"); d.id = "cvZ"; d.className = "x7ctl cvz";
+  d.innerHTML = `<button data-cz="in" title="Zoom in">＋</button><button data-cz="out" title="Zoom out">－</button><button data-cz="l" title="Rotate left 15°">⟲</button><button data-cz="r" title="Rotate right 15°">⟳</button><button data-cz="n" title="North up"><span class="x7compass" id="cvCompass"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10 1l4 9h-8z" fill="#ff4d4f"/><path d="M10 19l4-9h-8z" fill="#cfd6dd"/></svg></span></button>`; m.appendChild(d);
+  d.querySelectorAll("[data-cz]").forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.cz; if (!CV.vb) return; if (k === "in") CV.vb.s /= 1.5; if (k === "out") CV.vb.s *= 1.5; if (k === "l") CV.rot = (CV.rot || 0) - Math.PI/12; if (k === "r") CV.rot = (CV.rot || 0) + Math.PI/12; if (k === "n") CV.rot = 0; $("cvCompass").style.transform = `rotate(${(CV.rot || 0)*180/Math.PI}deg)`; cvDraw(); });
+  d.onpointerdown = e => e.stopPropagation(); }
+{ const _ocv = openCleanView; openCleanView = function(){ _ocv(); if (!$("cvWrap") || !$("cvSvg")) return; $("cvSvg").onclick = () => cvExport("svg"); $("cvPng").onclick = () => cvExport("png"); $("cvPdf").onclick = () => cvExport("pdf"); cvZoomBtns(); }; }
+{ const b = $("xClean"); if (b) b.onclick = () => openCleanView(); const b2 = $("xClean2"); if (b2) b2.onclick = () => openCleanView(); }
+
+/* ---------- 5. trace editor: fix an incomplete or wrong centreline ---------- */
+function traceStart(){
+  const R = XR.river; if (!R) return toast("Load a river first");
+  XR.te = {R, pts: R.main.map(p => [p[0], p[1]]), mode: null, undo: [], log: [], A: null, B: null, add: []}; renderTeBar(); xmap.req();
+  xstatus("Editing the trace: cut it at the marker, extend either end by tapping the map or following OpenStreetMap, or redraw a stretch. Nothing changes until you press Apply.", "ok");
+}
+function teLen(P){ let s = 0; for (let i = 1; i < P.length; i++) s += hav(P[i - 1], P[i]); return s; }
+function teNearest(P, ll){ let bi = 0, bd = Infinity; const st = Math.max(1, Math.floor(P.length/5000)); for (let i = 0; i < P.length; i += st){ const d = hav(P[i], ll); if (d < bd){ bd = d; bi = i; } } for (let i = Math.max(0, bi - st); i <= Math.min(P.length - 1, bi + st); i++){ const d = hav(P[i], ll); if (d < bd){ bd = d; bi = i; } } return [bi, bd]; }
+function tePush(label){ const te = XR.te; te.undo.push({pts: te.pts, log: te.log.slice()}); if (te.undo.length > 30) te.undo.shift(); te.log.push(label); }
+function teMarkerIdx(){ const te = XR.te, p = pointAtKm(te.R, XR.pos); return teNearest(te.pts, p)[0]; }
+function teAct(k){
+  const te = XR.te; if (!te) return;
+  if (k === "cut0" || k === "cut1"){ const i = teMarkerIdx(); if (i < 1 || i > te.pts.length - 2) return toast("Move the marker (tap the river) to where the line should end"); const L0 = teLen(te.pts); tePush(""); te.pts = k === "cut0" ? te.pts.slice(i) : te.pts.slice(0, i + 1); te.log[te.log.length - 1] = `${k === "cut0" ? "removed upstream of" : "removed downstream of"} the marker (${nf(L0 - teLen(te.pts), 1)} km)`; }
+  if (k === "ext0" || k === "ext1" || k === "redraw"){ te.mode = te.mode === k ? null : k; te.add = []; if (k === "redraw" && te.mode){ if (te.A == null || te.B == null){ te.mode = null; return toast("Set A and B on the river first (move the marker, then press Set A / Set B)"); } } toast(te.mode ? (k === "redraw" ? "Tap the new course from A towards B, then press Done" : "Tap points beyond the " + (k === "ext0" ? "source" : "mouth") + " along the channel, then press Done") : "Stopped"); }
+  if (k === "done"){ if (te.mode && te.add.length){ tePush(""); const L0 = teLen(te.pts);
+      if (te.mode === "ext0") te.pts = te.add.slice().reverse().concat(te.pts); else if (te.mode === "ext1") te.pts = te.pts.concat(te.add);
+      else { let [a, b] = [te.A, te.B]; if (a > b) [a, b] = [b, a]; te.pts = te.pts.slice(0, a + 1).concat(te.A > te.B ? te.add.slice().reverse() : te.add, te.pts.slice(b)); te.A = te.B = null; }
+      te.log[te.log.length - 1] = te.mode === "redraw" ? `redrew a stretch by hand (${te.add.length} points)` : `extended the ${te.mode === "ext0" ? "source" : "mouth"} by hand (${nf(teLen(te.pts) - L0, 1)} km)`; } te.mode = null; te.add = []; }
+  if (k === "A" || k === "B") te[k] = teMarkerIdx();
+  if (k === "rev"){ tePush("reversed the flow direction"); te.pts = te.pts.slice().reverse(); }
+  if (k === "undo"){ const u = te.undo.pop(); if (u){ te.pts = u.pts; te.log = u.log; } }
+  if (k === "osm0" || k === "osm1") return teFollowOSM(k === "osm1");
+  if (k === "cancel"){ XR.te = null; renderTeBar(); xmap.req(); xstatus("Trace edit cancelled; nothing changed.", "ok"); return; }
+  if (k === "apply") return teApply();
+  renderTeBar(); xmap.req();
+}
+async function teFollowOSM(down){
+  const te = XR.te, used = new Set(), L0 = teLen(te.pts); let steps = 0; tePush(""); actSet("te", `Following OpenStreetMap ${down ? "downstream" : "upstream"}…`);
+  try {
+    for (; steps < 14; steps++){
+      const tip = down ? te.pts[te.pts.length - 1] : te.pts[0];
+      const q = `[out:json][timeout:60];way(around:150,${tip[0].toFixed(6)},${tip[1].toFixed(6)})[waterway~"^(river|stream|canal|tidal_channel)$"];out geom tags;`;
+      const els = ((await overpass(q)).elements || []).filter(w => w.type === "way" && w.geometry && w.geometry.length > 1 && !used.has(w.id));
+      let best = null, bs = 0; const far = te.pts.filter((_, i) => i % Math.max(1, Math.floor(te.pts.length/400)) === 0);
+      for (const w of els){ const g = w.geometry.map(p => [p.lat, p.lon]); let j = -1, jd = .15; g.forEach((p, i) => { const d = hav(p, tip); if (d < jd){ jd = d; j = i; } }); if (j < 0) continue;
+        const seg = down ? g.slice(j + 1) : g.slice(0, j).reverse(); if (seg.length < 1) continue;
+        const end = seg[seg.length - 1]; if (far.some(p => hav(p, end) < .08)) continue; // would double back onto the trace
+        const len = teLen([tip, ...seg]), nm = w.tags && (w.tags.name || ""), score = len*(nm && nm === te.R.name ? 4 : 1)*(w.tags && w.tags.waterway === "river" ? 2 : 1);
+        if (score > bs){ bs = score; best = {id: w.id, seg, nm}; } }
+      if (!best) break; used.add(best.id); te.pts = down ? te.pts.concat(best.seg) : best.seg.slice().reverse().concat(te.pts); xmap.req();
+      actSet("te", `Following OpenStreetMap ${down ? "downstream" : "upstream"}: +${nf(teLen(te.pts) - L0, 1)} km`);
+    }
+  } catch(e){ toast("OpenStreetMap: " + e.message, 4000); } finally { actEnd("te"); }
+  const gain = teLen(te.pts) - L0; if (gain < .01){ te.undo.pop(); te.log.pop(); toast(`No connected ${down ? "downstream" : "upstream"} waterway found in OpenStreetMap: extend by tapping instead`, 4500); }
+  else { te.log[te.log.length - 1] = `followed OpenStreetMap ${down ? "downstream" : "upstream"} (+${nf(gain, 1)} km, ${used.size} ways)`; toast(`Added ${nf(gain, 1)} km from ${used.size} OpenStreetMap ways. Check it, then Apply.`, 4000); }
+  renderTeBar(); xmap.req();
+}
+async function teApply(){
+  const te = XR.te, R = te.R; if (te.pts.length < 2) return toast("The line needs at least two points");
+  const dense = []; for (let i = 0; i + 1 < te.pts.length; i++){ const a = te.pts[i], b = te.pts[i + 1], n = Math.max(1, Math.ceil(hav(a, b)/.08)); for (let t = 0; t < n; t++) dense.push([a[0] + (b[0] - a[0])*t/n, a[1] + (b[1] - a[1])*t/n]); } dense.push(te.pts[te.pts.length - 1]);
+  const oldMouth = R.main[R.main.length - 1]; R.main = dense; R.cum = withCum(dense); R.L = R.cum[R.cum.length - 1];
+  const reKm = (o, max) => { const [i, d] = teNearest(dense, [o.lat, o.lon]); o.km = R.cum[i]; return d <= max; };
+  R.tribs = R.tribs.filter(t => reKm(t, 2)); R.dams = R.dams.filter(d => reKm(d, 1)); R.tribs.sort((a, b) => a.km - b.km); R.dams.sort((a, b) => a.km - b.km);
+  R.nodeIdx = null; R.mainNodes = null; R.prof = null; R.reaches = null; R.fp = null; R.delta = null; if (hav(oldMouth, dense[dense.length - 1]) > .5) R.basin = null;
+  R.edits = (R.edits || []).concat({when: new Date().toISOString(), ops: te.log.filter(Boolean)}); R.osmNote = "centreline edited by the user: " + R.edits.flatMap(e => e.ops).join("; ");
+  XR.te = null; renderTeBar(); XR.pos = clamp(XR.pos, 0, R.L); XR.range = null; buildReaches(R); xmap.fit(R.main); renderX();
+  xstatus(`Trace updated: ${km(R.L)}. Re-reading elevation and re-measuring…`, "busy");
+  try { await loadProfile(R); buildReaches(R); renderX(); xstatus(`<b>${esc(R.name)}</b> (edited trace): ${km(R.L)}, falling ${nf(R.prof.drop)} m. All modules now use the edited line; the edit is recorded with the results.`, "ok"); autoWidth(R, XR.loadTok); }
+  catch(e){ xstatus("Elevation: " + esc(e.message), "err"); }
+}
+function renderTeBar(){
+  let b = $("x7TeBar"); const box = document.querySelector(".xmapbox"); if (!box) return;
+  if (!b){ b = document.createElement("div"); b.id = "x7TeBar"; b.className = "x7tebar glass"; box.appendChild(b); }
+  const te = XR.te; if (!te){ b.style.display = "none"; return; } b.style.display = "";
+  const btn = (k, t, on, ttl) => `<button class="sm${on ? " pri" : ""}" data-te="${k}"${ttl ? ` title="${ttl}"` : ""}>${t}</button>`;
+  b.innerHTML = `<div class="x7teh"><b>Edit trace</b><span>${km(teLen(te.pts))}${te.log.filter(Boolean).length ? " · " + te.log.filter(Boolean).length + " change" + (te.log.filter(Boolean).length > 1 ? "s" : "") : ""}</span></div>
+    ${te.mode ? `<div class="x7terow"><span class="note">${te.mode === "redraw" ? "Tap the new course from A to B" : "Tap the map beyond the " + (te.mode === "ext0" ? "source" : "mouth")} · ${te.add.length} points</span>${btn("done", "✓ Done", true)}${btn(te.mode, "Stop")}</div>` : `
+    <div class="x7terow">${btn("osm0", "⤴ Follow OSM upstream", false, "Add connected waterways above the source")}${btn("osm1", "⤵ Follow OSM downstream", false, "Add connected waterways below the mouth")}</div>
+    <div class="x7terow">${btn("ext0", "＋ Extend source by hand")}${btn("ext1", "＋ Extend mouth by hand")}</div>
+    <div class="x7terow">${btn("cut0", "✂ Cut above marker")}${btn("cut1", "✂ Cut below marker")}${btn("rev", "⇄ Reverse")}</div>
+    <div class="x7terow">${btn("A", te.A != null ? "A ✓" : "Set A")}${btn("B", te.B != null ? "B ✓" : "Set B")}${btn("redraw", "✎ Redraw A→B")}</div>`}
+    <div class="x7terow">${btn("undo", "↺ Undo")}${btn("apply", "Apply & re-analyse", true)}${btn("cancel", "Cancel")}</div>`;
+  b.querySelectorAll("[data-te]").forEach(x => x.onclick = () => teAct(x.dataset.te));
+}
+function drawTraceEdit(ctx, M){
+  const te = XR.te; if (!te) return; const P = te.pts, st = Math.max(1, Math.floor(P.length/4000));
+  ctx.save(); ctx.lineCap = ctx.lineJoin = "round"; ctx.strokeStyle = "rgba(0,0,0,.6)"; ctx.lineWidth = 7; ctx.beginPath(); for (let i = 0; i < P.length; i += st){ const q = M.toScr(P[i][0], P[i][1]); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); } { const q = M.toScr(P[P.length - 1][0], P[P.length - 1][1]); ctx.lineTo(q[0], q[1]); } ctx.stroke();
+  ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 3.5; ctx.stroke();
+  if (te.add.length){ const base = te.mode === "ext0" ? P[0] : te.mode === "ext1" ? P[P.length - 1] : P[te.A]; ctx.setLineDash([7, 5]); ctx.strokeStyle = "#ff4dd2"; ctx.lineWidth = 3; ctx.beginPath(); [base, ...te.add].forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); ctx.setLineDash([]); for (const p of te.add){ const q = M.toScr(p[0], p[1]); ctx.beginPath(); ctx.arc(q[0], q[1], 4.5, 0, 7); ctx.fillStyle = "#ff4dd2"; ctx.fill(); } }
+  for (const [i, t] of [[0, "Source"], [P.length - 1, "Mouth"], [te.A, "A"], [te.B, "B"]]){ if (i == null) continue; const q = M.toScr(P[i][0], P[i][1]); ctx.beginPath(); ctx.arc(q[0], q[1], 8, 0, 7); ctx.fillStyle = "#111"; ctx.fill(); ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 2.5; ctx.stroke(); ctx.fillStyle = "#ffd84a"; ctx.font = "700 11px Inter, sans-serif"; ctx.fillText(t, q[0] + 11, q[1] - 8); }
+  ctx.restore();
+}
+{ const _mt = mapTap; mapTap = function(sx, sy){ const te = XR.te; if (te && te.mode){ te.add.push(xmap.toGeo(sx, sy)); renderTeBar(); xmap.req(); return; } if (te){ const R = XR.river, ll = xmap.toGeo(sx, sy), [i, d] = teNearest(te.pts, ll); const q = xmap.toScr(te.pts[i][0], te.pts[i][1]); if (Math.hypot(q[0] - sx, q[1] - sy) < 28 && R){ const [j] = teNearest(R.main, te.pts[i]); setPos(R.cum[j]); xmap.req(); } return; } return _mt(sx, sy); }; }
+
+/* ---------- 6. wiring ---------- */
+function initX7(){
+  initMapCtl();
+  const tools = document.querySelector(".xtools");
+  if (tools && !$("x7SrcBtn")){ const a = document.createElement("button"); a.id = "x7SrcBtn"; a.className = "chipbtn"; a.textContent = "🗂 Data sources"; a.title = "Choose elevation, water and imagery sources (with recommendations)"; a.onclick = openSources; tools.appendChild(a);
+    const e = document.createElement("button"); e.id = "x7EditBtn"; e.className = "chipbtn"; e.textContent = "✎ Edit trace"; e.title = "Fix an incomplete or wrong centreline"; e.onclick = traceStart; tools.appendChild(e); }
+}
+initX7();
+{ const _rx = renderX; renderX = function(){ _rx(); try { const e = $("x7EditBtn"); if (e) e.style.display = XR.river ? "" : "none"; const ps = $("xProfStats"); if (ps && XR.river && XR.river.prof){ ps.querySelectorAll(".x7alt").forEach(n => n.remove()); const pr = XR.river.prof; ps.insertAdjacentHTML("beforeend", `<p class="note">Elevation source: ${esc(demLabel(pr, true))}. <a href="#" class="x7srcl">Change or cross-check</a></p>` + altHTML(pr)); const l = ps.querySelector(".x7srcl"); if (l) l.onclick = ev => { ev.preventDefault(); openSources(); }; } } catch(err){ console.warn(err); } }; }
+
+/* ===================== Earthform Lens — like-for-like comparison of several rivers ===================== */
+const CMPMAX = 8;
+CMPC.push("#ffd84a", "#ff6fb5", "#8fb8ff", "#b5e07a");
+/* each river keeps its own reach length once harmonised, so loading another river does not change it */
+{ const _br = buildReaches; buildReaches = function(R){ if (R && R.reachKm > 0){ const keep = XR.reachKm; XR.reachKm = R.reachKm; try { return _br(R); } finally { XR.reachKm = keep; } } return _br(R); }; }
+XR.cmpRef = 0; XR.harmOpt = Object.assign({scale: "abs", width: true, reaches: 20}, (() => { try { return JSON.parse(localStorage.getItem("efl.harm")) || {}; } catch(_){ return {}; } })());
+
+/* ---------- add several rivers by name ---------- */
+async function cmpAddNames(text){
+  const names = text.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean).slice(0, CMPMAX); if (!names.length) return;
+  const ok = [], fail = []; let i = 0;
+  for (const nm of names){ i++; actSet("cmpadd", `Comparison: loading ${nm} (${i} of ${names.length})…`, (i - 1)/names.length);
+    try { const res = await searchRivers(nm, null, {}); const hit = res.find(r => r.water && r.osm_type === "relation") || res.find(r => r.water) || res[0]; if (!hit) throw new Error("not found");
+      await loadRiver(hit); const R = XR.river; if (!R || !R.prof) throw new Error("could not be loaded");
+      if (!XR.cmp.some(c => c.R === R)){ if (XR.cmp.length >= CMPMAX) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: R.name}); } ok.push(R.name); }
+    catch(e){ console.warn(e); fail.push(`${nm} (${e.message})`); } }
+  actEnd("cmpadd"); showXTab("compare"); renderX();
+  xstatus(`Comparison: ${ok.length ? "added " + ok.map(esc).join(", ") : "nothing added"}${fail.length ? `. Not found: ${fail.map(esc).join("; ")}` : ""}.${ok.length > 1 ? " Press <b>Make comparable</b> so every river is measured the same way." : ""}`, fail.length && !ok.length ? "err" : "ok");
+}
+
+/* ---------- harmonise: one source, one resolution, one sampling, one reach definition ---------- */
+const defZoom = L => L > 1500 ? 9 : L > 400 ? 10 : L > 80 ? 11 : 12;
+function harmPlan(opt){
+  const Rs = [...new Set(XR.cmp.map(c => c.R))], Ls = Rs.map(R => R.L), z = Math.min(...Ls.map(defZoom)), Lmin = Math.min(...Ls), Lmax = Math.max(...Ls);
+  const nice = v => { const p = 10**Math.floor(Math.log10(v)), m = v/p; return (m >= 5 ? 5 : m >= 2 ? 2 : 1)*p; };
+  const plan = new Map();
+  for (const R of Rs){
+    if (opt.scale === "abs"){ const step = Math.max(.1, Lmax/2500), reach = nice(clamp(Lmin/Math.max(4, opt.reaches/2), .5, 100)), slopeKm = Math.max(4*step, Math.max(2, Lmin/150)); plan.set(R, {step, reach, z, slopeKm, smoothKm: 7*step}); }
+    else { const step = Math.max(.05, R.L/2500); plan.set(R, {step, reach: R.L/opt.reaches, z, slopeKm: Math.max(2*step, R.L/150), smoothKm: 7*step}); }
+  }
+  const warn = []; for (const [R, p] of plan){ const n = R.L/p.step; if (n < 300) warn.push(`${R.name}: only ${Math.round(n)} profile samples at ${nf(p.step*1000)} m spacing`); if (R.L/p.reach < 4) warn.push(`${R.name}: fewer than 4 reaches`); }
+  return {Rs, plan, z, warn};
+}
+async function cmpHarmonise(opt){
+  const {Rs, plan, z} = harmPlan(opt), keepPP = XR.pp, dem = XR.src.dem; let i = 0;
+  XR.harmBusy = true;
+  try {
+    for (const R of Rs){ i++; const p = plan.get(R); actSet("harm", `Making comparable: ${R.name} (${i} of ${Rs.length}) — elevation`, (i - 1)/Rs.length);
+      XR.pp = {...(keepPP || {}), step: p.step, slopeKm: p.slopeKm, smoothKm: p.smoothKm}; await loadProfile(R, z); R.reachKm = p.reach; for (const r of R.reaches || []) r.width = null; buildReaches(R); if (R.basin) try { alongRiverArea(R); } catch(_){}
+      R.harm = {when: new Date().toISOString(), mode: opt.scale, z, stepKm: p.step, reachKm: p.reach, dem, widthSrc: XR.src.water, version: METHOD_VERSION}; }
+    XR.pp = keepPP;
+    if (opt.width){ i = 0; for (const R of Rs){ i++; actSet("harm", `Making comparable: ${R.name} (${i} of ${Rs.length}) — channel width`, i/Rs.length); await autoWidth(R, XR.loadTok, true, true); } }
+    for (const c of XR.cmp) c.k1 = Math.min(c.k1, c.R.L);
+    xstatus(`All ${Rs.length} rivers now use ${esc(DEMSRC[dem] ? DEMSRC[dem].n : dem)} at zoom ${z}, ${opt.scale === "abs" ? `the same ${nf(plan.get(Rs[0]).step*1000)} m sampling and ${km(plan.get(Rs[0]).reach)} reaches` : `sampling and reaches scaled to each river's length (1/${opt.reaches} of its length per reach)`}${opt.width ? ", and freshly measured widths" : ""}.`, "ok");
+  } catch(e){ console.error(e); xstatus("Make comparable: " + esc(e.message), "err"); }
+  finally { XR.pp = keepPP; XR.harmBusy = false; actEnd("harm"); renderX(); }
+}
+function harmDialog(){
+  const o = XR.harmOpt, P = harmPlan(o);
+  modal(`<h3>Make the rivers comparable</h3><p class="note">Different rivers are loaded with settings that suit each one (finer terrain and shorter reaches for small rivers). To compare like with like, every river is re-measured with the same elevation source and resolution and one sampling and reach definition.</p>
+    <label class="x7opt${o.scale === "abs" ? " on" : ""}"><input type="radio" name="hs" value="abs"${o.scale === "abs" ? " checked" : ""}><div><b>Same absolute scale</b><small>Identical sampling (m) and reach length (km) everywhere. Use for slopes, widths and bend sizes in real units.</small></div></label>
+    <label class="x7opt${o.scale === "rel" ? " on" : ""}"><input type="radio" name="hs" value="rel"${o.scale === "rel" ? " checked" : ""}><div><b>Same relative scale</b><small>Sampling and reaches as a fixed fraction of each river's length. Use for shape: concavity, normalised profiles, downstream trends of small vs large rivers.</small></div></label>
+    <label class="fl">Reaches per river (relative scale) / guide for absolute<select id="x8Nr">${[10, 20, 40].map(v => `<option${o.reaches === v ? " selected" : ""}>${v}</option>`).join("")}</select></label>
+    <label class="chk"><input type="checkbox" id="x8W"${o.width ? " checked" : ""}> Re-measure channel width at the new reaches (slower)</label>
+    <p class="note">Elevation for all: <b>${esc(DEMSRC[XR.src.dem].n)}</b> at terrain zoom ${P.z} (the coarsest any river needs, so none is measured more finely than another). <a href="#" id="x8Src">Change source</a></p>
+    ${P.warn.length ? `<p class="warn">${P.warn.map(esc).join("<br>")}</p>` : ""}
+    <div class="btns"><button class="pri" id="x8Go">Re-measure ${P.Rs.length} rivers</button><button id="x8X">Cancel</button></div>`);
+  $("x8X").onclick = closeModal; $("x8Src").onclick = e => { e.preventDefault(); closeModal(); openSources(); };
+  $("x8Go").onclick = () => { o.scale = (document.querySelector('input[name="hs"]:checked') || {}).value || "abs"; o.reaches = +$("x8Nr").value; o.width = $("x8W").checked; try { localStorage.setItem("efl.harm", JSON.stringify(o)); } catch(_){} closeModal(); cmpHarmonise(o); };
+}
+
+/* ---------- comparability certificate ---------- */
+function certRows(){
+  const C = XR.cmp, row = (n, f) => [n, C.map(c => { try { return f(c.R, c); } catch(_){ return "–"; } })];
+  const wcov = R => { const rs = R.reaches || []; return rs.length ? rs.filter(r => r.width && Number.isFinite(r.width.med)).length/rs.length : 0; };
+  return [
+    row("Elevation source", R => R.prof ? demLabel(R.prof) : "–"),
+    row("Terrain zoom", R => R.prof ? `z${R.prof.z}` : "–"),
+    row("Terrain cell (varies with latitude)", R => R.prof ? `≈${nf(R.prof.res)} m` : "–"),
+    row("Profile sampling", R => R.prof ? nf(R.prof.params.stepKm*1000) + " m" : "–"),
+    row("Smoothing window", R => R.prof ? km(R.prof.params.smoothKm) : "–"),
+    row("Slope window", R => R.prof ? km(R.prof.params.slopeKm) : "–"),
+    row("Conditioning", R => R.prof ? String(R.prof.params.cond).split(" (")[0] : "–"),
+    row("Reach length", R => R.reaches && R.reaches[0] ? km(R.reaches[0].L) : "–"),
+    row("Reaches", R => String((R.reaches || []).length)),
+    row("Width source", R => (R.reaches || []).some(r => r.width) ? (XR.src.water === "user" && XR.userWater ? "your polygons" : "OSM water areas") : "not measured"),
+    row("Width coverage", R => nf(100*wcov(R), 0) + " % of reaches"),
+    row("Centreline", R => (/^(relation|way)\//.test(R.osm) ? "OpenStreetMap " + R.osm : R.osm) + (R.edits ? " (edited)" : "")),
+    row("Made comparable", R => R.harm ? `${R.harm.mode === "abs" ? "absolute" : "relative"} scale` : "no"),
+  ];
+}
+function certHTML(){
+  const rows = certRows(), C = XR.cmp, diffs = [];
+  const cells = rows.map(([n, v]) => { const mode = (() => { const m = new Map(); v.forEach(x => m.set(x, (m.get(x) || 0) + 1)); return [...m.entries()].sort((a, b) => b[1] - a[1])[0][0]; })();
+    const crit = !/Centreline|Reaches|Width coverage|cell/.test(n), relOK = XR.cmp.every(c => c.R.harm && c.R.harm.mode === "rel") && /sampling|Smoothing|Slope window|Reach length/.test(n);
+    const num = x => parseFloat(String(x).replace(/[^\d.]/g, "")), close = (x, y) => x === y || (/\d/.test(x) && /\d/.test(y) && String(x).replace(/[\d.,\s≈]/g, "") === String(y).replace(/[\d.,\s≈]/g, "") && Math.abs(num(x) - num(y)) <= .06*Math.max(num(x), num(y)));
+    const bad = crit && !relOK && v.some(x => !close(x, mode)); if (bad) diffs.push(n.toLowerCase());
+    return `<tr><td>${n}</td>${v.map(x => `<td class="${bad && !close(x, mode) ? "x8diff" : ""}">${esc(x)}</td>`).join("")}</tr>`; }).join("");
+  const lowW = C.filter(c => (c.R.reaches || []).length && (c.R.reaches || []).filter(r => r.width && Number.isFinite(r.width.med)).length/(c.R.reaches.length) < .5).map(c => c.label);
+  return `<div class="card x8cert"><h4>Comparability check</h4>${diffs.length ? `<p class="warn">Not like for like: ${diffs.join(", ")} differ (highlighted). Press <b>Make comparable</b>.</p>` : `<p class="note x8ok">✓ Measured the same way: same elevation source and resolution, sampling, windows and reach definition.</p>`}
+    ${lowW.length ? `<p class="note">Width covers under half the reaches for ${lowW.map(esc).join(", ")}: width-based ratios there describe only the mapped stretches.</p>` : ""}
+    <div class="scroll"><table class="grid"><tr><th></th>${C.map((c, i) => `<th style="color:${CMPC[i]}">${esc(c.label)}</th>`).join("")}</tr>${cells}</table></div></div>`;
+}
+
+/* ---------- dimensionless and normalised metrics, with a reference river ---------- */
+function sysMetrics(c){
+  const R = c.R, s = rangeStats(R, c.k0, c.k1), rs = (R.reaches || []).filter(r => r.k1 > c.k0 && r.k0 < c.k1), L = c.k1 - c.k0, pr = R.prof;
+  const W = rs.map(r => r.width && r.width.med).filter(Number.isFinite), Wm = W.length ? median(W) : NaN;
+  const lw = rs.filter(r => r.width && Number.isFinite(r.width.med) && Number.isFinite(r.lambda)).map(r => r.lambda*1000/r.width.med), rcw = rs.filter(r => r.width && Number.isFinite(r.width.med) && Number.isFinite(r.Rc) && r.Rc < r.L).map(r => r.Rc*1000/r.width.med);
+  const kn = pr ? pr.knick.filter(k => k.km >= c.k0 && k.km <= c.k1 && !k.artefact && k.scales >= 2).length : NaN;
+  const zt = s.zones.source + s.zones.transfer + s.zones.storage + s.zones.sink;
+  return {L, fall: s.fall, grad: s.grad, conc: s.conc, sin: s.sin, sinR: median(rs.map(r => r.sin).filter(Number.isFinite)), W: Wm, lw: lw.length ? median(lw) : NaN, rcw: rcw.length ? median(rcw) : NaN, lam: s.lambda, ksn: s.ksn, HI: s.basin ? s.basin.HI : NaN,
+    trib: s.tribs/L*100, dams: s.dams/L*100, knick: kn/L*100, store: zt ? s.zones.storage/zt : NaN, src: zt ? s.zones.source/zt : NaN,
+    dist: {sin: rs.map(r => r.sin).filter(Number.isFinite), W, slope: rs.map(r => r.slope).filter(v => Number.isFinite(v) && v > 0), lw}};
+}
+const NMET = [
+  ["L", "Length", "km", "scale", v => nf(v)], ["fall", "Fall (relief along river)", "m", "scale", v => nf(v)], ["grad", "Mean gradient", "m/km", "real", v => nf(v, 3)],
+  ["conc", "Concavity (Langbein)", "–", "dimless", v => nf(v, 2)], ["sin", "Sinuosity (whole stretch)", "–", "dimless", v => nf(v, 2)], ["sinR", "Median reach sinuosity", "–", "dimless", v => nf(v, 2)],
+  ["W", "Median channel width", "m", "real", v => nf(v)], ["lw", "Meander wavelength ÷ width", "–", "dimless", v => nf(v, 1)], ["rcw", "Bend radius ÷ width", "–", "dimless", v => nf(v, 1)],
+  ["ksn", "Median steepness ksn (θref 0.45)", "m^0.9", "real", v => tfmt(v)], ["HI", "Hypsometric integral", "–", "dimless", v => nf(v, 2)],
+  ["trib", "Tributaries per 100 km", "/100 km", "density", v => nf(v, 1)], ["dams", "Dams and weirs per 100 km", "/100 km", "density", v => nf(v, 2)], ["knick", "Robust knickpoints per 100 km", "/100 km", "density", v => nf(v, 2)],
+  ["src", "Share of length: potential source (interp.)", "%", "dimless", v => nf(v*100, 0)], ["store", "Share of length: storage (interp.)", "%", "dimless", v => nf(v*100, 0)],
+];
+/** two-sample Kolmogorov–Smirnov: D and an approximate p (reaches are not fully independent: treat p as indicative) */
+function ksTest(a, b){
+  if (a.length < 4 || b.length < 4) return null; const A = a.slice().sort((x, y) => x - y), B = b.slice().sort((x, y) => x - y); let i = 0, j = 0, D = 0;
+  while (i < A.length && j < B.length){ const v = Math.min(A[i], B[j]); while (i < A.length && A[i] <= v) i++; while (j < B.length && B[j] <= v) j++; D = Math.max(D, Math.abs(i/A.length - j/B.length)); }
+  const en = Math.sqrt(A.length*B.length/(A.length + B.length)), l = (en + .12 + .11/en)*D; let p = 0; for (let k = 1; k <= 100; k++) p += 2*(-1)**(k - 1)*Math.exp(-2*k*k*l*l); return {D, p: clamp(p, 0, 1), n1: A.length, n2: B.length};
+}
+function metricsHTML(){
+  const C = XR.cmp, M = C.map(sysMetrics), ref = clamp(XR.cmpRef || 0, 0, C.length - 1), m0 = M[ref];
+  const kinds = {scale: "size", real: "real units", dimless: "dimensionless", density: "per length"};
+  const rows = NMET.filter(([k]) => M.some(m => Number.isFinite(m[k]))).map(([k, n, u, kind, f]) => {
+    const vals = M.map(m => m[k]), fin = vals.filter(Number.isFinite), rank = v => Number.isFinite(v) ? 1 + fin.filter(x => x > v).length : null;
+    return `<tr><td>${n}<small class="x8k">${kinds[kind]}${u !== "–" ? " · " + u : ""}</small></td>${vals.map((v, i) => { const r = m0[k], d = i !== ref && Number.isFinite(v) && Number.isFinite(r) && r !== 0 ? (v/r - 1)*100 : null;
+      return `<td>${Number.isFinite(v) ? f(v) : "–"}${d != null ? `<small class="x8d ${Math.abs(d) > 25 ? "big" : ""}">${d >= 0 ? "+" : ""}${nf(d, 0)} %</small>` : ""}${fin.length > 2 && Number.isFinite(v) ? `<small class="x8r">#${rank(v)}</small>` : ""}</td>`; }).join("")}</tr>`; }).join("");
+  const tests = [["sin", "Reach sinuosity"], ["W", "Reach width"], ["slope", "Reach gradient"], ["lw", "Wavelength ÷ width"]].map(([k, n]) => {
+    const cells = M.map((m, i) => { if (i === ref) return `<td class="note">reference</td>`; const t = ksTest(m.dist[k], m0.dist[k]); if (!t) return `<td>–</td>`; const med = median(m.dist[k])/median(m0.dist[k]);
+      return `<td>${t.p < .01 ? "<b>different</b>" : t.p < .05 ? "<b>likely different</b>" : "not distinguishable"}<small class="x8k">D = ${nf(t.D, 2)}, p ≈ ${t.p < .001 ? "<0.001" : nf(t.p, 3)}, median ×${nf(med, 2)}, n = ${t.n1}/${t.n2}</small></td>`; });
+    return M.some((m, i) => i !== ref && ksTest(m.dist[k], m0.dist[k])) ? `<tr><td>${n}</td>${cells.join("")}</tr>` : ""; }).join("");
+  return `<div class="card"><h4>Like-for-like metrics</h4><div class="row"><label>Reference</label><select id="x8Ref">${C.map((c, i) => `<option value="${i}"${i === ref ? " selected" : ""}>${esc(c.label)}</option>`).join("")}</select></div>
+    <p class="note">Percentages are differences from the reference; # is the rank (1 = highest). Dimensionless measures compare rivers of different size directly; size and real-unit measures are only like for like after <b>Make comparable</b> (absolute scale).</p>
+    <div class="scroll"><table class="grid x8t"><tr><th></th>${C.map((c, i) => `<th style="color:${CMPC[i]}">${esc(c.label)}${i === ref ? " (ref.)" : ""}</th>`).join("")}</tr>${rows}</table></div>
+    ${tests ? `<h4>Are the distributions different?</h4><p class="note">Two-sample Kolmogorov–Smirnov test of per-reach values against the reference. Neighbouring reaches are not independent, so p is indicative; it is only meaningful when reach lengths match (after Make comparable).</p><div class="scroll"><table class="grid x8t"><tr><th></th>${C.map((c, i) => `<th style="color:${CMPC[i]}">${esc(c.label)}</th>`).join("")}</tr>${tests}</table></div>` : ""}
+    <h4>Normalised long profiles</h4><p class="note">Distance ÷ length against height above the end ÷ fall: shape only, independent of size. The dashed line is a straight (uniform-gradient) profile; deeper curves are more concave.</p><div class="xchart" id="x8NProf"></div>
+    <h4>Downstream width (normalised distance)</h4><div class="xchart" id="x8NW"></div>
+    <h4>Distributions</h4><div class="row"><label>Measure</label><select id="x8Dk">${[["sin", "Reach sinuosity"], ["W", "Reach width (m)"], ["slope", "Reach gradient (m/km)"], ["lw", "Wavelength ÷ width"]].map(([k, n]) => `<option value="${k}"${XR.x8Dk === k ? " selected" : ""}>${n}</option>`).join("")}</select></div><div class="xchart" id="x8Ecdf"></div>
+    <h4>Plan views</h4><div class="row"><label>Scale</label><select id="x8PScale"><option value="same"${XR.x8Ps !== "fit" ? " selected" : ""}>Same scale (true relative size)</option><option value="fit"${XR.x8Ps === "fit" ? " selected" : ""}>Each fitted (shape)</option></select><label class="chk"><input type="checkbox" id="x8Align"${XR.x8Al !== false ? " checked" : ""}> Source → mouth left to right</label></div><div id="x8Plan" class="x8plan"></div></div>`;
+}
+function x8Charts(){
+  const C = XR.cmp; if (!C.length || !$("x8NProf")) return; const M = C.map(sysMetrics);
+  svgChart($("x8NProf"), {h: 230, xlab: "Distance ÷ length (0 = start, 1 = end)", ylab: "Height above end ÷ fall", x0: 0, x1: 1, y0: 0, series: [{x: [0, 1], y: [1, 0], c: "#9aa3ad", w: 1, dash: true}, ...C.map((c, i) => { const pr = c.R.prof; if (!pr) return {x: [], y: [], c: CMPC[i]}; const i0 = Math.round(c.k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(c.k1/pr.step)), z0 = pr.zc[i0], z1 = pr.zc[i1], H = (z0 - z1) || 1, L = c.k1 - c.k0;
+    return {x: Array.from(pr.d.slice(i0, i1 + 1), d => (d - c.k0)/L), y: Array.from(pr.zc.slice(i0, i1 + 1), z => (z - z1)/H), c: CMPC[i], w: 2.2}; })]});
+  const ws = C.map((c, i) => { const rs = (c.R.reaches || []).filter(r => r.k1 > c.k0 && r.k0 < c.k1 && r.width && Number.isFinite(r.width.med)), L = c.k1 - c.k0; return {x: rs.map(r => ((r.k0 + r.k1)/2 - c.k0)/L), y: rs.map(r => r.width.med), c: CMPC[i], w: 2}; });
+  if (ws.some(s => s.x.length)) svgChart($("x8NW"), {h: 200, xlab: "Distance ÷ length", ylab: "Median reach width (m, log)", logy: true, x0: 0, x1: 1, series: ws}); else $("x8NW").innerHTML = `<p class="note">No widths yet: they are measured automatically after loading, or with Make comparable.</p>`;
+  const k = XR.x8Dk || "sin", ser = M.map((m, i) => { const v = m.dist[k].slice().sort((a, b) => a - b); return {x: v, y: v.map((_, j) => (j + 1)/v.length), c: CMPC[i], w: 2}; });
+  if (ser.some(s => s.x.length)) svgChart($("x8Ecdf"), {h: 200, xlab: {sin: "Reach sinuosity", W: "Reach width (m)", slope: "Reach gradient (m/km)", lw: "Wavelength ÷ width"}[k], ylab: "Cumulative fraction", y0: 0, series: ser}); else $("x8Ecdf").innerHTML = `<p class="note">No values for this measure yet.</p>`;
+  x8PlanViews();
+}
+function x8PlanViews(){
+  const el = $("x8Plan"); if (!el) return; const C = XR.cmp, same = XR.x8Ps !== "fit", align = XR.x8Al !== false;
+  const G = C.map(c => { const R = c.R, i0 = idxAtKm(R, c.k0), i1 = idxAtKm(R, c.k1), st = Math.max(1, Math.floor((i1 - i0)/1500)); const P = []; for (let i = i0; i <= i1; i += st) P.push(R.main[i]); P.push(R.main[i1]);
+    const a = P[0], L0 = toLocal(P, a[0], a[1]); let Q = L0; if (align){ const e = L0[L0.length - 1], t = -Math.atan2(e[1], e[0]); Q = L0.map(p => [p[0]*Math.cos(t) - p[1]*Math.sin(t), p[0]*Math.sin(t) + p[1]*Math.cos(t)]); }
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity; for (const p of Q){ x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); } return {Q, x0, x1, y0, y1}; });
+  const cols = el.clientWidth < 520 ? 1 : C.length > 4 ? 3 : 2, cw = Math.floor((el.clientWidth || 600)/cols) - 8, ch = Math.round(cw*.55);
+  const sMax = Math.max(...G.map(g => Math.max((g.x1 - g.x0)/(cw - 24), (g.y1 - g.y0)/(ch - 44))));
+  el.innerHTML = G.map((g, i) => { const s = same ? sMax : Math.max((g.x1 - g.x0)/(cw - 24), (g.y1 - g.y0)/(ch - 44)), cx = (g.x0 + g.x1)/2, cy = (g.y0 + g.y1)/2, X = v => (v - cx)/s + cw/2, Y = v => (v - cy)/s + (ch + 8)/2;
+    const bar = (() => { const t = (cw*.3)*s, p = 10**Math.floor(Math.log10(t)), l = [1, 2, 5].map(k => k*p).filter(v => v <= t).pop() || p; return {l, px: l/s}; })(), c = C[i], m = sysMetrics(c);
+    return `<svg viewBox="0 0 ${cw} ${ch}" width="${cw}" height="${ch}" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="${cw}" height="${ch}" fill="#fff" rx="6"/><text x="10" y="17" font-size="12" font-weight="700" fill="${CMPC[i] === "#ffd84a" ? "#b38f00" : CMPC[i]}" stroke="#000" stroke-width=".15">${esc(c.label)}</text><text x="${cw - 10}" y="17" font-size="10.5" text-anchor="end" fill="#444">${km(m.L)} · sinuosity ${nf(m.sin, 2)}</text>
+      <polyline points="${g.Q.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join(" ")}" fill="none" stroke="#1d232a" stroke-width="2.2" stroke-linejoin="round"/><circle cx="${X(g.Q[0][0])}" cy="${Y(g.Q[0][1])}" r="3.5" fill="#2ca02c"/><circle cx="${X(g.Q[g.Q.length - 1][0])}" cy="${Y(g.Q[g.Q.length - 1][1])}" r="3.5" fill="#d62728"/>
+      <rect x="10" y="${ch - 14}" width="${bar.px}" height="3" fill="#111"/><text x="10" y="${ch - 18}" font-size="10" fill="#111">${bar.l >= 1 ? nf(bar.l) + " km" : nf(bar.l*1000) + " m"}</text>${!align ? `<text x="${cw - 12}" y="${ch - 10}" font-size="10" text-anchor="end" fill="#111">N ↑</text>` : ""}</svg>`; }).join("");
+  el.insertAdjacentHTML("beforeend", `<p class="note">${same ? "All panels share one scale: sizes compare directly." : "Each panel is fitted to its river: compare shape only (scale bars differ)."} ${align ? "Each river is turned so its source (green) is on the left and its mouth (red) on the right." : "North is up."}</p>`);
+}
+
+/* ---------- compare tab ---------- */
+function x8Render(){
+  const body = $("xCmpBody"); if (!body) return; const C = XR.cmp;
+  let top = $("x8Top"); if (!top){ top = document.createElement("div"); top.id = "x8Top"; body.parentElement.insertBefore(top, body); }
+  let bot = $("x8Bot"); if (!bot){ bot = document.createElement("div"); bot.id = "x8Bot"; body.parentElement.insertBefore(bot, body.nextSibling); }
+  const keepV = $("x8Names") ? $("x8Names").value : "", hadF = document.activeElement && document.activeElement.id === "x8Names";
+  top.innerHTML = `<div class="card x8add"><h4>Compare rivers</h4><p class="note">Type several rivers separated by commas (up to ${CMPMAX}); each is traced and measured, then added. Or load a river and press ＋ Compare on any stretch.</p>
+    <div class="row x8row"><input id="x8Names" type="text" placeholder="e.g. Rhine, Danube, Elbe, Loire" enterkeyhint="go"><button class="pri sm" id="x8Add">Add</button></div>
+    ${XR.river && !C.some(c => c.R === XR.river) ? `<button class="sm" id="x8Cur">＋ Add ${esc(XR.river.name)} (whole river)</button>` : ""}
+    ${C.length > 1 ? `<div class="btns"><button class="sm pri" id="x8Harm">⚖ Make comparable…</button></div>` : ""}</div>${C.length > 1 ? certHTML() : ""}`;
+  bot.innerHTML = C.length > 1 ? metricsHTML() : "";
+  if (keepV) $("x8Names").value = keepV; if (hadF) $("x8Names").focus();
+  $("x8Add").onclick = () => { const v = $("x8Names").value; $("x8Names").value = ""; cmpAddNames(v); };
+  $("x8Names").onkeydown = e => { if (e.key === "Enter") $("x8Add").click(); };
+  if ($("x8Cur")) $("x8Cur").onclick = () => { const R = XR.river; if (XR.cmp.length >= CMPMAX) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: R.name}); renderX(); };
+  if ($("x8Harm")) $("x8Harm").onclick = harmDialog;
+  if ($("x8Ref")) $("x8Ref").onchange = e => { XR.cmpRef = +e.target.value; x8Render(); x8Charts(); };
+  if ($("x8Dk")) $("x8Dk").onchange = e => { XR.x8Dk = e.target.value; x8Charts(); };
+  if ($("x8PScale")) $("x8PScale").onchange = e => { XR.x8Ps = e.target.value; x8PlanViews(); };
+  if ($("x8Align")) $("x8Align").onchange = e => { XR.x8Al = e.target.checked; x8PlanViews(); };
+  const old = document.querySelector("#x3-compare .cmpq"); if (old && C.length > 1) old.style.display = "none";
+  if (XR.tab === "compare") setTimeout(x8Charts, 0);
+}
+{ const _rc = renderCompare; renderCompare = function(){ _rc(); try { x8Render(); } catch(e){ console.error(e); } }; }
+
+/* ===================== Earthform Lens — figure composer: several maps, plots and an inset in one publication figure ===================== */
+let FCN = 0;
+const FC = Object.assign({tpl: "overview", cols: 2, letters: true, sat: true, inset: true, maps: ["elevation", "sinuosity", "zone"], plots: ["elevation", "sinuosity"], title: "", caption: true, cmpMetric: "sinuosity"}, (() => { try { const o = JSON.parse(localStorage.getItem("efl.fc")) || {}; delete o.title; return o; } catch(_){ return {}; } })());
+function fcSave(){ try { localStorage.setItem("efl.fc", JSON.stringify({...FC, title: ""})); } catch(_){} }
+/** run fn with another river (and a fresh clean-view geometry) as the current one; synchronous only */
+function withRiver(R, fn){ const kR = XR.river, kG = CV.geo, kV = CV.vb, kP = CV.panelV, kRot = CV.rot; XR.river = R; CV.geo = cvGeometry(R); CV.rot = 0; try { return fn(); } finally { XR.river = kR; CV.geo = kG; CV.vb = kV; CV.panelV = kP; CV.rot = kRot; } }
+const letter = (i, x, y) => FC.letters ? `<text x="${x}" y="${y}" font-size="26" font-weight="700" fill="#111">${"abcdefghijklmnop"[i]}</text>` : "";
+/** a to-scale plan map of one river coloured by one measure, with legend, scale bar and north arrow */
+function fcMap(R, metric, W, H, opt = {}){
+  return withRiver(R, () => {
+    const G = CV.geo; let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity; for (const p of G.main){ x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+    const m = .12, s = opt.s || Math.max((x1 - x0)*(1 + 2*m)/W, (y1 - y0)*(1 + 2*m)/H) || 1; CV.vb = {cx: (x0 + x1)/2, cy: (y0 + y1)/2, s};
+    const V = cvValuesFor(metric); CV.panelV = [V]; const id = "fc" + (++FCN);
+    let body = cvPanel(metric, 0, W, H, V).replace(/cvClip0/g, id);
+    const L = cvLegendSVG(V), lk = 1.25, lx = W - L.w*lk - 10, ly = H - L.h*lk - 10;
+    const t = W*.22*s, p = 10**Math.floor(Math.log10(t)), len = [1, 2, 5, 10].map(k => k*p).filter(v => v <= t).pop() || p, px = len/s;
+    body += `<g transform="translate(${lx},${ly}) scale(${lk})">${L.s}</g>`;
+    body += `<g transform="translate(14,${H - 44})"><rect width="${px + 30}" height="36" rx="5" fill="#fff" fill-opacity=".9"/><rect x="10" y="22" width="${px}" height="6" fill="#111"/><rect x="${10 + px/2}" y="22" width="${px/2}" height="6" fill="#fff" stroke="#111" stroke-width=".9"/><text x="10" y="16" font-size="13">0</text><text x="${10 + px}" y="16" font-size="13" text-anchor="middle">${len >= 1 ? tfmt(len) + " km" : nf(len*1000) + " m"}</text></g>`;
+    body += `<g transform="translate(${W - 40},10)"><path d="M18 8l8 22-8-6-8 6z" fill="#111"/><text x="18" y="6" font-size="12" text-anchor="middle" font-weight="600">N</text></g>`;
+    if (opt.label) body += `<text x="${opt.lx || 46}" y="26" font-size="16" font-weight="600" fill="#222">${esc(opt.label)}</text>`;
+    return `<defs><clipPath id="${id}"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath></defs>${body}<rect width="${W}" height="${H}" fill="none" stroke="#cfd4d9"/>`;
+  });
+}
+/** the downstream plots (profile with layers, sinuosity, width…) at a given width */
+function fcPlots(R, list, W){
+  return withRiver(R, () => {
+    const old = $("cvProf"); if (old) old.id = "cvProfKeep";
+    const tmp = document.createElementNS("http://www.w3.org/2000/svg", "svg"); tmp.id = "cvProf"; tmp.style.cssText = `position:absolute;left:-99999px;top:0;width:${W}px`; document.body.appendChild(tmp);
+    const kp = CV.plots, km0 = CV.plotMode; CV.plots = list; CV.plotMode = "stack";
+    try { cvPlots(); const h = +tmp.getAttribute("height") || 300, vbw = +(tmp.getAttribute("viewBox") || "0 0 " + W).split(" ")[2] || W; return {h: h*W/vbw, s: `<g transform="scale(${W/vbw})">${tmp.innerHTML}</g>`}; }
+    finally { CV.plots = kp; CV.plotMode = km0; tmp.remove(); if (old) old.id = "cvProf"; }
+  });
+}
+/** the live satellite map as an image (needs a base map that allows export) */
+async function fcSat(W, H){
+  const M = xmap, cv0 = M.cv, r0 = cv0.getBoundingClientRect(), k = clamp(W/r0.width, 1, 4), od = M.dpr, ob = M.tileBias || 0, oz = M.z, oc = [M.lat, M.lon];
+  if (XR.river) M.fit(XR.river.main, 24);
+  const kl = XR.lay.legend; XR.lay.legend = false; M.dpr = k; M.tileBias = Math.min(2, Math.round(Math.log2(k))); M.exporting = true;
+  try { for (let t = 0; t < 30; t++){ M.draw(); if (!M.miss) break; await new Promise(r => setTimeout(r, 350)); } M.draw();
+    const c = document.createElement("canvas"); c.width = Math.round(W*2); c.height = Math.round(H*2); const g = c.getContext("2d"); const sw = cv0.width, sh = cv0.height, a = Math.min(sw/c.width, sh/c.height); g.drawImage(cv0, (sw - c.width*a)/2, (sh - c.height*a)/2, c.width*a, c.height*a, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", .92); }
+  catch(e){ return null; }
+  finally { XR.lay.legend = kl; M.dpr = od; M.tileBias = ob; M.exporting = false; M.z = oz; M.lat = oc[0]; M.lon = oc[1]; M.req(); }
+}
+async function fcInset(R){ const keep = CV.inset, kR = XR.river; XR.river = R; try { CV.inset = null; await cvMakeInset(); return CV.inset; } catch(_){ return null; } finally { XR.river = kR; const got = CV.inset; CV.inset = keep || got; } }
+function fcCaption(R){ const pr = R.prof, sin = R.L/Math.max(1e-6, hav(R.main[0], R.main[R.main.length - 1]));
+  return `${R.name}${R.region ? " (" + R.region + ")" : ""}: ${km(R.L)} traced, whole-river sinuosity ${nf(sin, 2)}${pr ? `, fall ${nf(pr.drop)} m, mean gradient ${nf(pr.grad, 3)} m/km, ${pr.spikes ? pr.spikes.length : 0} elevation spikes removed, conditioning ${String(pr.params.cond).split(" (")[0]}` : ""}. Centreline © OpenStreetMap contributors${R.edits ? " (edited by the user)" : ""}; elevation ${pr ? demLabel(pr, true) : "–"}${XR.base && !EX.base[XR.base].plain && FC.sat ? `; imagery ${EX.base[XR.base].attr || EX.base[XR.base].n}` : ""}. Sediment zones are a rule-based interpretation. Made with Earthform Lens, ${new Date().toISOString().slice(0, 10)}.`; }
+function fcWrap(t, maxChars){ const w = t.split(/\s+/), L = []; let cur = ""; for (const x of w){ if ((cur + " " + x).trim().length > maxChars){ L.push(cur.trim()); cur = x; } else cur += " " + x; } if (cur.trim()) L.push(cur.trim()); return L; }
+
+/** assemble the whole figure as one SVG */
+async function composeFigure(){
+  const W = 1800, pad = 36, gap = 26; let y = pad, out = "", li = 0; const R = XR.river;
+  const add = (svg, x, yy, w, h) => { out += `<g transform="translate(${x},${yy})">${svg}</g>${letter(li++, x - 2 < pad ? x + 8 : x + 8, yy + 30)}`; };
+  const title = FC.title || (FC.tpl === "compare" ? "River comparison" : R ? R.name + (R.region ? ", " + R.region : "") : "Figure");
+  out += `<text x="${pad}" y="${y + 34}" font-size="38" font-weight="700" fill="#111">${esc(title)}</text>`; y += 64;
+  if (FC.tpl === "compare"){
+    const C = XR.cmp.length ? XR.cmp : (R ? [{R, k0: 0, k1: R.L, label: R.name}] : []); if (!C.length) throw new Error("add rivers to the comparison first");
+    const cols = clamp(FC.cols, 1, 4), cw = (W - 2*pad - (cols - 1)*gap)/cols, ch = cw*.72;
+    // one shared scale so sizes compare directly
+    const sMax = Math.max(...C.map(c => withRiver(c.R, () => { const G = CV.geo; let a = Infinity, b = -Infinity, d = Infinity, e = -Infinity; for (const p of G.main){ a = Math.min(a, p[0]); b = Math.max(b, p[0]); d = Math.min(d, p[1]); e = Math.max(e, p[1]); } return Math.max((b - a)*1.24/cw, (e - d)*1.24/ch); })));
+    C.forEach((c, i) => { const col = i % cols, row = Math.floor(i/cols); add(fcMap(c.R, FC.cmpMetric, cw, ch, {s: FC.cmpSame !== false ? sMax : null, label: c.label, lx: 46}), pad + col*(cw + gap), y + row*(ch + gap), cw, ch); });
+    y += Math.ceil(C.length/cols)*(ch + gap);
+    // normalised profiles of all rivers
+    const ph = 420, pw = W - 2*pad, m = {l: 80, r: 20, t: 20, b: 60}, X = u => m.l + u*(pw - m.l - m.r), Y = v => m.t + (1 - v)*(ph - m.t - m.b);
+    let g = `<rect width="${pw}" height="${ph}" fill="#fff" stroke="#cfd4d9"/>`; for (const t of [0, .25, .5, .75, 1]) g += `<line x1="${X(0)}" x2="${X(1)}" y1="${Y(t)}" y2="${Y(t)}" stroke="#eee"/><text x="${X(0) - 10}" y="${Y(t) + 5}" font-size="15" text-anchor="end">${t}</text><text x="${X(t)}" y="${ph - m.b + 24}" font-size="15" text-anchor="middle">${t}</text>`;
+    g += `<line x1="${X(0)}" y1="${Y(1)}" x2="${X(1)}" y2="${Y(0)}" stroke="#999" stroke-dasharray="6 5"/><text x="${(X(0) + X(1))/2}" y="${ph - 12}" font-size="16" text-anchor="middle">Distance ÷ length</text><text transform="translate(24 ${ph/2}) rotate(-90)" font-size="16" text-anchor="middle">Height above end ÷ fall</text>`;
+    const pal = ["#1f77b4", "#d62728", "#2ca02c", "#9467bd", "#ff7f0e", "#17becf", "#8c564b", "#e377c2"];
+    C.forEach((c, i) => { const pr = c.R.prof; if (!pr) return; const i0 = Math.round(c.k0/pr.step), i1 = Math.min(pr.d.length - 1, Math.round(c.k1/pr.step)), z0 = pr.zc[i0], z1 = pr.zc[i1], H = (z0 - z1) || 1, L = c.k1 - c.k0, st = Math.max(1, Math.floor((i1 - i0)/800)); let d = "";
+      for (let j = i0; j <= i1; j += st) d += (d ? "L" : "M") + X((pr.d[j] - c.k0)/L).toFixed(1) + " " + Y((pr.zc[j] - z1)/H).toFixed(1); g += `<path d="${d}" fill="none" stroke="${pal[i % 8]}" stroke-width="3"/><rect x="${pw - 300}" y="${m.t + 10 + i*24}" width="22" height="5" fill="${pal[i % 8]}"/><text x="${pw - 270}" y="${m.t + 17 + i*24}" font-size="15">${esc(c.label)}</text>`; });
+    add(g, pad, y, pw, ph); y += ph + gap;
+    if (FC.caption){ const cap = `Plan views ${FC.cmpSame !== false ? "share one scale" : "are each fitted"}, coloured by ${(XMETRIC[FC.cmpMetric] || {n: "sediment zone"}).n.toLowerCase()}; normalised long profiles (dashed: uniform gradient). ${C.every(c => c.R.harm) ? "All rivers were re-measured with the same sources, sampling and reach definition." : "Rivers were not harmonised: use Make comparable before publishing."} Data: OpenStreetMap contributors; elevation ${C[0].R.prof ? demLabel(C[0].R.prof) : "–"}. Earthform Lens, ${new Date().toISOString().slice(0, 10)}.`;
+      fcWrap(cap, 190).forEach((l, i) => { out += `<text x="${pad}" y="${y + 20 + i*24}" font-size="17" fill="#333">${esc(l)}</text>`; }); y += fcWrap(cap, 190).length*24 + 20; }
+  } else {
+    if (!R) throw new Error("load a river first");
+    const cols = clamp(FC.cols, 1, 3), cw = (W - 2*pad - (cols - 1)*gap)/cols, ch = cw*(cols === 1 ? .55 : .78), cells = [];
+    if (FC.sat){ const url = await fcSat(cw, ch); if (url) cells.push(`<image href="${url}" width="${cw}" height="${ch}" preserveAspectRatio="xMidYMid slice"/><rect width="${cw}" height="${ch}" fill="none" stroke="#cfd4d9"/><text x="${cw - 10}" y="${ch - 10}" font-size="12" text-anchor="end" fill="#fff" stroke="#000" stroke-width=".3">${esc(EX.base[XR.base].attr || "")}</text>`); else toast("The satellite panel was left out: this base map does not allow export (try Sentinel-2 or Topographic)", 5000); }
+    let inset = null; if (FC.inset) inset = await fcInset(R);
+    FC.maps.forEach((mtr, i) => { let s = fcMap(R, mtr, cw, ch); if (i === 0 && inset) s += `<g transform="translate(${cw - 250},48)"><rect width="230" height="172" rx="6" fill="#fff" stroke="#888"/><image href="${inset.url}" x="5" y="5" width="220" height="162"/><text x="10" y="160" font-size="11" fill="#fff" stroke="#000" stroke-width=".3">${esc(inset.label)}</text></g>`; cells.push(s); });
+    cells.forEach((s, i) => { const col = i % cols, row = Math.floor(i/cols); add(s, pad + col*(cw + gap), y + row*(ch + gap), cw, ch); });
+    y += Math.ceil(cells.length/cols)*(ch + gap);
+    if (FC.plots.length && R.prof){ const P = fcPlots(R, FC.plots, W - 2*pad); add(`<rect width="${W - 2*pad}" height="${P.h}" fill="#fff"/>${P.s}<rect width="${W - 2*pad}" height="${P.h}" fill="none" stroke="#cfd4d9"/>`, pad, y, W - 2*pad, P.h); y += P.h + gap; }
+    if (FC.caption){ const L = fcWrap(fcCaption(R), 190); L.forEach((l, i) => { out += `<text x="${pad}" y="${y + 20 + i*24}" font-size="17" fill="#333">${esc(l)}</text>`; }); y += L.length*24 + 20; }
+  }
+  const H = Math.round(y + pad);
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#fff"/>${out}</svg>`;
+}
+
+function openComposer(){
+  const R = XR.river; if (!R && !XR.cmp.length) return toast("Load a river first");
+  const metrics = Object.entries(XMETRIC).filter(([k]) => k !== "plain"), plots = PLOTS();
+  const chip = (grp, k, t, on) => `<button class="chip${on ? " on" : ""}" data-fg="${grp}" data-fk="${k}">${esc(t)}</button>`;
+  modal(`<h3>Compose a figure</h3><p class="note">Several maps, the satellite view, a location inset and the downstream plots in one publication figure, with panel letters and a caption. Export as PNG, PDF or SVG at journal sizes.</p>
+    <label class="fl">Layout<select id="fcTpl"><option value="overview"${FC.tpl !== "compare" ? " selected" : ""}>One river: maps + plots</option><option value="compare"${FC.tpl === "compare" ? " selected" : ""}>Compare rivers (${XR.cmp.length} in the comparison)</option></select></label>
+    <label class="fl">Title<input id="fcTitle" type="text" value="${esc(FC.title || "")}" placeholder="${esc(R ? R.name + (R.region ? ", " + R.region : "") : "River comparison")}"></label>
+    <div id="fcOne"${FC.tpl === "compare" ? ' style="display:none"' : ""}>
+      <div class="fl">Panels<div class="chips">${chip("sat", "sat", "Satellite view", FC.sat)}${chip("inset", "inset", "Location inset", FC.inset)}</div></div>
+      <div class="fl">Maps coloured by<div class="chips">${metrics.map(([k, m]) => chip("maps", k, m.n, FC.maps.includes(k))).join("")}</div></div>
+      <div class="fl">Plots along the river<div class="chips">${plots.map(([k, n]) => chip("plots", k, n, FC.plots.includes(k))).join("")}</div></div></div>
+    <div id="fcCmp"${FC.tpl !== "compare" ? ' style="display:none"' : ""}><label class="fl">Colour the maps by<select id="fcCm">${metrics.map(([k, m]) => `<option value="${k}"${FC.cmpMetric === k ? " selected" : ""}>${esc(m.n)}</option>`).join("")}</select></label><label class="chk"><input type="checkbox" id="fcSame"${FC.cmpSame !== false ? " checked" : ""}> Same scale for every river</label></div>
+    <label class="fl">Columns<select id="fcCols">${[1, 2, 3, 4].map(v => `<option${FC.cols === v ? " selected" : ""}>${v}</option>`).join("")}</select></label>
+    <label class="chk"><input type="checkbox" id="fcLet"${FC.letters ? " checked" : ""}> Panel letters (a, b, c…)</label><label class="chk"><input type="checkbox" id="fcCap"${FC.caption ? " checked" : ""}> Caption with data sources and methods</label>
+    <div id="fcPrev" class="fcprev"><p class="note">Press Preview.</p></div>
+    <div class="btns"><button id="fcGo">Preview</button><button class="pri" id="fcExp">⬇ Export…</button><button id="fcX">Close</button></div>`);
+  const read = () => { FC.tpl = $("fcTpl").value; FC.title = $("fcTitle").value.trim(); FC.cols = +$("fcCols").value; FC.letters = $("fcLet").checked; FC.caption = $("fcCap").checked; FC.cmpMetric = $("fcCm").value; FC.cmpSame = $("fcSame").checked; fcSave(); };
+  $("fcTpl").onchange = () => { read(); $("fcOne").style.display = FC.tpl === "compare" ? "none" : ""; $("fcCmp").style.display = FC.tpl === "compare" ? "" : "none"; };
+  document.querySelectorAll("#modalBox [data-fg]").forEach(b => b.onclick = () => { const g = b.dataset.fg, k = b.dataset.fk; if (g === "sat" || g === "inset") FC[g] = !FC[g]; else { const a = FC[g], j = a.indexOf(k); if (j >= 0) a.splice(j, 1); else a.push(k); } b.classList.toggle("on"); fcSave(); });
+  let last = null;
+  const build = async () => { read(); const p = $("fcPrev"); p.innerHTML = `<p class="note shimmer">Composing…</p>`; actSet("fc", "Composing the figure…"); try { last = await composeFigure(); p.innerHTML = last.replace(/<svg /, '<svg style="width:100%;height:auto" '); } catch(e){ console.error(e); p.innerHTML = `<p class="warn">${esc(e.message)}</p>`; last = null; } finally { actEnd("fc"); } return last; };
+  $("fcGo").onclick = build; $("fcX").onclick = closeModal;
+  $("fcExp").onclick = async () => { const svg = last || await build(); if (!svg) return; const name = (FC.title || (FC.tpl === "compare" ? "river_comparison" : (R && R.name) || "figure")) + "_figure"; exportDialog({name, title: "the composed figure", journalOpt: false, svg: () => svg}); };
+}
+/* entry points: Figures tab, clean view, map controls */
+{ const _ocv2 = openCleanView; openCleanView = function(){ _ocv2(); const bt = document.querySelector("#cvWrap .cvbtn"); if (bt && !$("cvComp")){ const b = document.createElement("button"); b.className = "sm"; b.id = "cvComp"; b.textContent = "▦ Compose figure"; b.onclick = openComposer; bt.insertBefore(b, $("cvSvg")); } }; }
+{ const b = $("xClean"); if (b) b.onclick = () => openCleanView(); const b2 = $("xClean2"); if (b2) b2.onclick = () => openCleanView(); }
+{ const _rm4 = renderModules4; renderModules4 = function(){ _rm4(); const fe = $("x4-figures"); if (fe && !$("fcOpen")){ fe.insertAdjacentHTML("afterbegin", `<div class="card"><h4>Compose a figure</h4><p class="note">Satellite view, maps coloured by several measures, a location inset and the downstream plots in one figure with panel letters and a caption — for one river or for every river in the comparison.</p><div class="btns"><button class="pri sm" id="fcOpen">▦ Compose figure</button></div></div>`); $("fcOpen").onclick = openComposer; } }; }
+{ const ctl = $("x7Ctl"); if (ctl && !$("x7Comp")){ const b = document.createElement("button"); b.id = "x7Comp"; b.title = "Compose a multi-panel figure"; b.setAttribute("aria-label", "Compose figure"); b.textContent = "▦"; b.onclick = openComposer; ctl.appendChild(b); const c = document.createElement("button"); c.id = "x7Cv"; c.title = "Clean view: the river alone, to scale, on white"; c.setAttribute("aria-label", "Clean view"); c.textContent = "⬜"; c.onclick = () => openCleanView(); ctl.insertBefore(c, $("x7Exp")); } }
 
 window.__labAPI = {linkInfo, makeFigure, labChanged, pixelFeatures, seafloorChannels, analyzeBranches, isBathymetry, depthProxy, buildFindings: (...a) => buildFindings(...a), renderSlide: (...a) => renderSlide(...a), enhanceToStudio, atlasEnhance, geometry, sendToStudio, autoArt, runAuto, autoWater, autoChrome, waterModel, label, edtTo, notMask, thin, nbCount, transferModel, waterProb, refineProb, ensureLab, connectToMain, tapAt, setTool, runWater, analyzeChannel, analyzeNetwork, analyzeLakes, analyzePattern, analyzeCover, analyzeTerrain, runHydro, analyzeChange, finishShape, setMode, fitView, showTab, rebuildOverlay};
 })();
