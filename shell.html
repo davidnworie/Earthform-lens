@@ -277,6 +277,17 @@ button.loading::after,label.loading::after,.chip.loading::after{content:"";displ
 .anwrap{max-width:1100px;margin:0 auto;padding:16px}.anhead{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}.anhead h2{margin:4px 0}.anfilt{padding:10px 12px;margin:10px 0}.rng{display:flex;gap:4px}.rng input{width:50%;background:var(--p2);color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:6px}
 .ancards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}.ancard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}.anh{display:flex;justify-content:space-between;gap:6px;align-items:center}.ancard small{color:var(--muted)}.anm{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.anm span{font-size:11px;color:var(--muted);background:rgba(255,255,255,.04);border-radius:8px;padding:4px 7px}.anm b{display:block;color:var(--text);font-size:13px}
 .chip small{color:var(--muted);font-size:10.5px;margin-left:4px}
+#cvWrap{position:fixed;inset:0;z-index:300;display:none;background:rgba(4,6,9,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:14px}#cvWrap.on{display:flex;animation:secIn .25s}
+.cvbox{flex:1;display:flex;flex-direction:column;background:#fff;color:#111;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.cvhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid #e6e6e6}.cvt{flex:1;min-width:160px}.cvt b{font-family:"Space Grotesk",Inter,sans-serif;font-size:18px;display:block}.cvt small{color:#666}
+.cvhead label{font-size:12.5px;color:#444;display:flex;gap:6px;align-items:center}.cvhead select{background:#f3f4f6;color:#111;border:1px solid #d5d8dc}
+.cvbtn{display:flex;gap:6px;flex-wrap:wrap}.cvbox button.sm{background:#f3f4f6;color:#111;border:1px solid #d5d8dc}.cvbox button.sm.pri{background:#111;color:#fff;border:none;box-shadow:none;text-shadow:none}
+.cvtog{display:flex;gap:5px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid #eee}.cvtog .chip{background:#f3f4f6;color:#444;border:1px solid #dde0e4;font-size:12px}.cvtog .chip.on{background:#111;color:#fff;border-color:#111}
+.cvmain{position:relative;flex:1;min-height:240px;touch-action:none;cursor:grab}.cvmain:active{cursor:grabbing}.cvmain svg{position:absolute;inset:0;width:100%;height:100%}#cvOver{pointer-events:none}
+.cvtip{position:absolute;display:none;min-width:150px;background:rgba(255,255,255,.97);border:1px solid #ccc;border-radius:10px;padding:6px 9px;font-size:11.5px;box-shadow:0 6px 20px rgba(0,0,0,.15);pointer-events:none}.cvtip div{display:flex;justify-content:space-between;gap:10px}.cvtip span{color:#666}
+.cvstrips{border-top:1px solid #eee;cursor:crosshair}.cvstrips svg{display:block;width:100%}
+.cvnote{margin:0;padding:6px 14px 10px;font-size:11px;color:#666}
+@media (max-width:720px){#cvWrap{padding:0}.cvbox{border-radius:0}.cvt b{font-size:16px}.cvtog{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.cvtog .chip{white-space:nowrap}.cvhead{padding:8px 10px;gap:6px}}
 /* ================= v2: modern theme ================= */
 :root{--bg:#06090d;--panel:rgba(20,26,33,.78);--p2:#18212a;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);--text:#eef3f7;--muted:#8d9aa7;--acc:#ff7a45;--acc2:#38d3e6;--ok:#4fdb8a;--warn:#ffc857;--bad:#ff6b6b;--r:16px;--glass:rgba(12,17,23,.72);--shadow:0 10px 40px rgba(0,0,0,.45);--grad:linear-gradient(120deg,#ff7a45,#ff4f8b 45%,#38d3e6)}
 html,body{font:14.5px/1.5 Inter,"Space Grotesk",system-ui,-apple-system,sans-serif;background:var(--bg);-webkit-font-smoothing:antialiased}
@@ -435,7 +446,7 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px
       <div id="xModeBar" class="xmodebar glass" style="display:none"></div>
       <div id="xTiles" class="xtiles-ld"></div>
       <div id="xConnBox" class="xconnbox glass"></div>
-      <div class="xmapctl"><select id="xBase"></select><select id="xOver"></select><select id="xMetric"></select><button class="sm" id="xFit">⤢ Whole river</button></div>
+      <div class="xmapctl"><select id="xBase"></select><select id="xOver"></select><select id="xMetric"></select><button class="sm" id="xFit">⤢ Whole river</button><button class="sm" id="xClean" title="The river alone, to scale, on white">⬜ Clean view</button></div>
       <div id="xDrawBar" class="xdrawbar" style="display:none"><span id="xDrawN"></span><button class="sm" id="xDrawUndo">Undo</button><button class="sm pri" id="xDrawUse">Analyse line</button><button class="sm" id="xDrawCancel">Cancel</button></div>
     </div>
     <div id="xStatus" class="xstatus">Search any river by name to follow it from source to sink, or draw one on the map.</div>
@@ -455,7 +466,7 @@ table.grid{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px
     <div class="xtop"><div id="xHead"></div><button class="sm" id="xBack" style="display:none">← Back to the main river</button></div>
     <div class="xpos card">
       <div class="xposrow"><button class="sm" id="xSrc">Source</button><input type="range" id="xPos" min="0" max="1" step="0.01" value="0"><button class="sm" id="xMouth">Mouth</button></div>
-      <div class="xposrow"><label class="chk"><input type="checkbox" id="xFollow"> Map follows</label><button class="sm" id="xPlay">▶ Fly along</button><button class="sm pri" id="xToLab">Analyse this view in Lab</button><button class="sm" id="xToFig">🖼 Figure of this view</button></div>
+      <div class="xposrow"><label class="chk"><input type="checkbox" id="xFollow"> Map follows</label><button class="sm" id="xPlay">▶ Fly along</button><button class="sm pri" id="xToLab">Analyse this view in Lab</button><button class="sm" id="xToFig">🖼 Figure of this view</button><button class="sm" id="xClean2">⬜ Clean view</button></div>
       <div id="xPosInfo" class="xposinfo"></div>
     </div>
     <div class="xsel card" id="xSel"></div>

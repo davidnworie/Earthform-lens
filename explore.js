@@ -9,6 +9,7 @@ const EX = {
   wikidata: "https://query.wikidata.org/sparql",
   dem: (z, x, y) => `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`,
   base: {
+    plain: {n: "Plain (white, no imagery)", plain: true, url: () => "", max: 22, attr: "No base map"},
     imagery: {n: "Satellite", url: (z, x, y) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`, max: 19, attr: "Imagery © Esri, Maxar, Earthstar Geographics"},
     topo: {n: "Topographic", url: (z, x, y) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}`, max: 18, attr: "© Esri, HERE, Garmin, USGS, OpenStreetMap contributors"},
     osm: {n: "OpenStreetMap", url: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`, max: 19, attr: "© OpenStreetMap contributors"},
@@ -131,7 +132,7 @@ function makeMap(cv){
   };
   M.draw = () => {
     const [w, h] = M.size(), ctx = M.ctx; ctx.setTransform(M.dpr, 0, 0, M.dpr, 0, 0); ctx.fillStyle = "#0d1418"; ctx.fillRect(0, 0, w, h);
-    const miss = M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, EX.base[XR.base]); { const tl = document.getElementById("xTiles"); if (tl){ tl.classList.toggle("on", miss > 0); tl.textContent = miss > 0 ? `Loading imagery… ${miss} tile${miss > 1 ? "s" : ""}` : ""; } }
+    const miss = EX.base[XR.base].plain ? (ctx.fillStyle = "#ffffff", ctx.fillRect(0, 0, w, h), 0) : M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, EX.base[XR.base]); { const tl = document.getElementById("xTiles"); if (tl){ tl.classList.toggle("on", miss > 0); tl.textContent = miss > 0 ? `Loading imagery… ${miss} tile${miss > 1 ? "s" : ""}` : ""; } }
     try { drawLayerExtras(ctx, M, w, h); } catch(e){ console.warn(e); }
     drawBasinOnMap(ctx, M, w, h);
     drawRiverLayers(ctx, M, w, h); drawSelOnMap(ctx, M);
@@ -174,6 +175,7 @@ function drawRiverLayers(ctx, M, w, h){
     const step = Math.max(1, Math.floor(R.main.length/Math.max(400, w*3*2**(M.z - 6)))), met = XMETRIC[XR.metric], vals = [];
     for (let i = 0; i < R.main.length; i += step){ const v = met.get(R, i); if (Number.isFinite(v)) vals.push(met.log ? Math.log10(Math.max(v, 1e-3)) : v); }
     const lo = vals.length ? quantile(vals, .02) : 0, hi = vals.length ? quantile(vals, .98) : 1;
+    XR.legend = {key: XR.metric, met, lo, hi, n: vals.length, inv: XR.metric === "elevation"};
     // side channels
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     for (const s of R.side){ ctx.strokeStyle = "rgba(120,220,255,.85)"; ctx.lineWidth = 1.6; ctx.beginPath(); s.forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); }
@@ -201,6 +203,7 @@ function drawRiverLayers(ctx, M, w, h){
     for (const [q, t, c] of [[s0, "Source", "#4cd17a"], [s1, "Mouth", "#ff4d5e"]]){ ctx.beginPath(); ctx.arc(q[0], q[1], 7, 0, 7); ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = "rgba(0,0,0,.7)"; const tw = ctx.measureText(t).width; ctx.fillRect(q[0] + 9, q[1] - 9, tw + 8, 16); ctx.fillStyle = "#fff"; ctx.fillText(t, q[0] + 13, q[1] + 3); }
     // position marker
     const p = pointAtKm(R, XR.pos), q = M.toScr(p[0], p[1]); ctx.beginPath(); ctx.arc(q[0], q[1], 9, 0, 7); ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.stroke(); ctx.beginPath(); ctx.arc(q[0], q[1], 3, 0, 7); ctx.fillStyle = "#fff"; ctx.fill();
+    try { drawMapLegend(ctx, w, h); } catch(e){ console.warn(e); }
   }
   // a line being drawn by hand
   if (XR.draw && XR.draw.pts.length){ ctx.strokeStyle = "#ffd84a"; ctx.lineWidth = 3; ctx.setLineDash([8, 5]); ctx.beginPath(); XR.draw.pts.forEach((p, j) => { const q = M.toScr(p[0], p[1]); j ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.stroke(); ctx.setLineDash([]);
@@ -619,6 +622,7 @@ function togglePlay(){
   XR.play = setInterval(() => { const viewKm = xmap.mpp()*xmap.size()[0]/1000; let k = XR.pos + viewKm*.12; if (k >= R.L){ k = R.L; togglePlay(); } flyTo(k); }, 450);
 }
 async function captureView(){
+  if (EX.base[XR.base].plain){ const [w0, h0] = xmap.size(), c0 = document.createElement("canvas"); c0.width = w0; c0.height = h0; const g0 = c0.getContext("2d"); g0.fillStyle = "#fff"; g0.fillRect(0, 0, w0, h0); return {canvas: c0, mpp: 40075016.686*Math.cos(xmap.lat*D2R)/(256*2**xmap.z)}; }
   const [w, h] = xmap.size(), z = Math.round(xmap.z), base = EX.base[XR.base], scale = Math.min(2, 1600/Math.max(w, h)), W = Math.round(w*scale), H = Math.round(h*scale), zz = xmap.z + Math.log2(scale);
   const zi = Math.max(0, Math.min(base.max, Math.round(zz))), s = 2**(zz - zi), cx = lon2x(xmap.lon, zi), cy = lat2y(xmap.lat, zi), x0 = Math.floor((cx - W/2/s)/256), x1 = Math.floor((cx + W/2/s)/256), y0 = Math.floor((cy - H/2/s)/256), y1 = Math.floor((cy + H/2/s)/256), n = 2**zi;
   const ps = []; for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) ps.push(getTile(base.url(zi, ((tx % n) + n) % n, ty)).p); await Promise.all(ps);

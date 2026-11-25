@@ -20,7 +20,7 @@
   XR.overlay = ""; XR.opacity = 1;
 }
 function drawLayerExtras(ctx, M, w, h){
-  if (XR.swipe && EX.base[XR.swipe.b]){ const x = Math.round(w*XR.swipe.x); ctx.save(); ctx.beginPath(); ctx.rect(x, 0, w - x, h); ctx.clip(); M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, EX.base[XR.swipe.b]); ctx.restore();
+  if (XR.swipe && EX.base[XR.swipe.b]){ const x = Math.round(w*XR.swipe.x); ctx.save(); ctx.beginPath(); ctx.rect(x, 0, w - x, h); ctx.clip(); if (EX.base[XR.swipe.b].plain){ ctx.fillStyle = "#fff"; ctx.fillRect(x, 0, w - x, h); } else M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, EX.base[XR.swipe.b]); ctx.restore();
     ctx.fillStyle = "#fff"; ctx.fillRect(x - 1, 0, 2, h); ctx.beginPath(); ctx.arc(x, h/2, 13, 0, 7); ctx.fill(); ctx.fillStyle = "#111"; ctx.font = "bold 12px Inter, sans-serif"; ctx.textAlign = "center"; ctx.fillText("⇆", x, h/2 + 4); ctx.textAlign = "left";
     ctx.font = "11px Inter, sans-serif"; const la = EX.base[XR.base].n, lb = EX.base[XR.swipe.b].n; ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(x - ctx.measureText(la).width - 16, 54, ctx.measureText(la).width + 10, 18); ctx.fillRect(x + 6, 54, ctx.measureText(lb).width + 10, 18); ctx.fillStyle = "#fff"; ctx.fillText(la, x - ctx.measureText(la).width - 11, 67); ctx.fillText(lb, x + 11, 67); }
   const o = XR.overlay && EX.over[XR.overlay]; if (o){ ctx.save(); ctx.globalAlpha = o.alpha*XR.opacity; M.drawTiles(ctx, w, h, M.lat, M.lon, M.z, o); ctx.restore(); }

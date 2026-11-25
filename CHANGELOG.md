@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-24 (evening)
+- Legend on the main map for every “Colour by” option (continuous colour bar with values and units, or categories for sediment zones).
+- New colour options: curvature, meander wavelength, floodplain ÷ channel width, braiding index.
+- “Plain (white, no imagery)” base map.
+- Clean view: the river alone, to scale, on white; colour by any measure; toggle tributaries, side channels, dams, knickpoints, reach boundaries, values on reaches, width transects, distance marks, names, sediment zones and the selected stretch; live scale bar, north arrow, colour legend and symbol key; linked long profile coloured the same way; hover readout; pan/zoom/pinch; SVG and PNG export.
+
 ## 2026-11-24 (latest)
 - Shared result model: every measurement carries id, study area, value, unit, geometry, samples (n, P10–P90), source, resolution, method, method version, parameters and QC status (`ok`, `partial`, `review`, `missing`).
 - Interpretation tab: observation / measurement / interpretation for planform, lateral migration, profile, knickpoints, hypsometry, sediment routing and delta; evidence chips link to the measurements; "unknown" with the missing inputs; other possible explanations listed.
