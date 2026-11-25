@@ -52,7 +52,7 @@ async function delineate(bb, outlet, label, grow){
     xstatus(`${label}: reading terrain${attempt ? " (enlarged window)" : ""}…`, "busy");
     const g = await demGrid(bb, 2.2e6, p => xstatus(`${label}: reading terrain ${Math.round(p*100)}%…`, "busy")); await tick();
     xstatus(`${label}: routing water over ${nf(g.W*g.H/1e6, 1)} million cells…`, "busy"); await tick();
-    const hy = hydro(g), [mx, my] = llGrid(g, outlet[0], outlet[1]); let ob = -1, oa = -1; const rad = 6;
+    const hy = await hydroAsync(g), [mx, my] = llGrid(g, outlet[0], outlet[1]); let ob = -1, oa = -1; const rad = 6;
     for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++){ const x = mx + dx, y = my + dy; if (x < 0 || y < 0 || x >= g.W || y >= g.H) continue; const i = y*g.W + x; if (!hy.sea[i] && hy.acc[i] > oa){ oa = hy.acc[i]; ob = i; } }
     if (ob < 0) throw new Error("the outlet is outside the terrain window or in the sea");
     const inB = new Uint8Array(g.W*g.H); inB[ob] = 1; for (const c of hy.order) if (!inB[c] && hy.rec[c] >= 0 && inB[hy.rec[c]]) inB[c] = 1;
@@ -215,7 +215,7 @@ function convexHullX(P){ const p = P.slice().sort((a, b) => a[0] - b[0] || a[1] 
 async function loadWayback(){
   if (XR.wayback) return XR.wayback;
   const j = await xfetchJSON("https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json");
-  const list = Object.entries(j).map(([id, v]) => { const m = /(\d{4}-\d{2}-\d{2})/.exec(v.itemTitle || ""); return {id, date: m ? m[1] : "", url: v.itemURL}; }).filter(r => r.date && r.url).sort((a, b) => a.date.localeCompare(b.date));
+  const list = Object.entries(j).map(([id, v]) => { const m = /(\d{4}-\d{2}-\d{2})/.exec(v.itemTitle || ""); return {id, date: m ? m[1] : "", url: v.itemURL, meta: v.metadataLayerUrl || ""}; }).filter(r => r.date && r.url).sort((a, b) => a.date.localeCompare(b.date));
   XR.wayback = list; return list;
 }
 function waybackBase(rel){ return {n: "Wayback " + rel.date, url: (z, x, y) => rel.url.replace("{level}", z).replace("{row}", y).replace("{col}", x), max: 19, attr: "World Imagery Wayback © Esri, Maxar, Earthstar Geographics"}; }
@@ -225,17 +225,23 @@ async function runTemporal(){
   const [A, B] = a.date < b.date ? [a, b] : [b, a]; xstatus(`Capturing this view as it looked on ${A.date} and ${B.date}…`, "busy");
   const ca = await captureWith(waybackBase(A)), cb = await captureWith(waybackBase(B));
   const R = XR.river, lbl = R ? `${R.name} km ${nf(XR.pos)}` : "View", yr = d => { const [y, m, dd] = d.split("-").map(Number); return +(y + (m - 1)/12 + (dd - 1)/365).toFixed(2); };
+  // use the imagery's acquisition date at this point when the archive metadata gives one; release dates are only an upper bound
+  xstatus("Looking up the acquisition dates of both images…", "busy");
+  const qa = await waybackAcqDate(A, xmap.lat, xmap.lon).catch(() => null), qb = await waybackAcqDate(B, xmap.lat, xmap.lon).catch(() => null);
+  const dA = qa ? qa.date : A.date, dB = qb ? qb.date : B.date, exact = !!(qa && qb);
+  XR.tempo = {releaseA: A.date, releaseB: B.date, acqA: qa, acqB: qb, exact};
+  if (qa && qb && qa.date === qb.date){ xstatus(`Both releases show the same acquisition (${qa.date}) here: there is no change to measure between them. Pick dates further apart.`, "err"); return; }
   const fa = new File([await new Promise(r => ca.canvas.toBlob(r, "image/jpeg", .92))], `${lbl.replace(/[^\w]+/g, "_")}_${A.date}.jpg`, {type: "image/jpeg"});
   const fb = new File([await new Promise(r => cb.canvas.toBlob(r, "image/jpeg", .92))], `${lbl.replace(/[^\w]+/g, "_")}_${B.date}.jpg`, {type: "image/jpeg"});
   window.__pendingPlace = {caption: `${lbl} (${A.date} → ${B.date})`, title: lbl}; window.__pendingScale = ca.mpp;
-  await loadFile(fa, "A"); $("yrRef").value = yr(A.date);
+  await loadFile(fa, "A"); $("yrRef").value = yr(dA);
   await new Promise(r => setTimeout(r, 300)); for (let i = 0; i < 240 && G._autoRunning; i++) await new Promise(r => setTimeout(r, 500));
   if (!G.autoLog && !G.mask) { try { await runAuto(); } catch(e){ console.warn(e); } }
-  await addSeriesFiles([fb]); const it = G.series[G.series.length - 1]; if (it) it.year = yr(B.date);
+  await addSeriesFiles([fb]); const it = G.series[G.series.length - 1]; if (it) it.year = yr(dB);
   let err = null; try { analyzeSeries(); } catch(e){ err = e; } try { renderReportChange(); } catch(_){}
   showApp("report");
-  if (err) xstatus(`Both dates were captured and aligned, but no water was found in the ${A.date} image automatically (${esc(err.message)}). Detect water in the Lab, then press “Compare now” under Changes over time.`, "err");
-  else xstatus(`Compared ${A.date} with ${B.date} (${nf(yr(B.date) - yr(A.date), 1)} years): see “Changes over time” in Findings for erosion, accretion and migration rates.`, "ok");
+  if (err) xstatus(`Both dates were captured and aligned, but no water was found in the ${dA} image automatically (${esc(err.message)}). Detect water in the Lab, then press “Compare now” under Changes over time.`, "err");
+  else xstatus(`Compared ${exact ? `images acquired ${dA} and ${dB}` : `archive releases ${A.date} and ${B.date} (acquisition dates ${qa || qb ? "only partly " : "not "}available here, so rates are approximate)`} — ${nf(yr(dB) - yr(dA), 1)} years. See “Changes over time” in Findings. Water-level and seasonal differences can look like bank change.`, exact ? "ok" : "err");
 }
 
 /* ---------- 8. sediment routing zones (potential) ---------- */
@@ -275,8 +281,8 @@ function rangeStats(R, k0, k1){
     user: R.user || null, delta: !(k0 > 0 || k1 < R.L) ? R.delta : null, meanK: (() => { rs.forEach(r => { if (r.meanK == null) curvatureStats(R, r); }); return median(rs.map(r => r.meanK).filter(Number.isFinite)); })(),
     basin: R.basin && !(k0 > 0 || k1 < R.L) ? R.basin : null, net: R.net2 && !(k0 > 0 || k1 < R.L) ? R.net2 : null, wd: R.wd};
 }
-const CMPC = ["#ff8a4c", "#43d9e8", "#c9a7ff"];
-function addCompare(){ const s = selRange(); if (!s) return; if (XR.cmp.length >= 3) XR.cmp.shift(); XR.cmp.push({R: s.R, k0: s.k0, k1: s.k1, label: s.whole ? s.R.name : `${s.R.name} km ${nf(s.k0)}–${nf(s.k1)}`}); toast(`Added to comparison (${XR.cmp.length} of up to 3)`); renderX(); }
+const CMPC = ["#ff8a4c", "#43d9e8", "#c9a7ff", "#7ee081"];
+function addCompare(){ const s = selRange(); if (!s) return; if (XR.cmp.length >= 4) XR.cmp.shift(); XR.cmp.push({R: s.R, k0: s.k0, k1: s.k1, label: s.whole ? s.R.name : `${s.R.name} km ${nf(s.k0)}–${nf(s.k1)}`}); toast(`Added to comparison (${XR.cmp.length} of up to 4)`); renderX(); }
 
 /* ---------- rendering of the module panels ---------- */
 const kv = rows => `<div class="xstats">${rows.filter(Boolean).map(([a, b]) => `<div${String(b).replace(/<[^>]+>/g, "").length > 22 ? ' class="long"' : ""}><span>${a}</span><b>${b}</b></div>`).join("")}</div>`;
@@ -312,6 +318,7 @@ function renderModules(){
     <div class="scroll"><table class="grid"><tr><th>Reach</th><th>km</th><th>zone</th><th>why</th><th>stream power*</th></tr>${rs.map(r => `<tr data-k="${(r.k0 + r.k1)/2}"><td>${r.i + 1}</td><td>${nf(r.k0)}–${nf(r.k1)}</td><td><b style="color:${ZCOL[r.zone]}">${esc(r.zone || "")}</b></td><td>${esc(r.zoneWhy || "")}</td><td>${Number.isFinite(r.power) ? tfmt(r.power) : "–"}</td></tr>`).join("")}</table></div><p class="note">* Stream power proxy = drainage area × slope (discharge grows with area). Run Catchment and Floodplain for the full classification.</p>` : `<p class="note">Needs the long profile; add Catchment and Floodplain for a fuller picture.</p>`;
   renderCompare();
   try { renderModules3(); } catch(e){ console.error(e); }
+  try { renderModules4(); } catch(e){ console.error(e); }
   if ($("xThr")) $("xThr").onchange = e => { const a0 = B.cellKm*B.cellKm*2, a1 = B.area/20, v = a0*(a1/a0)**(+e.target.value/100); networkStats(R, v); classifyZones(R); renderX(); };
 }
 function moduleCharts(){
@@ -329,7 +336,7 @@ function moduleCharts(){
 }
 function renderCompare(){
   const el = $("xCmpBody"); if (!el) return; const C = XR.cmp;
-  if (!C.length){ el.innerHTML = `<p class="note">Select a river or a stretch (Start here / End here), then press <b>＋ Compare</b>. Load another river and add it too, or add a GeoJSON study area: up to three side by side.</p>`; return; }
+  if (!C.length){ el.innerHTML = `<p class="note">Select a river or a stretch (Start here / End here), then press <b>＋ Compare</b>. Load another river and add it too, or add a GeoJSON study area: up to four side by side.</p>`; return; }
   const S = C.map(c => rangeStats(c.R, c.k0, c.k1));
   const rows = [["Length", s => km(s.L)], ["Fall", s => nf(s.fall) + " m"], ["Mean gradient", s => nf(s.grad, 3) + " m/km"], ["Concavity (Langbein)", s => nf(s.conc, 2)], ["Sinuosity", s => nf(s.sin, 2)], ["Mean curvature", s => Number.isFinite(s.meanK) ? nf(s.meanK, 3) + " rad/km" : "–"], ["Bends", s => String(s.bends)], ["Meander wavelength", s => km(s.lambda)], ["Median width", s => Number.isFinite(s.width) ? nf(s.width) + " m" : "–"], ["Floodplain width", s => Number.isFinite(s.fp) ? nf(s.fp) + " m" : "–"], ["Median ksn", s => Number.isFinite(s.ksn) ? tfmt(s.ksn) : "–"], ["Tributaries joining", s => String(s.tribs)], ["Dams & weirs", s => String(s.dams)],
     ["Catchment area", s => s.basin ? nf(s.basin.area) + " km²" : (s.whole && s.wd && s.wd.area ? nf(s.wd.area) + " km² (Wikidata)" : "–")], ["Hypsometric integral", s => s.basin ? nf(s.basin.HI, 2) : "–"], ["Strahler order", s => s.net ? String(s.net.maxO) : "–"], ["Drainage density", s => s.net ? nf(s.net.Dd, 3) + " km/km²" : "–"], ["Bifurcation ratio", s => s.net ? nf(s.net.Rb, 2) : "–"],
@@ -433,7 +440,7 @@ async function importGeoJSON(file, toCompare){
     R.L = R.cum[R.cum.length - 1]; if (!(R.L > 0)) throw new Error("the main line has zero length");
     xstatus(`${esc(file.name)}: ${km(R.L)} main channel, ${U.features} features. ${z ? "Using the elevations in the file…" : "No elevations in the file: reading terrain…"}`, "busy");
     buildReaches(R); await loadProfile(R); buildReaches(R);
-    if (toCompare){ if (XR.cmp.length >= 3) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: nm}); if (!XR.river){ XR.river = R; XR.pos = 0; xmap.fit(R.main); } showXTab("compare"); }
+    if (toCompare){ if (XR.cmp.length >= 4) XR.cmp.shift(); XR.cmp.push({R, k0: 0, k1: R.L, label: nm}); if (!XR.river){ XR.river = R; XR.pos = 0; xmap.fit(R.main); } showXTab("compare"); }
     else { if (XR.river){ XR.stack = XR.stack || []; XR.stack.push(XR.river); } XR.river = R; XR.pos = 0; XR.range = null; xmap.fit(R.main); renderX(); }
     xstatus(`<b>${esc(nm)}</b> loaded from ${esc(file.name)}: ${km(R.L)}, fall ${nf(R.prof.drop)} m${z ? " (elevations from the file)" : " (terrain tiles)"}.${toCompare ? " Added to the comparison." : ""}`, "ok");
   } catch(e){ console.error(e); xstatus("GeoJSON: " + esc(e.message), "err"); }

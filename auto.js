@@ -529,9 +529,10 @@ $("repPlot").onclick = () => { showApp("lab"); setTimeout(() => showTab("plot"),
 
 /* ---------- app shell ---------- */
 function showApp(k, ws){
-  if (k !== "home" && k !== "discover" && k !== "posts" && k !== "explore" && !G.D){ if (k === "lab" || k === "studio" || k === "report") toast(k === "lab" ? "Open an image or send a map view from Rivers to use the Image lab" : "Analyse an image first: open one, or send a map view from Rivers"); k = "home"; }
+  if (k !== "home" && k !== "discover" && k !== "posts" && k !== "explore" && k !== "analogues" && !G.D){ if (k === "lab" || k === "studio" || k === "report") toast(k === "lab" ? "Open an image or send a map view from Rivers to use the Image lab" : "Analyse an image first: open one, or send a map view from Rivers"); k = "home"; }
   G.ws = ws || APPWS[k] || null; if (!ws) G.sub = APPSUB[k] || G.sub; G.wsLast = G.wsLast || {}; if (G.ws) G.wsLast[G.ws] = G.sub; setTimeout(renderSubnav, 0);
   if (k === "lab") setTimeout(renderLabLink, 0);
+  if (k === "analogues") setTimeout(() => { try { renderAnalogues(); } catch(e){ console.error(e); } }, 0);
   document.querySelectorAll(".appsec").forEach(s => s.classList.toggle("on", s.id === "app-" + k));
   document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.app === k));
   if (k === "lab"){ requestAnimationFrame(() => { fitView(); showTab(G.tab || "setup"); }); }
@@ -545,10 +546,10 @@ function showApp(k, ws){
 const WS = {
   explore: [["rivers", "Rivers", () => showApp("explore")], ["places", "Places", () => showApp("discover")]],
   analyze: [["rmod", "River modules", () => { showApp("explore", "analyze"); if (window.__xr && window.__xr.river){ if (window.__xr.tab === "compare") showXTab("profile"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river first (Explore → Rivers), or open an image for the Image lab"); }], ["lab", "Image lab", () => showApp("lab")]],
-  compare: [["rcmp", "Rivers & reaches", () => { showApp("explore", "compare"); if (window.__xr && window.__xr.river){ showXTab("compare"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river, select a reach, then ＋ Compare"); }], ["dates", "Image dates", () => { showApp("lab", "compare"); if (G.D) setTimeout(() => showTab("change"), 80); }]],
-  report: [["find", "Findings", () => showApp("report")], ["fig", "Figure studio", () => showApp("studio")], ["posts", "Posts", () => showApp("posts")], ["rrep", "River report", () => { showApp("explore", "report"); if (window.__xr && window.__xr.river){ showXTab("data"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river first"); }]],
+  compare: [["rcmp", "Rivers & reaches", () => { showApp("explore", "compare"); if (window.__xr && window.__xr.river){ showXTab("compare"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river, select a reach, then ＋ Compare"); }], ["dates", "Image dates", () => { showApp("lab", "compare"); if (G.D) setTimeout(() => showTab("change"), 80); }], ["anal", "Analogue library", () => { showApp("analogues", "compare"); }]],
+  report: [["sfig", "Scientific figures", () => { showApp("explore", "report"); if (window.__xr && window.__xr.river){ showXTab("figures"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river first: figures are built from its measurements"); }], ["find", "Findings", () => showApp("report")], ["fig", "Figure studio", () => showApp("studio")], ["posts", "Posts", () => showApp("posts")], ["rrep", "River report", () => { showApp("explore", "report"); if (window.__xr && window.__xr.river){ showXTab("data"); setTimeout(() => { const t = $("xTabs"); t && t.scrollIntoView({behavior: "smooth", block: "start"}); }, 60); } else toast("Load a river first"); }]],
 };
-const APPWS = {home: null, explore: "explore", discover: "explore", lab: "analyze", report: "report", studio: "report", posts: "report"}, APPSUB = {explore: "rivers", discover: "places", lab: "lab", report: "find", studio: "fig", posts: "posts"};
+const APPWS = {home: null, analogues: "compare", explore: "explore", discover: "explore", lab: "analyze", report: "report", studio: "report", posts: "report"}, APPSUB = {analogues: "anal", explore: "rivers", discover: "places", lab: "lab", report: "find", studio: "fig", posts: "posts"};
 function renderSubnav(){
   const el = $("subnav"); if (!el) return; const w = G.ws; document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.ws === w));
   if (!w){ el.innerHTML = ""; el.classList.remove("on"); return; }
@@ -556,8 +557,8 @@ function renderSubnav(){
   el.querySelectorAll("[data-sub]").forEach(b => b.onclick = () => { const it = WS[w].find(x => x[0] === b.dataset.sub); G.sub = it[0]; it[2](); if (G.ws) G.sub = it[0]; renderSubnav(); });
 }
 function goWs(w){ const last = G.wsLast && G.wsLast[w], hasR = !!(window.__xr && window.__xr.river); let it = WS[w].find(x => x[0] === last) || WS[w][0];
-  if (!last){ if (w === "analyze" && !hasR && G.D) it = WS.analyze[1]; if (w === "report" && !G.D && hasR) it = WS.report[3]; if (w === "compare" && !hasR && G.D) it = WS.compare[1]; }
-  if ((it[0] === "find" || it[0] === "fig" || it[0] === "posts") && !G.D && hasR) it = WS.report[3]; G.sub = it[0]; it[2](); if (G.ws) G.sub = it[0]; renderSubnav(); }
+  if (!last){ if (w === "analyze" && !hasR && G.D) it = WS.analyze[1]; if (w === "report" && hasR) it = WS.report[0]; if (w === "report" && !G.D && !hasR) it = WS.report[0]; if (w === "compare" && !hasR && G.D) it = WS.compare[1]; }
+  if ((it[0] === "find" || it[0] === "fig" || it[0] === "posts") && !G.D && hasR) it = WS.report[0]; G.sub = it[0]; it[2](); if (G.ws) G.sub = it[0]; renderSubnav(); }
 document.querySelectorAll(".seg button").forEach(b => b.onclick = () => goWs(b.dataset.ws));
 $("homeOpen").onclick = () => $("fileA").click();
 $("btnDelta").onclick = () => busy("Finding the delta…", () => { analyzeDelta(); G.hl = "delta"; requestDraw(); });

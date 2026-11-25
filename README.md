@@ -102,3 +102,8 @@ Edit files in `src/` and rebuild. The GitHub Actions workflow in `.github/workfl
 
 ## Notes
 Measurements from screenshots depend on the scale you set (tap the scale bar). Colours in Google Earth imagery are processed mosaics, so treat water detection and change maps as estimates and check them against the image.
+
+
+## Validation, limitations and changes
+
+See `docs/VALIDATION.md` (synthetic self-test results and what is not yet validated), `docs/KNOWN_LIMITATIONS.md` and `docs/CHANGELOG.md`. The app includes a synthetic self-test under Rivers → Data.
